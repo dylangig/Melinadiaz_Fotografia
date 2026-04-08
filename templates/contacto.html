@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+
+<div style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <h2>Contactanos ✨</h2>
+    <p style="color: #666; margin: 10px 0 30px;">Completá el formulario y te respondemos a la brevedad.</p>
+
+    <div class="formulario">
+        <input type="text" id="nombre" placeholder="Tu nombre" maxlength="50" />
+        <input type="text" id="telefono" placeholder="Tu teléfono" maxlength="15" />
+        <textarea id="consulta" rows="5" placeholder="Tu consulta" maxlength="500" ></textarea>
+         <div class="g-recaptcha" data-sitekey="6Ler9ZksAAAAAIu8zL2s_FF27GguU2I_8-0EwjA3"></div>
+        <button class="btn" onclick="enviarWhatsApp()">Enviar por WhatsApp 💬</button>
+    </div>
+</div>
+</div>
+
+<style>
+    .formulario {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        text-align: left;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border: 1px solid #f48fb1;
+        border-radius: 10px;
+        font-family: 'Quicksand', sans-serif;
+        font-size: 15px;
+    }
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: #e91e8c;
+    }
+    .redes {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    .red-btn {
+        padding: 12px 28px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        color: white;
+    }
+    .instagram { background-color: #c13584; }
+    .whatsapp { background-color: #25d366; }
+    .facebook { background-color: #1877f2; }
+</style>
+
+<script>
+function enviarWhatsApp() {
+    var nombre = document.getElementById("nombre").value.trim();
+    var telefono = document.getElementById("telefono").value.trim();
+    var consulta = document.getElementById("consulta").value.trim();
+
+    if (nombre === "" || telefono === "" || consulta === "") {
+        alert("Por favor completá todos los campos 📝");
+        return;
+    }
+
+    var recaptcha = grecaptcha.getResponse();
+    if (recaptcha === "") {
+        alert("Por favor confirmá que no sos un robot ✅");
+        return;
+    }
+
+    var mensaje = "Hola! Mi nombre es " + nombre +
+                  ", mi teléfono es " + telefono +
+                  ". Mi consulta es: " + consulta;
+
+    var url = "https://wa.me/5491125539044?text=" + encodeURIComponent(mensaje);
+    window.open(url);
+}
+</script>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+{% endblock %}

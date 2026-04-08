@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+
+<!-- Bienvenida -->
+<section class="hero" data-aos="fade-up">
+    <h2>¡Hacemos que tu fiesta sea inolvidable!</h2>
+    <p>Somos especialistas en animaciones infantiles, stand de glitter y fotografía profesional en Buenos Aires.</p>
+    <a href="/contacto" class="btn btn-hero">Consultanos ahora</a>
+</section> 
+
+<!-- Stand de Glitter -->
+    <div class="seccion-full" data-aos="fade-up">
+    <div class="seccion-full-img">
+        <a href="{{ url_for('static', filename='imagenes/Glitter3.webp') }}" class="glightbox">
+    <img src="{{ url_for('static', filename='imagenes/Glitter3.webp') }}" />
+    </a>
+    </div>
+    <div class="seccion-full-texto">
+        <h3>Stand de Glitter y Maquillaje artistico</h3>
+        <p>Ofrecemos una experiencia completa de brillo y color con glitter en polvo o gel, gemas, strass, piedras y polvo de hadas. Incluye maquillaje artístico para niños y adultos, tatuajes personalizados y pelos locos.</p>
+        <p>Todos nuestros productos son hipoalergénicos. El stand incluye banner, cartel y espejo hollywood.</p>
+        <a href="/contacto" class="btn-chico">Consultar disponibilidad →</a>
+    </div>
+</div>
+</section>
+
+<!-- Animación -->
+<div class="seccion-full invertida" data-aos="fade-up">
+    <div class="seccion-full-img">
+        <a href="{{ url_for('static', filename='imagenes/Animacion2.webp') }}" class="glightbox">
+    <img src="{{ url_for('static', filename='imagenes/Animacion2.webp') }}" />
+    </a>
+    </div>
+    <div class="seccion-full-texto">
+        <h3>Animación Infantil</h3>
+        <p>Juegos de destreza, habilidad y competencia acorde a la edad del grupo. Incluye maquillaje artístico, glitter y máquina de burbujas.</p>
+        <p>También te ayudamos a organizar el momento de la torta y piñata. ¡Llevamos disfraz de panchero!</p>
+        <a href="/contacto" class="btn-chico">Consultar disponibilidad →</a>
+    </div>
+</div>
+</section>
+
+<!--  Fotografía -->
+<div class="seccion-full" data-aos="fade-up">
+    <div class="seccion-full-img">
+        <a href="{{ url_for('static', filename='imagenes/fotografia2.webp') }}" class="glightbox">
+    <img src="{{ url_for('static', filename='imagenes/fotografia2.webp') }}" />
+    </a>
+    </div>
+    <div class="seccion-full-texto">
+        <h3>Fotografía Profesional</h3>
+        <p>Fotos ilimitadas durante toda la fiesta, editadas en alta calidad y entregadas en formato digital por Google Drive.</p>
+        <p>Podés ver los trabajos en <a href="https://instagram.com/melinadiazfotografia" target="_blank" style="color: #e91e8c; font-weight: 700;">@melinadiazfotografia</a> en Instagram.</p>
+        <a href="/contacto" class="btn-chico">Consultar disponibilidad →</a>
+    </div>
+</div>
+
+<!-- Galería -->
+<section class="galeria-seccion" data-aos="fade-up">
+    <h3>Nuestros trabajos</h3>
+    <div class="galeria">
+    {% for foto in fotos %}
+        <div class="foto-card">
+            <a href="{{ url_for('static', filename='imagenes/' + foto) }}" class="glightbox">
+                <img src="{{ url_for('static', filename='imagenes/' + foto) }}" />
+            </a>
+        </div>
+    {% endfor %}
+</div>
+</section>
+
+<style>
+    /* Hero */
+    .hero {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #fce4ec, #fff5f9);
+        border-radius: 20px;
+        margin-bottom: 60px;
+    }
+    .hero h2 {
+        font-size: 32px;
+        color: #e91e8c;
+        margin-bottom: 15px;
+    }
+    .hero p {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 25px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+ /* Secciones */
+    .seccion-full:nth-child(odd) .seccion-full-texto {
+        background-color: #fce4ec;
+    }
+    .seccion-full:nth-child(even) .seccion-full-texto {
+        background-color: white;
+    }
+    .seccion-full {
+     display: flex;
+    align-items: stretch;
+    margin: 0 -60px 80px -60px;
+    gap: 0;
+    }
+    .seccion-full.invertida {
+        flex-direction: row-reverse;
+    }
+    .seccion-full-img {
+        flex: 1.3;
+        display:flex;
+    }
+    .seccion-full-img img {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        display: block;
+        border-radius: 0;
+        min-height: 400px;
+    }
+    .seccion-full-texto {
+        flex: 1;
+        padding: 80px 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background-color: #fce4ec;
+        min-height: 100%;
+        align-self: stretch;
+    }
+    .seccion-full-texto h3 {
+        font-size: 30px;
+        color: #e91e8c;
+        margin-bottom: 20px;
+    }
+    .seccion-full-texto p {
+        color: #555;
+        font-size: 17px;
+        line-height: 1.9;
+        margin-bottom: 15px;
+    }
+    .btn-chico {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 12px 28px;
+        background-color: #f48fb1;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: background-color 0.3s;
+        align-self: flex-start;
+    }
+    .btn-chico:hover {
+        background-color: #e91e8c;
+    }
+    .btn-hero {
+        background: linear-gradient(135deg, #e91e8c, #f48fb1);
+        box-shadow: 0 8px 20px rgba(233, 30, 140, 0.4);
+        font-size: 18px;
+        padding: 16px 36px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .btn-hero:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(233, 30, 140, 0.5);
+        background-color: #e91e8c;
+    }
+
+    /* Galería */
+    .galeria-seccion {
+        text-align: center;
+        margin-top: 40px;
+    }
+    .galeria-seccion h3 {
+        font-size: 24px;
+        color: #e91e8c;
+        margin-bottom: 25px;
+    }
+    .galeria {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .foto-card {
+        overflow: hidden;
+        border-radius: 20px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .foto-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+
+    .foto-card img {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s;
+    }
+    .foto-card img:hover {
+        transform: scale(1.05);
+    }
+@media (max-width: 768px) {
+    .seccion-full,
+    .seccion-full.invertida {
+        flex-direction: column !important;
+        height: auto;
+        margin: 0 -20px 40px -20px;
+        }
+        .seccion-full-img img {
+            height: 300px;
+            width: 100%;
+        }
+        .seccion-full-texto {
+            padding: 30px 25px;
+        }
+        .seccion-full-texto h3 {
+            font-size: 22px;
+        }
+        .hero h2 {
+            font-size: 24px;
+        }
+        .galeria {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .foto-card img {
+            height: 120px;
+        }
+}
+
+</style>
+
+{% endblock %}
