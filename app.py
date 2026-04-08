@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request
-import os
 
 app = Flask(__name__)
 
@@ -19,42 +18,32 @@ servicios = [
         "descripcion": "Fotos ilimitadas, todas editadas en alta calidad y entregadas en formato digital por Google Drive.de cancelación.",
         "fotos": ["fotografia1.webp", "fotografia2.webp"]
     }
-    ]
+]
 
-# Definimos las categorías basándonos en tus carpetas de static/imagenes/
 categorias = [
     {"nombre": "BOOK INFANTIL", "slug": "infantil", "portada": "portada-infantil.webp"},
     {"nombre": "15 AÑOS", "slug": "quince", "portada": "portada-15.webp"},
     {"nombre": "BODAS", "slug": "bodas", "portada": "portada-bodas.webp"}
 ]
-
+TRABAJOS_DATA = {
+    "infantil": [
+        {"slug": "jose", "nombre": "Jose", "año": "2026", "fotos": ["1.webp", "2.webp", "3.webp","4.webp","5.webp","6.webp","7.webp","8.webp","9.webp","10.webp", "11.webp","12.webp","13.webp"]}, 
+        {"slug": "vicky", "nombre": "Vicky", "año": "2024", "fotos": ["vicky1.webp", "vicky2.webp"]}
+    ],
+    "quince": [
+        {"slug": "martina", "nombre": "Martina", "año": "2023", "fotos": ["1.webp", "2.webp"]}
+    ],
+    "bodas": [ ]
+}
 @app.route("/")
 def inicio():
     return render_template("inicio.html", categorias=categorias)
 
 @app.route("/galeria/<categoria_slug>")
 def ver_categoria(categoria_slug):
-    ruta_categoria = os.path.join('static', 'imagenes', categoria_slug)
-    trabajos_con_portada = []
 
-    if os.path.exists(ruta_categoria):
-        
-        subcarpetas = [f for f in os.listdir(ruta_categoria) if os.path.isdir(os.path.join(ruta_categoria, f))]
-        
-        for carpeta in subcarpetas:
-            ruta_trabajo = os.path.join(ruta_categoria, carpeta)
-           
-            fotos_trabajo = [f for f in os.listdir(ruta_trabajo) if f.lower().endswith(('.webp', '.jpg', '.jpeg', '.png'))]
-            
-            foto_miniatura = fotos_trabajo[0] if fotos_trabajo else None
-            
-            trabajos_con_portada.append({
-                'nombre': carpeta.replace('_', ' ').capitalize(),
-                'slug': carpeta,
-                'portada': foto_miniatura
-            })
-            
-    return render_template("categoria.html", categoria=categoria_slug, trabajos=trabajos_con_portada)
+    trabajos = TRABAJOS_DATA.get(categoria_slug, [])
+    return render_template("categoria.html", categoria=categoria_slug, trabajos=trabajos)
 
 @app.route("/servicios")
 def mostrar_servicios():
@@ -66,15 +55,17 @@ def contacto():
 
 @app.route("/galeria/<categoria>/<trabajo>")
 def ver_fotos_trabajo(categoria, trabajo):
-    ruta_fotos = os.path.join('static', 'imagenes', categoria, trabajo)
+    lista_trabajos = TRABAJOS_DATA.get(categoria, [])
     
-    if os.path.exists(ruta_fotos):
-        fotos = [f for f in os.listdir(ruta_fotos) if f.lower().endswith(('.webp', '.jpg', '.jpeg', '.png'))]
-    else:
-        fotos = []
-        
-    return render_template("trabajo_detalle.html", categoria=categoria, trabajo=trabajo, fotos=fotos)
+    trabajo_info = next((t for t in lista_trabajos if t["slug"] == trabajo), None)
+
+    if not trabajo_info:
+        return "Trabajo no encontrado", 404
+    
+    return render_template("trabajo_detalle.html", 
+                           categoria=categoria, 
+                           trabajo=trabajo_info, 
+                           fotos=trabajo_info["fotos"])
 
 if __name__ == "__main__":
     app.run(debug=True)
-
