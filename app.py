@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+import os
 
 app = Flask(__name__)
 
@@ -20,19 +21,40 @@ servicios = [
     }
     ]
 
-fotos = ["1.webp", "2.webp", "3.webp", "4.webp", "5.webp", "6.webp", "7.webp","8.webp","9.webp"]
+# Definimos las categorías basándonos en tus carpetas de static/imagenes/
+categorias = [
+    {"nombre": "BOOK INFANTIL", "slug": "infantil", "portada": "portada-infantil.webp"},
+    {"nombre": "15 AÑOS", "slug": "quince", "portada": "portada-15.webp"},
+    {"nombre": "BODAS", "slug": "bodas", "portada": "portada-bodas.webp"}
+]
+
+@app.route("/")
+def inicio():
+    # Ahora pasamos las categorías a inicio.html en lugar de la lista de fotos plana
+    return render_template("inicio.html", categorias=categorias)
+
+@app.route("/galeria/<categoria_slug>")
+def ver_categoria(categoria_slug):
+    # Ruta física a la carpeta: static/imagenes/infantil, etc.
+    ruta_categoria = os.path.join('static', 'imagenes', categoria_slug)
+    
+    # Buscamos subcarpetas (ej: victoria, jose) dentro de la categoría
+    if os.path.exists(ruta_categoria):
+        # Filtramos para obtener solo nombres de carpetas
+        trabajos = [f for f in os.listdir(ruta_categoria) if os.path.isdir(os.path.join(ruta_categoria, f))]
+    else:
+        trabajos = []
+        
+    return render_template("categoria.html", categoria=categoria_slug, trabajos=trabajos)
+
+@app.route("/servicios")
+def mostrar_servicios():
+    return render_template("servicios.html", servicios=servicios)
 
 @app.route("/contacto")
 def contacto():
     return render_template("contacto.html")
 
-@app.route("/")
-def inicio():
-    return render_template("inicio.html", fotos=fotos )
-
-@app.route("/servicios")
-def mostrar_servicios():
-    return render_template("servicios.html", servicios=servicios)
 if __name__ == "__main__":
     app.run(debug=True)
 

@@ -60,18 +60,61 @@
 <section class="galeria-seccion" data-aos="fade-up">
     <h3>Nuestros trabajos</h3>
     <div class="galeria">
-    {% for foto in fotos %}
-        <div class="foto-card">
-            <a href="{{ url_for('static', filename='imagenes/' + foto) }}" class="glightbox">
-                <img src="{{ url_for('static', filename='imagenes/' + foto) }}" />
-            </a>
-        </div>
+        {% for cat in categorias %}
+    <div class="foto-card">
+        <a href="{{ url_for('ver_categoria', categoria_slug=cat.slug) }}">
+            <img src="{{ url_for('static', filename='imagenes/' + cat.portada) }}" style="width:100%; display:block;">
+            
+            <div class="info-overlay"> <h3>{{ cat.nombre }}</h3>
+                <p>2026</p>
+            </div>
+        </a>
+    </div>
     {% endfor %}
-</div>
+    </div>
 </section>
 
 <style>
-    /* Hero */
+    .foto-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+    .info-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        opacity: 0; 
+        transition: opacity 0.4s ease;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .foto-card:hover .info-overlay {
+        opacity: 1;
+    }
+
+    .info-overlay h3 {
+        font-family: 'Arial', sans-serif;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .info-overlay p {
+        font-size: 1rem;
+        margin-top: 5px;
+    }
     .hero {
         text-align: center;
         padding: 60px 20px;
