@@ -27,8 +27,8 @@ categorias = [
 ]
 TRABAJOS_DATA = {
     "infantil": [
-        {"slug": "jose", "nombre": "Jose", "año": "2026", "fotos": ["1.webp", "2.webp", "3.webp","4.webp","5.webp","6.webp","7.webp","8.webp","9.webp","10.webp", "11.webp","12.webp","13.webp"]}, 
-        {"slug": "vicky", "nombre": "Vicky", "año": "2024", "fotos": ["vicky1.webp", "vicky2.webp"]}
+        {"slug": "Jose", "nombre": "Jose", "año": "2026", "fotos": ["1.webp", "2.webp", "3.webp","4.webp","5.webp","6.webp","7.webp","8.webp","9.webp","10.webp", "11.webp","12.webp","13.webp","14.webp""]}, 
+        {"slug": "Vicky", "nombre": "Vicky", "año": "2024", "fotos": ["vicky1.webp", "vicky2.webp"]}
     ],
     "quince": [
         {"slug": "martina", "nombre": "Martina", "año": "2023", "fotos": ["1.webp", "2.webp"]}
