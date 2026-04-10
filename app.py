@@ -33,7 +33,7 @@ TRABAJOS_DATA = {
             "slug": "melina", 
             "nombre": "Melina", 
             "año": "2026", 
-            "fotos": ["mel1.webp", "mel2.webp", "mel3.webp"]
+            "fotos": ["mel1.webp", "mel2.webp", "mel3.webp", "mel4.webp", "mel5.webp", "mel6.webp", "mel7.webp", "mel8.webp", "mel9.webp", "mel10.webp"]
         }, 
         {
             "slug": "victoria", 
