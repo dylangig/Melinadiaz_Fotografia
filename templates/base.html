@@ -13,46 +13,68 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background-color: #fff5f9;
-            color: #333;
-        }
-        header {
-            background: linear-gradient(135deg, #fce4ec, #f8bbd0);
-            padding: 30px 20px 20px;
-            text-align: center;
-        }
-        header img {
-            width: 180px;
-            height: auto;
-            border-radius: 0;
-            object-fit: contain;
-        }
-        nav {
-            background-color: #f48fb1;
-            padding: 12px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 20px;
-            font-size: 16px;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
+        * header {
+    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+    padding: 30px 20px 20px;
+    text-align: center;
+    transition: all 0.4s ease;
+    }
+    header img {
+        width: 180px;
+        height: auto;
+        object-fit: contain;
+        transition: all 0.4s ease;
+    }
+    nav {
+        background-color: #f48fb1;
+        padding: 12px 30px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.4s ease;
+    }
+    nav .nav-logo {
+        display: none;
+        opacity: 0;
+        transition: all 0.4s ease;
+        margin-right: auto;
+    }
+    nav .nav-logo img {
+        height: 36px;
+        width: auto;
+        object-fit: contain;
+    }
+    nav .nav-links {
+        display: flex;
+        gap: 0;
+        align-items: center;
+    }
+    nav a {
+        color: white;
+        text-decoration: none;
+        margin: 0 20px;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+    nav a:hover { text-decoration: underline;
+    }
+    body.scrolled header {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+    }
+    body.scrolled nav {
+        justify-content: flex-start;
+    }
+    body.scrolled nav .nav-logo {
+        display: block;
+        opacity: 1;
+    }
         .contenido {
             max-width: 1300px;
             margin: 40px auto;
@@ -137,12 +159,18 @@ h1, h2, h3 {
         once: true
     });
     </script>
-    <header>
+    <header id="site-header">
         <img src="{{ url_for('static', filename='imagenes/logo.webp') }}" alt="Logo Animaciones C&C" />
     </header>
     <nav>
-        <a href="/">Inicio</a>
-        <a href="/contacto">Contacto</a>
+        <div class="nav-logo">
+            <img src="{{ url_for('static', filename='imagenes/logo.webp') }}" alt="Logo" />
+        </div>
+        <div class="nav-links">
+            <a href="/">Inicio</a>
+            <a href="/galeria/infantil">Galería</a>
+            <a href="/contacto">Contacto</a>
+        </div>
     </nav>
 
     <div class="contenido">
@@ -173,6 +201,15 @@ h1, h2, h3 {
         const lightbox = GLightbox({
             touchNavigation: true,
             loop: true,
+        });
+    </script>
+    <script>
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 60) {
+                document.body.classList.add('scrolled');
+            } else {
+                document.body.classList.remove('scrolled');
+            }
         });
     </script>
 </body>
