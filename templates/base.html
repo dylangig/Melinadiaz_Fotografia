@@ -35,7 +35,7 @@
             overflow: hidden;
         }
         header img {
-            width: 180px;
+            width: 280px;
             height: auto;
             object-fit: contain;
             transition: all 0.4s ease;
@@ -65,7 +65,7 @@
             margin-right: auto;
         }
         nav .nav-logo img {
-            height: 36px;
+            height: 52px;
             width: auto;
             object-fit: contain;
         }
@@ -205,13 +205,16 @@
     <script>AOS.init({ duration: 800, once: true });</script>
 
     <header id="site-header">
+    <a href="/">
         <img src="{{ url_for('static', filename='imagenes/logo.webp') }}" alt="Logo Melina Diaz Fotografia" />
+    </a>
     </header>
 
     <nav>
         <div class="nav-logo">
-            <img src="{{ url_for('static', filename='imagenes/logo.webp') }}" alt="Logo" />
+           <a href="/"><img src="{{ url_for('static', filename='imagenes/logo.webp') }}" alt="Logo" /></a>
         </div>
+
         <div class="nav-links">
             <a href="/">Inicio</a>
             <div class="nav-dropdown">
@@ -222,6 +225,7 @@
                     <a href="/galeria/bodas">Bodas</a>
                 </div>
             </div>
+            <a href="/#sobre-mi">Sobre mí</a>
             <a href="/contacto">Contacto</a>
         </div>
     </nav>
