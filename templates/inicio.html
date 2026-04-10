@@ -283,4 +283,75 @@
 
 </style>
 
+<section class="sobre-mi" data-aos="fade-up">
+    <div class="sobre-mi-img">
+        <img src="{{ url_for('static', filename='imagenes/sobre-mi.webp') }}" alt="Melina Díaz Fotógrafa" />
+    </div>
+    <div class="sobre-mi-texto">
+        <h2>Sobre mí</h2>
+        <p>
+            Hola, soy <strong>Melina</strong> — fotógrafa profesional basada en Buenos Aires.
+            Me especializo en capturar momentos únicos en books infantiles, quinceañeras y bodas.
+        </p>
+        <p>
+            Creo que cada sesión cuenta una historia, y mi trabajo es que esa historia 
+            quede plasmada en imágenes que duren toda la vida.
+        </p>
+        <p>
+            Trabajo con luz natural y artificial, siempre buscando la emoción genuina 
+            en cada toma. ¡Me encantaría ser parte de tu momento especial!
+        </p>
+        <a href="/contacto" class="btn-chico">Hablemos →</a>
+    </div>
+</section>
+
+<style>
+    .sobre-mi {
+        display: flex;
+        align-items: center;
+        gap: 60px;
+        margin: 80px 0;
+    }
+    .sobre-mi-img {
+        flex: 1;
+        border-radius: 20px;
+        overflow: hidden;
+        aspect-ratio: 3 / 4;
+        max-width: 380px;
+    }
+    .sobre-mi-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .sobre-mi-texto {
+        flex: 1.2;
+    }
+    .sobre-mi-texto h2 {
+        font-family: 'Playfair Display', serif;
+        color: #d81b60;
+        font-size: 2.2rem;
+        font-weight: 400;
+        letter-spacing: 2px;
+        margin-bottom: 24px;
+    }
+    .sobre-mi-texto p {
+        color: #555;
+        font-size: 17px;
+        line-height: 1.9;
+        margin-bottom: 16px;
+    }
+    @media (max-width: 768px) {
+        .sobre-mi {
+            flex-direction: column;
+            gap: 30px;
+        }
+        .sobre-mi-img {
+            max-width: 100%;
+            aspect-ratio: 4 / 3;
+        }
+    }
+</style>
+
 {% endblock %}
