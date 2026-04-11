@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block titulo %}Página no encontrada — Melina Diaz Fotografia{% endblock %}
+
+{% block contenido %}
+<style>
+    .error-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 80px 20px;
+        min-height: 60vh;
+    }
+    .error-numero {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(6rem, 20vw, 12rem);
+        font-weight: 700;
+        color: #f8bbd0;
+        line-height: 1;
+        margin-bottom: 0;
+        user-select: none;
+    }
+    .error-titulo {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.4rem, 4vw, 2rem);
+        color: #d81b60;
+        font-weight: 400;
+        letter-spacing: 2px;
+        margin-bottom: 16px;
+    }
+    .error-subtitulo {
+        color: #aaa;
+        font-size: 0.85rem;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-bottom: 40px;
+    }
+    .error-texto {
+        color: #777;
+        font-size: 16px;
+        line-height: 1.8;
+        max-width: 420px;
+        margin-bottom: 40px;
+    }
+    .error-acciones {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .error-btn-primary {
+        padding: 14px 36px;
+        background: #d81b60;
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: background 0.3s, transform 0.2s;
+    }
+    .error-btn-primary:hover {
+        background: #ad1457;
+        transform: translateY(-2px);
+    }
+    .error-btn-secondary {
+        padding: 14px 36px;
+        background: transparent;
+        color: #d81b60;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border: 2px solid #f8bbd0;
+        transition: border-color 0.3s, transform 0.2s;
+    }
+    .error-btn-secondary:hover {
+        border-color: #d81b60;
+        transform: translateY(-2px);
+    }
+    .error-camara {
+        font-size: 4rem;
+        margin-bottom: 24px;
+        animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-12px); }
+    }
+    @media (max-width: 768px) {
+        .error-acciones { flex-direction: column; align-items: center; }
+        .error-btn-primary, .error-btn-secondary { width: 100%; text-align: center; }
+    }
+</style>
+
+<div class="error-wrapper" data-aos="fade-up">
+    <div class="error-camara">📷</div>
+    <p class="error-numero">404</p>
+    <p class="error-subtitulo">Momento no encontrado</p>
+    <h1 class="error-titulo">Esta página no existe</h1>
+    <p class="error-texto">
+        Parece que el momento que buscás no está en nuestro álbum.
+        Puede que la URL esté mal escrita o que la página haya sido movida.
+    </p>
+    <div class="error-acciones">
+        <a href="/" class="error-btn-primary">Volver al inicio</a>
+        <a href="/contacto" class="error-btn-secondary">Contactanos</a>
+    </div>
+</div>
+{% endblock %}

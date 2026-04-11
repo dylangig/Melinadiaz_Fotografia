@@ -1,12 +1,12 @@
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for, session, flash
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for, session, flash, Response
 import os
 
 app = Flask(__name__)
 app.secret_key = "clave-secreta-melina-2026"
 
 ADMIN_PASSWORD = "melina2026"
-
 BASE_IMAGENES = os.path.join(app.root_path, 'static', 'imagenes')
+DOMINIO = "https://melinadiazfotografia.com.ar"
 
 categorias = [
     {"nombre": "BOOK INFANTIL", "slug": "infantil", "portada": "portada-infantil.webp"},
@@ -38,6 +38,8 @@ def get_trabajos_data():
             })
     return trabajos
 
+# ─── RUTAS PRINCIPALES ────────────────────
+
 @app.route("/")
 def inicio():
     return render_template("inicio.html", categorias=categorias)
@@ -52,7 +54,7 @@ def ver_fotos_trabajo(categoria, trabajo):
     lista = get_trabajos_data().get(categoria, [])
     trabajo_info = next((t for t in lista if t["slug"] == trabajo.lower()), None)
     if not trabajo_info:
-        return "Trabajo no encontrado", 404
+        return render_template("404.html"), 404
     return render_template("trabajo_detalle.html",
                            categoria=categoria,
                            trabajo=trabajo_info,
@@ -62,7 +64,54 @@ def ver_fotos_trabajo(categoria, trabajo):
 def contacto():
     return render_template("contacto.html")
 
-# ─── ADMIN ───────────────────────────────────────────────
+@app.errorhandler(404)
+def pagina_no_encontrada(e):
+    return render_template("404.html"), 404
+
+# ─── SEO ──────────────────
+
+@app.route("/sitemap.xml")
+def sitemap():
+    trabajos_data = get_trabajos_data()
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+
+    paginas = [
+        ("", "1.0",  "weekly"),
+        ("/contacto", "0.8", "monthly"),
+        ("/galeria/infantil", "0.9", "weekly"),
+        ("/galeria/quince",   "0.9", "weekly"),
+        ("/galeria/bodas",    "0.9", "weekly"),
+    ]
+    for path, priority, freq in paginas:
+        xml += f'''    <url>
+        <loc>{DOMINIO}{path}</loc>
+        <changefreq>{freq}</changefreq>
+        <priority>{priority}</priority>
+    </url>\n'''
+
+    for categoria, trabajos in trabajos_data.items():
+        for trabajo in trabajos:
+            xml += f'''    <url>
+        <loc>{DOMINIO}/galeria/{categoria}/{trabajo["slug"]}</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>\n'''
+
+    xml += '</urlset>'
+    return Response(xml, mimetype='application/xml')
+
+@app.route("/robots.txt")
+def robots():
+    txt = f"""User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: {DOMINIO}/sitemap.xml"""
+    return Response(txt, mimetype='text/plain')
+
+# ─── ADMIN ─────────────
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
