@@ -455,6 +455,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
     <script>
+        // Inicializar GLightbox
         const lightbox = GLightbox({
             selector: '.glightbox',
             touchNavigation: true,
@@ -462,6 +463,7 @@
             zoomable: true
         });
 
+        // Scroll para encoger header y mostrar logo en nav
         let scrolled = false;
         window.addEventListener('scroll', () => {
             const y = window.scrollY;
@@ -474,6 +476,7 @@
             }
         });
 
+        // Dropdown de galería
         document.querySelector('.nav-dropdown-toggle').addEventListener('click', function(e) {
             e.preventDefault();
             this.closest('.nav-dropdown').classList.toggle('open');
@@ -484,6 +487,7 @@
             }
         });
 
+        // Menú hamburguesa
         const hamburguesa = document.getElementById('hamburguesa');
         const navLinks = document.getElementById('nav-links');
         hamburguesa.addEventListener('click', function() {
@@ -501,6 +505,17 @@
             });
         });
 
+        // 🔄 Función para cerrar GLightbox de forma segura
+        function closeGlightbox() {
+            if (window.lightbox && typeof window.lightbox.close === 'function') {
+                window.lightbox.close();
+            }
+            // Eliminación manual por si queda algún overlay
+            const glightboxOverlays = document.querySelectorAll('.glightbox-clean, .goverlay');
+            glightboxOverlays.forEach(el => el.remove());
+            document.body.classList.remove('glightbox-open');
+        }
+
         // Transición suave al hacer clic en enlaces internos
         document.querySelectorAll('a').forEach(link => {
             if (link.hostname === window.location.hostname &&
@@ -511,6 +526,10 @@
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const href = this.href;
+                    
+                    // Cerrar GLightbox antes de navegar
+                    closeGlightbox();
+                    
                     document.body.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     document.body.style.opacity = '0';
                     document.body.style.transform = 'translateY(-8px)';
@@ -521,11 +540,20 @@
             }
         });
 
+        // 🟢 Restaurar opacidad al volver atrás/adelante (bfcache)
         window.addEventListener('pageshow', function(event) {
+            document.body.style.opacity = '1';
+            document.body.style.transform = 'none';
+            
+            // Si la página se restauró desde caché, asegurar que GLightbox esté cerrado
             if (event.persisted) {
-                document.body.style.opacity = '1';
-                document.body.style.transform = 'none';
+                closeGlightbox();
             }
+        });
+
+        // Por si el usuario navega hacia afuera sin pasar por el manejador de clic
+        window.addEventListener('beforeunload', function() {
+            closeGlightbox();
         });
     </script>
 </body>
