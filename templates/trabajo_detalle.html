@@ -60,13 +60,20 @@
 
 <div class="grilla-fotografica">
     {% for foto in fotos %}
+        {% if descripcion_personalizada %}
+            {% set alt_text = descripcion_personalizada + " - Foto " ~ loop.index %}
+        {% else %}
+            {% set cat_nombre = {"infantil": "Book infantil", "quince": "15 años", "bodas": "Boda"}.get(categoria, categoria) %}
+            {% set alt_text = "Sesión de " ~ cat_nombre ~ " " ~ trabajo.nombre ~ " en Zona Sur Buenos Aires - Foto " ~ loop.index %}
+        {% endif %}
     <div class="item-foto">
         <a href="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
            class="glightbox"
-           data-gallery="galeria-sesion">
+           data-gallery="galeria-sesion"
+           data-title="{{ alt_text }}">
             <img src="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
-            alt="Foto {{ loop.index }} de la sesión de {{ trabajo.nombre }} — {{ categoria.replace('_', ' ').capitalize() }}"
-            loading="lazy">
+                 alt="{{ alt_text }}"
+                 loading="lazy">
         </a>
     </div>
     {% endfor %}

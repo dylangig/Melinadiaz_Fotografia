@@ -55,10 +55,20 @@ def ver_fotos_trabajo(categoria, trabajo):
     trabajo_info = next((t for t in lista if t["slug"] == trabajo.lower()), None)
     if not trabajo_info:
         return render_template("404.html"), 404
+
+    # Leer descripción personalizada si existe
+    carpeta = os.path.join(BASE_IMAGENES, categoria, trabajo_info["slug"])
+    descripcion_personalizada = None
+    desc_path = os.path.join(carpeta, "descripcion.txt")
+    if os.path.exists(desc_path):
+        with open(desc_path, "r", encoding="utf-8") as f:
+            descripcion_personalizada = f.read().strip()
+
     return render_template("trabajo_detalle.html",
                            categoria=categoria,
                            trabajo=trabajo_info,
-                           fotos=trabajo_info["fotos"])
+                           fotos=trabajo_info["fotos"],
+                           descripcion_personalizada=descripcion_personalizada)
 
 @app.route("/contacto")
 def contacto():
@@ -135,10 +145,16 @@ def nuevo_trabajo():
 
     categoria = request.form["categoria"]
     nombre    = request.form["nombre"].strip().lower().replace(" ", "-")
+    descripcion = request.form.get("descripcion", "").strip()
     fotos     = request.files.getlist("fotos")
 
     carpeta = os.path.join(BASE_IMAGENES, categoria, nombre)
     os.makedirs(carpeta, exist_ok=True)
+
+    # Guardar descripción en archivo
+    if descripcion:
+        with open(os.path.join(carpeta, "descripcion.txt"), "w", encoding="utf-8") as f:
+            f.write(descripcion)
 
     for foto in fotos:
         if foto.filename:

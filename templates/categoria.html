@@ -70,8 +70,11 @@
     {% for trabajo in trabajos %}
     <a href="{{ url_for('ver_fotos_trabajo', categoria=categoria, trabajo=trabajo.slug) }}" style="text-decoration: none;">
         <div class="tarjeta-trabajo">
+            {# Definimos el nombre bonito de la categoría #}
+            {% set cat_nombre = {"infantil": "Book infantil", "quince": "15 años", "bodas": "Boda"}.get(categoria, categoria) %}
             <img src="{{ url_for('static', filename='imagenes/' + categoria + '/' + trabajo.slug + '/' + (trabajo.fotos[0] if trabajo.fotos else 'default.jpg')) }}"
-                alt="Portada de la sesión de {{ trabajo.nombre }}, {{ categoria.replace('_', ' ').capitalize() }} {{ trabajo.año }}">
+                 alt="Portada de {{ trabajo.nombre }} — {{ cat_nombre }} en Zona Sur Buenos Aires"
+                 loading="lazy">
             <div class="tarjeta-overlay">
                 <p class="tarjeta-nombre">{{ trabajo.nombre }}</p>
                 <p class="tarjeta-anio">{{ trabajo.año if trabajo.año else "2026" }}</p>
