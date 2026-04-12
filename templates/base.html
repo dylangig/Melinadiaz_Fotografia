@@ -501,6 +501,7 @@
             });
         });
 
+        // Transición suave al hacer clic en enlaces internos
         document.querySelectorAll('a').forEach(link => {
             if (link.hostname === window.location.hostname &&
                 !link.href.includes('#') &&
@@ -513,8 +514,17 @@
                     document.body.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     document.body.style.opacity = '0';
                     document.body.style.transform = 'translateY(-8px)';
-                    setTimeout(() => window.location.href = href, 300);
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 300);
                 });
+            }
+        });
+
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                document.body.style.opacity = '1';
+                document.body.style.transform = 'none';
             }
         });
     </script>

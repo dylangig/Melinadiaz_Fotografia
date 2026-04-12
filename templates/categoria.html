@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
-{% block contenido %}
+{# ─── TÍTULO SEO (se coloca en el <head>) ─── #}
 {% block titulo %}
     {{ categoria.replace('_', ' ').capitalize() }} — Melina Diaz Fotografia
 {% endblock %}
+
+{# ─── CONTENIDO VISIBLE ─── #}
+{% block contenido %}
 <style>
     .categoria-titulo {
         font-family: 'Playfair Display', "https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Playfair+Display:wght@700&display=swap";
@@ -70,7 +73,7 @@
     {% for trabajo in trabajos %}
     <a href="{{ url_for('ver_fotos_trabajo', categoria=categoria, trabajo=trabajo.slug) }}" style="text-decoration: none;">
         <div class="tarjeta-trabajo">
-            {# Definimos el nombre bonito de la categoría #}
+            {# Definimos el nombre bonito de la categoría para el alt #}
             {% set cat_nombre = {"infantil": "Book infantil", "quince": "15 años", "bodas": "Boda"}.get(categoria, categoria) %}
             <img src="{{ url_for('static', filename='imagenes/' + categoria + '/' + trabajo.slug + '/' + (trabajo.fotos[0] if trabajo.fotos else 'default.jpg')) }}"
                  alt="Portada de {{ trabajo.nombre }} — {{ cat_nombre }} en Zona Sur Buenos Aires"
