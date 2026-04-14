@@ -164,8 +164,12 @@
                     <div class="desc-actual">🔍 Alt SEO: {{ t.descripcion }}</div>
                 {% endif %}
                 <div class="trabajo-acciones">
-                    <button class="admin-btn-secondary"
-                        onclick="abrirEditar('{{ cat.slug }}', '{{ t.slug }}', '{{ t.descripcion_evento or '' }}', '{{ t.descripcion or '' }}')">
+                
+                    <button class="admin-btn-secondary btn-editar-trabajo"
+                            data-categoria="{{ cat.slug }}"
+                            data-trabajo="{{ t.slug }}"
+                            data-desc-evento="{{ t.descripcion_evento or '' }}"
+                            data-desc-alt="{{ t.descripcion or '' }}">
                         Editar textos
                     </button>
                     <form method="POST" action="/admin/eliminar-trabajo"
@@ -208,16 +212,33 @@
 </div>
 
 <script>
-function abrirEditar(cat, trabajo, eventoDesc, altDesc) {
-    document.getElementById('edit-categoria').value           = cat;
-    document.getElementById('edit-trabajo').value             = trabajo;
-    document.getElementById('edit-descripcion-evento').value  = eventoDesc;
-    document.getElementById('edit-descripcion').value         = altDesc;
+// Función para abrir el modal con los datos del trabajo
+function abrirEditar(categoria, trabajo, descEvento, descAlt) {
+    document.getElementById('edit-categoria').value = categoria;
+    document.getElementById('edit-trabajo').value = trabajo;
+    document.getElementById('edit-descripcion-evento').value = descEvento;
+    document.getElementById('edit-descripcion').value = descAlt;
     document.getElementById('modal-editar').classList.add('open');
 }
+
 function cerrarEditar() {
     document.getElementById('modal-editar').classList.remove('open');
 }
+
+// Event listener para los botones Editar (delegación)
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-editar-trabajo');
+    if (!btn) return;
+    
+    const categoria = btn.dataset.categoria;
+    const trabajo = btn.dataset.trabajo;
+    const descEvento = btn.dataset.descEvento || '';
+    const descAlt = btn.dataset.descAlt || '';
+    
+    abrirEditar(categoria, trabajo, descEvento, descAlt);
+});
+
+// Cerrar modal al hacer clic fuera del contenido
 document.getElementById('modal-editar').addEventListener('click', function(e) {
     if (e.target === this) cerrarEditar();
 });
