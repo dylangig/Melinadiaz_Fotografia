@@ -143,12 +143,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
 
     <style>
+        img, video, iframe {
+            max-width: 100%;
+            height: auto;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #fff5f9;
             color: #333;
             animation: fadeIn 0.4s ease;
+            overflow-x: hidden;
+            position: relative;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
@@ -250,7 +260,7 @@
         .hamburguesa.open span:nth-child(2) { opacity: 0; }
         .hamburguesa.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
         .contenido { max-width: 1300px; margin: 0 auto; padding: 0 60px; }
-        .seccion-full { margin-left: -60px; margin-right: -60px; }
+        .seccion-full { margin-left: -60px; margin-right: -60px; overflow-x: hidden; }
         h2 { color: #e91e8c; margin-bottom: 10px; }
         .btn {
             display: inline-block;
@@ -320,7 +330,7 @@
         }
 
         @media (max-width: 768px) {
-            .contenido { padding: 0 15px; margin: 20px auto; }
+            .contenido { padding: 0 15px; margin: 20px auto; overflow-x: hidden; }
             .hamburguesa { display: flex; }
             nav { flex-wrap: wrap; padding: 12px 20px; justify-content: space-between; }
             nav .nav-links {
