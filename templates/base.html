@@ -173,6 +173,7 @@
         .wrapper {
             overflow-x: hidden;
             width: 100%;
+            margin-top: -1px;
         }
 
         /* ===== HEADER ===== */
@@ -347,6 +348,11 @@
             max-width: 1300px;
             margin: 0 auto;
             padding: 0 60px;
+            display: flex;
+            flex-direction: column;
+        }
+        .contenido > *:first-child {
+            margin-top: 0 !important;
         }
 
         /* Botones */
