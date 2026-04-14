@@ -366,6 +366,17 @@
             body.scrolled nav .nav-logo { display: none; }
             .wsp-flotante { bottom: 20px; right: 20px; }
         }
+        @media (max-width: 768px) {
+            header {
+                padding: 0 !important;
+            }
+            header img {
+                width: 200px;
+            }
+            nav {
+                padding: 8px 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -500,13 +511,19 @@
             document.body.classList.remove('glightbox-open');
         }
 
+        const isTouchDevice = () => ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
         document.querySelectorAll('a').forEach(link => {
             if (link.hostname === window.location.hostname &&
                 !link.href.includes('#') &&
                 link.target !== '_blank' &&
                 !link.classList.contains('glightbox') &&
                 !link.classList.contains('nav-dropdown-toggle')) {
+                
                 link.addEventListener('click', function(e) {
+                    // No aplicar transición en dispositivos táctiles (evita bugs de captura)
+                    if (isTouchDevice()) return;
+                    
                     e.preventDefault();
                     const href = this.href;
                     closeGlightbox();
