@@ -67,6 +67,68 @@
         background: #e8f5e9; border: 1px solid #a5d6a7;
         color: #2e7d32; padding: 12px 20px; border-radius: 8px; margin-bottom: 24px;
     }
+
+    /* Estilos para la galería de fotos en admin */
+    .fotos-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0;
+    }
+    .foto-preview-item {
+        position: relative;
+        width: 70px;
+        height: 70px;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #f8bbd0;
+        cursor: grab;
+    }
+    .foto-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .foto-preview-item .btn-eliminar-foto {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: rgba(200, 40, 40, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .foto-preview-item:hover .btn-eliminar-foto {
+        opacity: 1;
+    }
+    .reordenar-btn {
+        margin-top: 8px;
+        background: #9c27b0;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .sortable-ghost {
+        opacity: 0.5;
+        background: #f8bbd0;
+    }
+    .sortable-drag {
+        cursor: grabbing;
+    }
 </style>
 
 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:40px;">
@@ -97,16 +159,14 @@
             <input type="text" name="nombre" class="admin-input" placeholder="josefina" required>
         </div>
         <div class="admin-form-group">
-            <label>Descripción del evento <small style="color:#aaa; font-weight:400;">(visible en la página)</small></label>
+            <label>Descripción del evento <small>(visible)</small></label>
             <input type="text" name="descripcion_evento" class="admin-input"
                 placeholder="ej: Book de 15 años de Dana en Adrogué — Diciembre 2026">
-            <small style="color:#888;">Opcional. Se muestra debajo del nombre en la galería.</small>
         </div>
         <div class="admin-form-group">
-            <label>Texto alt para Google Imágenes <small style="color:#aaa; font-weight:400;">(SEO, no visible)</small></label>
+            <label>Texto alt SEO</label>
             <input type="text" name="descripcion" class="admin-input"
                 placeholder="ej: Book de 15 años Dana en Adrogué, Zona Sur">
-            <small style="color:#888;">Opcional. Si se deja vacío se usa un texto genérico automático.</small>
         </div>
         <div class="admin-form-group">
             <label>Fotos</label>
@@ -154,7 +214,7 @@
         {% if trabajos_data[cat.slug] %}
         <div class="trabajos-lista">
             {% for t in trabajos_data[cat.slug] %}
-            <div class="trabajo-item">
+            <div class="trabajo-item" data-categoria="{{ cat.slug }}" data-trabajo="{{ t.slug }}">
                 <h4>{{ t.nombre }}</h4>
                 <p>{{ t.fotos|length }} fotos</p>
                 {% if t.descripcion_evento %}
@@ -163,8 +223,24 @@
                 {% if t.descripcion %}
                     <div class="desc-actual">🔍 Alt SEO: {{ t.descripcion }}</div>
                 {% endif %}
+
+                <!-- Miniaturas de fotos con opción de eliminar -->
+                <div class="fotos-preview sortable-container" id="fotos-{{ cat.slug }}-{{ t.slug }}">
+                    {% for foto in t.fotos %}
+                    <div class="foto-preview-item" data-foto="{{ foto }}">
+                        <img src="{{ url_for('static', filename='imagenes/' + cat.slug + '/' + t.slug + '/' + foto) }}" alt="Foto">
+                        <button class="btn-eliminar-foto" title="Eliminar foto"
+                                onclick="eliminarFoto('{{ cat.slug }}', '{{ t.slug }}', '{{ foto }}')">✕</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if t.fotos|length > 1 %}
+                <button class="reordenar-btn" onclick="activarReordenamiento(this, '{{ cat.slug }}', '{{ t.slug }}')">
+                    Reordenar fotos
+                </button>
+                {% endif %}
+
                 <div class="trabajo-acciones">
-                
                     <button class="admin-btn-secondary btn-editar-trabajo"
                             data-categoria="{{ cat.slug }}"
                             data-trabajo="{{ t.slug }}"
@@ -176,7 +252,7 @@
                           onsubmit="return confirm('¿Eliminar {{ t.nombre }}?')" style="display:inline;">
                         <input type="hidden" name="categoria" value="{{ cat.slug }}">
                         <input type="hidden" name="trabajo" value="{{ t.slug }}">
-                        <button type="submit" class="admin-btn-danger">Eliminar</button>
+                        <button type="submit" class="admin-btn-danger">Eliminar trabajo</button>
                     </form>
                 </div>
             </div>
@@ -197,22 +273,23 @@
             <input type="hidden" name="categoria" id="edit-categoria">
             <input type="hidden" name="trabajo"   id="edit-trabajo">
             <div class="admin-form-group">
-                <label>Descripción del evento <small style="color:#aaa; font-weight:400;">(visible)</small></label>
-                <input type="text" name="descripcion_evento" id="edit-descripcion-evento" class="admin-input"
-                    placeholder="ej: Book de 15 años de Dana en Adrogué — Diciembre 2026">
+                <label>Descripción del evento</label>
+                <input type="text" name="descripcion_evento" id="edit-descripcion-evento" class="admin-input">
             </div>
             <div class="admin-form-group">
-                <label>Texto alt Google Imágenes <small style="color:#aaa; font-weight:400;">(SEO)</small></label>
-                <input type="text" name="descripcion" id="edit-descripcion" class="admin-input"
-                    placeholder="ej: Book de 15 años Dana en Adrogué, Zona Sur">
+                <label>Texto alt SEO</label>
+                <input type="text" name="descripcion" id="edit-descripcion" class="admin-input">
             </div>
             <button type="submit" class="admin-btn" style="width:100%;">Guardar cambios</button>
         </form>
     </div>
 </div>
 
+<!-- SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
 <script>
-// Función para abrir el modal con los datos del trabajo
+// --- Modal editar ---
 function abrirEditar(categoria, trabajo, descEvento, descAlt) {
     document.getElementById('edit-categoria').value = categoria;
     document.getElementById('edit-trabajo').value = trabajo;
@@ -220,28 +297,112 @@ function abrirEditar(categoria, trabajo, descEvento, descAlt) {
     document.getElementById('edit-descripcion').value = descAlt;
     document.getElementById('modal-editar').classList.add('open');
 }
-
 function cerrarEditar() {
     document.getElementById('modal-editar').classList.remove('open');
 }
 
-// Event listener para los botones Editar (delegación)
 document.addEventListener('click', function(e) {
     const btn = e.target.closest('.btn-editar-trabajo');
     if (!btn) return;
-    
-    const categoria = btn.dataset.categoria;
-    const trabajo = btn.dataset.trabajo;
-    const descEvento = btn.dataset.descEvento || '';
-    const descAlt = btn.dataset.descAlt || '';
-    
-    abrirEditar(categoria, trabajo, descEvento, descAlt);
+    const cat = btn.dataset.categoria;
+    const trab = btn.dataset.trabajo;
+    const evento = btn.dataset.descEvento || '';
+    const alt = btn.dataset.descAlt || '';
+    abrirEditar(cat, trab, evento, alt);
 });
 
-// Cerrar modal al hacer clic fuera del contenido
 document.getElementById('modal-editar').addEventListener('click', function(e) {
     if (e.target === this) cerrarEditar();
 });
-</script>
 
+// --- Eliminar foto individual ---
+function eliminarFoto(categoria, trabajo, foto) {
+    if (!confirm(`¿Eliminar la foto ${foto}?`)) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/admin/eliminar-foto';
+    form.style.display = 'none';
+    const fields = [
+        {name: 'categoria', value: categoria},
+        {name: 'trabajo', value: trabajo},
+        {name: 'foto', value: foto}
+    ];
+    fields.forEach(f => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = f.name;
+        input.value = f.value;
+        form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// --- Reordenamiento con Sortable ---
+let sortableInstances = {};
+
+function activarReordenamiento(btn, categoria, trabajo) {
+    const containerId = `fotos-${categoria}-${trabajo}`;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (sortableInstances[containerId]) {
+        sortableInstances[containerId].option('disabled', false);
+        btn.textContent = 'Guardar orden';
+        btn.classList.add('guardando');
+    } else {
+        const sortable = new Sortable(container, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            disabled: false,
+        });
+        sortableInstances[containerId] = sortable;
+        btn.textContent = 'Guardar orden';
+        btn.classList.add('guardando');
+    }
+
+    btn.onclick = function() {
+        const sortable = sortableInstances[containerId];
+        if (!sortable) return;
+        
+        const items = container.querySelectorAll('.foto-preview-item');
+        const orden = Array.from(items).map(item => item.dataset.foto);
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/reordenar-fotos';
+        form.style.display = 'none';
+        
+        const fields = [
+            {name: 'categoria', value: categoria},
+            {name: 'trabajo', value: trabajo}
+        ];
+        fields.forEach(f => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = f.name;
+            input.value = f.value;
+            form.appendChild(input);
+        });
+        
+        orden.forEach(nombre => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'orden[]';
+            input.value = nombre;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+        
+        sortable.option('disabled', true);
+        delete sortableInstances[containerId];
+        btn.textContent = 'Reordenar fotos';
+        btn.classList.remove('guardando');
+        btn.onclick = () => activarReordenamiento(btn, categoria, trabajo);
+    };
+}
+</script>
 {% endblock %}

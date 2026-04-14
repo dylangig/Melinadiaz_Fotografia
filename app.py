@@ -4,6 +4,8 @@ import re
 import time
 import datetime
 import unicodedata
+import shutil
+from PIL import Image
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "clave-secreta-melina-2026")
@@ -15,7 +17,7 @@ DOMINIO        = "https://melinadiazfotografia.com.ar"
 categorias = [
     {"nombre": "BOOK INFANTIL", "slug": "infantil", "portada": "portada-infantil.webp"},
     {"nombre": "15 AÑOS",       "slug": "quince",   "portada": "portada-15.webp"},
-    {"nombre": "BODAS",         "slug": "bodas",     "portada": "portada-bodas.webp"}
+    {"nombre": "BODAS",         "slug": "bodas",    "portada": "portada-bodas.webp"}
 ]
 
 NOMBRES_CATEGORIAS = {
@@ -38,22 +40,23 @@ def slugify(texto):
     texto = re.sub(r'[\s_]+', '-', texto)
     return texto
 
-def comprimir_foto(ruta):
+def comprimir_foto(ruta_original):
+    """
+    Convierte cualquier imagen a WebP, redimensiona a máximo 1920px y optimiza.
+    Elimina el archivo original si la extensión no era .webp.
+    """
     try:
-        from PIL import Image
-        with Image.open(ruta) as img:
+        with Image.open(ruta_original) as img:
             if img.mode in ('RGBA', 'P'):
                 img = img.convert('RGB')
             img.thumbnail((1920, 1920), Image.LANCZOS)
-            ext = os.path.splitext(ruta)[1].lower()
-            if ext in ('.jpg', '.jpeg'):
-                img.save(ruta, 'JPEG', quality=85, optimize=True)
-            elif ext == '.webp':
-                img.save(ruta, 'WEBP', quality=85)
-            elif ext == '.png':
-                img.save(ruta, 'PNG', optimize=True)
-    except Exception:
-        pass
+            base, ext = os.path.splitext(ruta_original)
+            ruta_webp = base + '.webp'
+            img.save(ruta_webp, 'WEBP', quality=85, optimize=True)
+            if ruta_original != ruta_webp:
+                os.remove(ruta_original)
+    except Exception as e:
+        app.logger.error(f"Error procesando imagen {ruta_original}: {e}")
 
 def get_trabajos_data():
     now = time.time()
@@ -233,9 +236,9 @@ def nuevo_trabajo():
     guardadas = 0
     for foto in fotos:
         if foto.filename:
-            ruta = os.path.join(carpeta, foto.filename)
-            foto.save(ruta)
-            comprimir_foto(ruta)
+            ruta_temp = os.path.join(carpeta, foto.filename)
+            foto.save(ruta_temp)
+            comprimir_foto(ruta_temp)   # Convierte a .webp y borra el original si es necesario
             guardadas += 1
 
     invalidar_cache()
@@ -257,9 +260,9 @@ def agregar_fotos():
     guardadas = 0
     for foto in fotos:
         if foto.filename:
-            ruta = os.path.join(carpeta, foto.filename)
-            foto.save(ruta)
-            comprimir_foto(ruta)
+            ruta_temp = os.path.join(carpeta, foto.filename)
+            foto.save(ruta_temp)
+            comprimir_foto(ruta_temp)
             guardadas += 1
 
     invalidar_cache()
@@ -301,7 +304,6 @@ def eliminar_trabajo():
     if not session.get("admin"):
         return redirect(url_for("admin"))
 
-    import shutil
     categoria = request.form["categoria"]
     trabajo   = request.form["trabajo"]
     carpeta   = os.path.join(BASE_IMAGENES, categoria, trabajo)
@@ -311,6 +313,56 @@ def eliminar_trabajo():
         flash(f"Trabajo '{trabajo}' eliminado.")
 
     invalidar_cache()
+    return redirect(url_for("admin"))
+
+@app.route("/admin/eliminar-foto", methods=["POST"])
+def eliminar_foto():
+    """Elimina una foto específica de un trabajo."""
+    if not session.get("admin"):
+        return redirect(url_for("admin"))
+    categoria = request.form["categoria"]
+    trabajo   = request.form["trabajo"]
+    foto      = request.form["foto"]
+    ruta_foto = os.path.join(BASE_IMAGENES, categoria, trabajo, foto)
+
+    if os.path.exists(ruta_foto):
+        os.remove(ruta_foto)
+        flash(f"Foto '{foto}' eliminada.")
+        invalidar_cache()
+    else:
+        flash("La foto no existe.")
+    return redirect(url_for("admin"))
+
+@app.route("/admin/reordenar-fotos", methods=["POST"])
+def reordenar_fotos():
+    """Recibe una lista de nombres de archivo y los renombra secuencialmente (1.webp, 2.webp, ...)."""
+    if not session.get("admin"):
+        return redirect(url_for("admin"))
+    categoria = request.form["categoria"]
+    trabajo   = request.form["trabajo"]
+    orden     = request.form.getlist("orden[]")
+
+    carpeta = os.path.join(BASE_IMAGENES, categoria, trabajo)
+    if not os.path.exists(carpeta):
+        flash("El trabajo no existe.")
+        return redirect(url_for("admin"))
+
+    # Renombrar temporalmente para evitar conflictos
+    temp_names = []
+    for idx, nombre in enumerate(orden):
+        old_path = os.path.join(carpeta, nombre)
+        temp_path = os.path.join(carpeta, f"_temp_{idx}.webp")
+        if os.path.exists(old_path):
+            os.rename(old_path, temp_path)
+            temp_names.append(temp_path)
+
+    # Renombrar a números secuenciales
+    for idx, temp_path in enumerate(temp_names):
+        new_path = os.path.join(carpeta, f"{idx+1}.webp")
+        os.rename(temp_path, new_path)
+
+    invalidar_cache()
+    flash("Fotos reordenadas correctamente.")
     return redirect(url_for("admin"))
 
 @app.route("/admin/logout")
