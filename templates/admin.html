@@ -23,13 +23,46 @@
         padding: 6px 16px; background: #c62828; color: white;
         border: none; border-radius: 20px; font-size: 13px; cursor: pointer;
     }
-    .trabajos-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+    .admin-btn-secondary {
+        padding: 6px 16px; background: #7b1fa2; color: white;
+        border: none; border-radius: 20px; font-size: 13px; cursor: pointer;
+    }
+    .admin-btn-secondary:hover { background: #6a1b9a; }
+    .trabajos-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
     .trabajo-item {
         background: #fff5f9; border: 1px solid #f8bbd0;
         border-radius: 10px; padding: 16px;
     }
     .trabajo-item h4 { color: #d81b60; margin-bottom: 6px; }
-    .trabajo-item p { font-size: 13px; color: #777; margin-bottom: 12px; }
+    .trabajo-item p { font-size: 13px; color: #777; margin-bottom: 8px; }
+    .trabajo-item .desc-actual {
+        font-size: 12px; color: #999; font-style: italic;
+        background: #fce4ec; border-radius: 6px; padding: 6px 10px;
+        margin-bottom: 10px; line-height: 1.5;
+    }
+    .trabajo-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .modal-editar {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-editar.open { display: flex; }
+    .modal-contenido {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        width: 100%;
+        max-width: 500px;
+        margin: 20px;
+    }
+    .modal-contenido h3 { color: #d81b60; margin-bottom: 20px; }
+    .modal-close {
+        float: right; background: none; border: none;
+        font-size: 1.4rem; cursor: pointer; color: #aaa; margin-top: -4px;
+    }
     .flash-msg {
         background: #e8f5e9; border: 1px solid #a5d6a7;
         color: #2e7d32; padding: 12px 20px; border-radius: 8px; margin-bottom: 24px;
@@ -47,6 +80,7 @@
     {% endif %}
 {% endwith %}
 
+<!-- NUEVO TRABAJO -->
 <div class="admin-card">
     <h3>Crear nuevo trabajo</h3>
     <form method="POST" action="/admin/nuevo-trabajo" enctype="multipart/form-data">
@@ -82,12 +116,13 @@
     </form>
 </div>
 
+<!-- AGREGAR FOTOS -->
 <div class="admin-card">
     <h3>Agregar fotos a un trabajo existente</h3>
     <form method="POST" action="/admin/agregar-fotos" enctype="multipart/form-data">
         <div class="admin-form-group">
             <label>Categoría</label>
-            <select name="categoria" class="admin-input" id="sel-cat">
+            <select name="categoria" class="admin-input">
                 {% for cat in categorias %}
                 <option value="{{ cat.slug }}">{{ cat.nombre }}</option>
                 {% endfor %}
@@ -95,7 +130,7 @@
         </div>
         <div class="admin-form-group">
             <label>Trabajo</label>
-            <select name="trabajo" class="admin-input" id="sel-trabajo">
+            <select name="trabajo" class="admin-input">
                 {% for cat in categorias %}
                     {% for t in trabajos_data[cat.slug] %}
                     <option value="{{ t.slug }}" data-cat="{{ cat.slug }}">{{ t.nombre }} ({{ cat.nombre }})</option>
@@ -111,6 +146,7 @@
     </form>
 </div>
 
+<!-- TRABAJOS EXISTENTES -->
 <div class="admin-card">
     <h3>Trabajos existentes</h3>
     {% for cat in categorias %}
@@ -121,12 +157,24 @@
             <div class="trabajo-item">
                 <h4>{{ t.nombre }}</h4>
                 <p>{{ t.fotos|length }} fotos</p>
-                <form method="POST" action="/admin/eliminar-trabajo"
-                      onsubmit="return confirm('¿Eliminar {{ t.nombre }}?')">
-                    <input type="hidden" name="categoria" value="{{ cat.slug }}">
-                    <input type="hidden" name="trabajo" value="{{ t.slug }}">
-                    <button type="submit" class="admin-btn-danger">Eliminar</button>
-                </form>
+                {% if t.descripcion_evento %}
+                    <div class="desc-actual">📝 {{ t.descripcion_evento }}</div>
+                {% endif %}
+                {% if t.descripcion %}
+                    <div class="desc-actual">🔍 Alt SEO: {{ t.descripcion }}</div>
+                {% endif %}
+                <div class="trabajo-acciones">
+                    <button class="admin-btn-secondary"
+                        onclick="abrirEditar('{{ cat.slug }}', '{{ t.slug }}', '{{ t.descripcion_evento or '' }}', '{{ t.descripcion or '' }}')">
+                        Editar textos
+                    </button>
+                    <form method="POST" action="/admin/eliminar-trabajo"
+                          onsubmit="return confirm('¿Eliminar {{ t.nombre }}?')" style="display:inline;">
+                        <input type="hidden" name="categoria" value="{{ cat.slug }}">
+                        <input type="hidden" name="trabajo" value="{{ t.slug }}">
+                        <button type="submit" class="admin-btn-danger">Eliminar</button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -135,5 +183,44 @@
         {% endif %}
     {% endfor %}
 </div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-editar" id="modal-editar">
+    <div class="modal-contenido">
+        <button class="modal-close" onclick="cerrarEditar()">✕</button>
+        <h3>Editar textos</h3>
+        <form method="POST" action="/admin/editar-trabajo">
+            <input type="hidden" name="categoria" id="edit-categoria">
+            <input type="hidden" name="trabajo"   id="edit-trabajo">
+            <div class="admin-form-group">
+                <label>Descripción del evento <small style="color:#aaa; font-weight:400;">(visible)</small></label>
+                <input type="text" name="descripcion_evento" id="edit-descripcion-evento" class="admin-input"
+                    placeholder="ej: Book de 15 años de Dana en Adrogué — Diciembre 2026">
+            </div>
+            <div class="admin-form-group">
+                <label>Texto alt Google Imágenes <small style="color:#aaa; font-weight:400;">(SEO)</small></label>
+                <input type="text" name="descripcion" id="edit-descripcion" class="admin-input"
+                    placeholder="ej: Book de 15 años Dana en Adrogué, Zona Sur">
+            </div>
+            <button type="submit" class="admin-btn" style="width:100%;">Guardar cambios</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function abrirEditar(cat, trabajo, eventoDesc, altDesc) {
+    document.getElementById('edit-categoria').value           = cat;
+    document.getElementById('edit-trabajo').value             = trabajo;
+    document.getElementById('edit-descripcion-evento').value  = eventoDesc;
+    document.getElementById('edit-descripcion').value         = altDesc;
+    document.getElementById('modal-editar').classList.add('open');
+}
+function cerrarEditar() {
+    document.getElementById('modal-editar').classList.remove('open');
+}
+document.getElementById('modal-editar').addEventListener('click', function(e) {
+    if (e.target === this) cerrarEditar();
+});
+</script>
 
 {% endblock %}
