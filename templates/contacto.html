@@ -1,255 +1,460 @@
 {% extends "base.html" %}
-{% block titulo %}Contacto — Melina Diaz Fotografia{% endblock %}
+{% block titulo %}Reservá tu sesión — Melina Diaz Fotografía{% endblock %}
 
 {% block contenido %}
 <style>
-    .contacto-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 60px;
-        max-width: 1000px;
-        margin: 60px auto;
-        align-items: start;
+    /* Ocultar header y nav del base */
+    header, nav { display: none !important; }
+
+    /* Reset del contenido para ocupar full */
+    .contenido {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
-    .contacto-info h2 {
-        font-family: 'Playfair Display', serif;
-        color: #d81b60;
-        font-size: 2.4rem;
-        font-weight: 400;
-        letter-spacing: 2px;
-        margin-bottom: 16px;
-    }
-    .contacto-info .subtitulo {
-        color: #aaa;
-        font-size: 0.8rem;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-    }
-    .contacto-info p {
-        color: #666;
-        font-size: 16px;
-        line-height: 1.8;
-        margin-bottom: 32px;
-    }
-    .contacto-dato {
+
+    footer { display: none !important; }
+
+    /* ── BARRA SUPERIOR MÍNIMA ── */
+    .lead-topbar {
         display: flex;
         align-items: center;
-        gap: 14px;
-        margin-bottom: 20px;
-        color: #555;
-        font-size: 15px;
+        justify-content: space-between;
+        padding: 14px 40px;
+        background: white;
+        border-bottom: 1px solid #f8bbd0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
-    .contacto-dato-icono {
-        width: 44px;
-        height: 44px;
-        background: #fce4ec;
+    .lead-topbar img {
+        height: 48px;
+        width: auto;
+    }
+    .lead-topbar-contacto {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #d81b60;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .lead-topbar-contacto svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* ── LAYOUT PRINCIPAL ── */
+    .lead-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: calc(100vh - 77px);
+    }
+
+    /* ── LADO IZQUIERDO ── */
+    .lead-izquierda {
+        background: linear-gradient(160deg, #fce4ec 0%, #f8bbd0 60%, #f48fb1 100%);
+        padding: 60px 56px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .lead-izquierda::before {
+        content: '';
+        position: absolute;
+        top: -80px;
+        right: -80px;
+        width: 320px;
+        height: 320px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+    }
+    .lead-izquierda::after {
+        content: '';
+        position: absolute;
+        bottom: -60px;
+        left: -60px;
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+    }
+    .lead-eyebrow {
+        font-size: 0.75rem;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: #c2185b;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    .lead-titulo {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        color: #880e4f;
+        font-weight: 700;
+        line-height: 1.25;
+        margin-bottom: 20px;
+    }
+    .lead-titulo em {
+        font-style: italic;
+        font-weight: 400;
+        color: #c2185b;
+    }
+    .lead-subtitulo {
+        color: #6d1a3a;
+        font-size: 16px;
+        line-height: 1.8;
+        margin-bottom: 36px;
+        max-width: 420px;
+    }
+
+    .lead-beneficios {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 40px;
+        position: relative;
+        z-index: 1;
+    }
+    .lead-beneficio {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        color: #4a0e25;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+    .lead-beneficio-icono {
+        width: 28px;
+        height: 28px;
+        background: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        font-size: 13px;
     }
-    .contacto-dato-icono svg {
-        width: 20px;
-        height: 20px;
-    }
-    .redes-contacto {
+
+    .lead-testimonios-mini {
         display: flex;
+        flex-direction: column;
         gap: 12px;
-        margin-top: 32px;
+        position: relative;
+        z-index: 1;
     }
-    .red-icono {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
+    .lead-testimonio-mini {
+        background: rgba(255,255,255,0.55);
+        backdrop-filter: blur(6px);
+        border-radius: 12px;
+        padding: 14px 18px;
+        border: 1px solid rgba(255,255,255,0.6);
+    }
+    .lead-testimonio-mini p {
+        color: #4a0e25;
+        font-size: 13px;
+        line-height: 1.6;
+        font-style: italic;
+        margin-bottom: 6px;
+    }
+    .lead-testimonio-mini span {
+        font-size: 11px;
+        font-weight: 700;
+        color: #c2185b;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .lead-estrellas {
+        color: #e91e8c;
+        font-size: 11px;
+        margin-bottom: 4px;
+        letter-spacing: 1px;
+    }
+
+    /* ── LADO DERECHO ── */
+    .lead-derecha {
+        background: white;
+        padding: 60px 56px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .lead-form-titulo {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        color: #d81b60;
+        font-weight: 400;
+        margin-bottom: 6px;
+    }
+    .lead-form-subtitulo {
+        color: #aaa;
+        font-size: 13px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 32px;
+    }
+
+    .lead-disponibilidad {
         display: flex;
         align-items: center;
-        justify-content: center;
-        transition: transform 0.3s, opacity 0.3s;
+        gap: 8px;
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        border-radius: 8px;
+        padding: 10px 16px;
+        margin-bottom: 28px;
+        font-size: 13px;
+        color: #2e7d32;
+        font-weight: 600;
     }
-    .red-icono:hover { transform: scale(1.1); opacity: 0.85; }
-    .red-icono svg { width: 20px; height: 20px; }
+    .lead-disponibilidad::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4caf50;
+        flex-shrink: 0;
+        animation: pulso-verde 1.5s infinite;
+    }
+    @keyframes pulso-verde {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
 
-    .formulario-card {
-        background: white;
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(216,27,96,0.08);
-        border: 1px solid #f8bbd0;
-    }
     .form-group {
-        margin-bottom: 18px;
+        margin-bottom: 16px;
     }
     .form-group label {
         display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: #888;
-        letter-spacing: 1px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #999;
+        letter-spacing: 1.5px;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 7px;
     }
     .form-group input,
     .form-group select,
     .form-group textarea {
         width: 100%;
         padding: 13px 16px;
-        border: 1.5px solid #f8bbd0;
+        border: 1.5px solid #f0d0dd;
         border-radius: 10px;
         font-family: 'Montserrat', sans-serif;
         font-size: 15px;
         color: #333;
         background: #fff;
-        transition: border-color 0.3s;
+        transition: border-color 0.3s, box-shadow 0.3s;
     }
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
         outline: none;
         border-color: #d81b60;
+        box-shadow: 0 0 0 3px rgba(216,27,96,0.08);
     }
-    .form-group textarea { resize: vertical; min-height: 110px; }
+    .form-group textarea { resize: vertical; min-height: 100px; }
     .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 16px;
+        gap: 14px;
     }
-    .btn-enviar {
+
+    .btn-lead {
         width: 100%;
-        padding: 15px;
-        background: #d81b60;
+        padding: 17px;
+        background: linear-gradient(135deg, #d81b60, #ad1457);
         color: white;
         border: none;
         border-radius: 50px;
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 700;
         letter-spacing: 1px;
         text-transform: uppercase;
         cursor: pointer;
-        transition: background 0.3s, transform 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s;
         margin-top: 8px;
         font-family: 'Montserrat', sans-serif;
+        box-shadow: 0 8px 24px rgba(216,27,96,0.35);
     }
-    .btn-enviar:hover {
-        background: #ad1457;
+    .btn-lead:hover {
         transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(216,27,96,0.45);
+    }
+    .btn-lead:active {
+        transform: translateY(0);
     }
 
-    @media (max-width: 768px) {
-        .contacto-wrapper {
-            grid-template-columns: 1fr;
-            gap: 40px;
-            margin: 40px auto;
-        }
+    .lead-privacidad {
+        text-align: center;
+        font-size: 11px;
+        color: #ccc;
+        margin-top: 14px;
+        letter-spacing: 0.5px;
+    }
+    .lead-privacidad svg {
+        width: 12px;
+        height: 12px;
+        vertical-align: middle;
+        margin-right: 4px;
+    }
+
+    .lead-volver {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #ccc;
+        font-size: 12px;
+        text-decoration: none;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-top: 20px;
+        transition: color 0.2s;
+    }
+    .lead-volver:hover { color: #f48fb1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+        .lead-wrapper { grid-template-columns: 1fr; }
+        .lead-izquierda { padding: 48px 28px 40px; }
+        .lead-derecha { padding: 40px 28px 56px; }
+        .lead-topbar { padding: 12px 20px; }
+    }
+    @media (max-width: 576px) {
         .form-row { grid-template-columns: 1fr; }
-        .formulario-card { padding: 24px; }
+        .lead-titulo { font-size: 1.8rem; }
     }
 </style>
 
-<div class="contacto-wrapper">
+<!-- TOPBAR -->
+<div class="lead-topbar">
+    <a href="/">
+        <img src="{{ url_for('static', filename='imagenes/logo.webp') }}" alt="Melina Diaz Fotografía">
+    </a>
+    <a href="https://wa.me/5491176348089" target="_blank" class="lead-topbar-contacto">
+        <svg viewBox="0 0 24 24" fill="#d81b60"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        +54 9 11 7634-8089
+    </a>
+</div>
 
-    <!-- INFO -->
-    <div class="contacto-info" data-aos="fade-right">
-        <p class="subtitulo">Hablemos</p>
-        <h2>Contacto</h2>
-        <p>¿Tenés un evento especial? Escribime y coordinamos una sesión que capture todos los momentos únicos de tu día.</p>
+<!-- BODY -->
+<div class="lead-wrapper">
 
-        <div class="contacto-dato">
-            <div class="contacto-dato-icono">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#d81b60" stroke-width="2">
-                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.29 6.29l1.28-1.28a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
-                </svg>
+    <!-- IZQUIERDA -->
+    <div class="lead-izquierda">
+        <p class="lead-eyebrow">Fotografía Profesional · Zona Sur</p>
+        <h1 class="lead-titulo">Tu momento especial<br>merece <em>fotos que duren<br>toda la vida</em></h1>
+        <p class="lead-subtitulo">Completá el formulario y en menos de 24 hs te contacto para coordinar tu sesión. Sin compromiso.</p>
+
+        <div class="lead-beneficios">
+            <div class="lead-beneficio">
+                <div class="lead-beneficio-icono">📸</div>
+                <span>Fotos ilimitadas durante toda la sesión, editadas en alta calidad</span>
             </div>
-            <span>+54 9 11 2553-9044</span>
+            <div class="lead-beneficio">
+                <div class="lead-beneficio-icono">☁️</div>
+                <span>Entrega por Google Drive en tiempo y forma</span>
+            </div>
+            <div class="lead-beneficio">
+                <div class="lead-beneficio-icono">📍</div>
+                <span>Nos movemos por toda la Zona Sur de Buenos Aires</span>
+            </div>
+            <div class="lead-beneficio">
+                <div class="lead-beneficio-icono">💬</div>
+                <span>Atención personalizada desde el primer mensaje</span>
+            </div>
         </div>
 
-        <div class="contacto-dato">
-            <div class="contacto-dato-icono">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#d81b60" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                    <circle cx="12" cy="10" r="3"/>
-                </svg>
+        <div class="lead-testimonios-mini">
+            <div class="lead-testimonio-mini">
+                <div class="lead-estrellas">★★★★★</div>
+                <p>"Fue la mejor decisión. Melina nos hizo sentir cómodos en todo momento y los resultados superaron todas nuestras expectativas."</p>
+                <span>Sofía L. — 15 años</span>
             </div>
-            <span>Buenos Aires, Argentina</span>
-        </div>
-
-        <div class="redes-contacto">
-            <a href="https://instagram.com/melinadiazfotografia" target="_blank"
-               class="red-icono" style="background:#c13584;" aria-label="Instagram">
-                <svg viewBox="0 0 24 24" fill="white">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-                </svg>
-            </a>
-            <a href="https://wa.me/5491176348089" target="_blank"
-               class="red-icono" style="background:#25d366;" aria-label="WhatsApp">
-                <svg viewBox="0 0 24 24" fill="white">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
-            </a>
-            <a href="https://www.facebook.com/melina.diaz.284008" target="_blank"
-               class="red-icono" style="background:#1877f2;" aria-label="Facebook">
-                <svg viewBox="0 0 24 24" fill="white">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-            </a>
+            <div class="lead-testimonio-mini">
+                <div class="lead-estrellas">★★★★★</div>
+                <p>"Las fotos del book de mi nena son una obra de arte. Tiene una sensibilidad especial para capturar la personalidad de los chicos."</p>
+                <span>Laura P. — Book infantil</span>
+            </div>
         </div>
     </div>
 
-    <!-- FORMULARIO -->
-    <div class="formulario-card" data-aos="fade-left">
+    <!-- DERECHA -->
+    <div class="lead-derecha">
+        <h2 class="lead-form-titulo">Reservá tu sesión</h2>
+        <p class="lead-form-subtitulo">Respuesta en menos de 24 hs</p>
+
+        <div class="lead-disponibilidad">
+            Lugares disponibles para los próximos meses — ¡Consultá ahora!
+        </div>
+
         <div class="form-row">
             <div class="form-group">
                 <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" placeholder="Tu nombre" maxlength="50" />
+                <input type="text" id="nombre" placeholder="Tu nombre" maxlength="50">
             </div>
             <div class="form-group">
                 <label for="telefono">Teléfono</label>
-                <input type="tel" id="telefono" placeholder="+54 9 11..." maxlength="20" />
+                <input type="tel" id="telefono" placeholder="+54 9 11..." maxlength="20">
             </div>
         </div>
+
         <div class="form-group">
-            <label for="tipo">Tipo de sesión</label>
+            <label for="tipo">¿Qué tipo de sesión querés?</label>
             <select id="tipo">
                 <option value="" disabled selected>Seleccioná una opción</option>
-                <option value="Book Infantil">Book Infantil</option>
-                <option value="15 Años">15 Años</option>
-                <option value="Boda">Boda</option>
-                <option value="Otro">Otro</option>
+                <option value="Book Infantil">📷 Book Infantil</option>
+                <option value="15 Años">🌸 15 Años</option>
+                <option value="Boda">💍 Boda</option>
+                <option value="Otro">✨ Otro</option>
             </select>
         </div>
+
         <div class="form-group">
-            <label for="fecha">Fecha estimada</label>
-            <input type="date" id="fecha" />
+            <label for="fecha">¿Cuándo sería el evento?</label>
+            <input type="date" id="fecha">
         </div>
+
         <div class="form-group">
-            <label for="consulta">Mensaje</label>
-            <textarea id="consulta" placeholder="Contame sobre tu evento..." maxlength="500"></textarea>
+            <label for="consulta">Contame sobre tu evento</label>
+            <textarea id="consulta" placeholder="Cuántas personas, lugar que tenías en mente, algún detalle especial..." maxlength="500"></textarea>
         </div>
-        <button class="btn-enviar" onclick="enviarWhatsApp()">
-            Enviar por WhatsApp →
+
+        <button class="btn-lead" onclick="enviarWhatsApp()">
+            Quiero reservar mi sesión →
         </button>
+
+        <p class="lead-privacidad">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Tu información es privada y no será compartida con terceros
+        </p>
+
+        <a href="/" class="lead-volver">← Volver al inicio</a>
     </div>
 </div>
 
 <script>
 function enviarWhatsApp() {
-    const nombre  = document.getElementById("nombre").value.trim();
+    const nombre   = document.getElementById("nombre").value.trim();
     const telefono = document.getElementById("telefono").value.trim();
-    const tipo    = document.getElementById("tipo").value;
-    const fecha   = document.getElementById("fecha").value;
+    const tipo     = document.getElementById("tipo").value;
+    const fecha    = document.getElementById("fecha").value;
     const consulta = document.getElementById("consulta").value.trim();
 
-    if (!nombre || !telefono || !consulta) {
-        alert("Por favor completá al menos nombre, teléfono y mensaje.");
+    if (!nombre || !telefono) {
+        alert("Por favor completá al menos tu nombre y teléfono.");
         return;
     }
 
     let mensaje = `Hola Melina! Soy ${nombre}`;
     if (telefono) mensaje += `, mi teléfono es ${telefono}`;
-    if (tipo)    mensaje += `. Estoy interesada en: ${tipo}`;
-    if (fecha)   mensaje += ` para el ${fecha}`;
-    mensaje += `.\n\n${consulta}`;
+    if (tipo)     mensaje += `. Estoy interesada en: ${tipo}`;
+    if (fecha)    mensaje += ` para el ${fecha}`;
+    if (consulta) mensaje += `.\n\n${consulta}`;
 
     window.open("https://wa.me/5491176348089?text=" + encodeURIComponent(mensaje), "_blank");
 }

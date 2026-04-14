@@ -47,7 +47,6 @@
     {% endif %}
 {% endwith %}
 
-<!-- NUEVO TRABAJO -->
 <div class="admin-card">
     <h3>Crear nuevo trabajo</h3>
     <form method="POST" action="/admin/nuevo-trabajo" enctype="multipart/form-data">
@@ -64,12 +63,17 @@
             <input type="text" name="nombre" class="admin-input" placeholder="josefina" required>
         </div>
         <div class="admin-form-group">
-        <label>Descripción para fotos (aparecerá en Google Imágenes)</label>
+            <label>Descripción del evento <small style="color:#aaa; font-weight:400;">(visible en la página)</small></label>
+            <input type="text" name="descripcion_evento" class="admin-input"
+                placeholder="ej: Book de 15 años de Dana en Adrogué — Diciembre 2026">
+            <small style="color:#888;">Opcional. Se muestra debajo del nombre en la galería.</small>
+        </div>
+        <div class="admin-form-group">
+            <label>Texto alt para Google Imágenes <small style="color:#aaa; font-weight:400;">(SEO, no visible)</small></label>
             <input type="text" name="descripcion" class="admin-input"
                 placeholder="ej: Book de 15 años Dana en Adrogué, Zona Sur">
-            <small style="color:#888;">Opcional. Si se deja vacío se usará un texto genérico.</small>
+            <small style="color:#888;">Opcional. Si se deja vacío se usa un texto genérico automático.</small>
         </div>
-
         <div class="admin-form-group">
             <label>Fotos</label>
             <input type="file" name="fotos" class="admin-input" multiple accept="image/*">
@@ -78,7 +82,6 @@
     </form>
 </div>
 
-<!-- AGREGAR FOTOS-->
 <div class="admin-card">
     <h3>Agregar fotos a un trabajo existente</h3>
     <form method="POST" action="/admin/agregar-fotos" enctype="multipart/form-data">
@@ -108,7 +111,6 @@
     </form>
 </div>
 
-<!-- TRABAJOS EXISTENTES -->
 <div class="admin-card">
     <h3>Trabajos existentes</h3>
     {% for cat in categorias %}

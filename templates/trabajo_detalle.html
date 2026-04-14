@@ -7,12 +7,19 @@
         margin: 40px 0 30px;
     }
     .titulo-galeria {
-        font-family: 'Playfair Display', "https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Playfair+Display:wght@700&display=swap";
+        font-family: 'Playfair Display', serif;
         color: #d81b60;
         font-weight: 400;
         text-transform: uppercase;
         letter-spacing: 3px;
         margin-bottom: 10px;
+    }
+    .descripcion-galeria {
+        color: #888;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+        font-style: italic;
     }
     .link-volver {
         color: #f48fb1;
@@ -52,7 +59,10 @@
 </style>
 
 <div class="encabezado-minimalista">
-    <h1 class="titulo-galeria">Sesión de {{ trabajo.nombre }}</h1>
+    <h1 class="titulo-galeria">{{ trabajo.nombre }}</h1>
+    {% if descripcion_evento %}
+        <p class="descripcion-galeria">{{ descripcion_evento }}</p>
+    {% endif %}
     <a href="{{ url_for('ver_categoria', categoria_slug=categoria) }}" class="link-volver">
         &larr; Volver a {{ categoria.replace('_', ' ').capitalize() }}
     </a>
@@ -64,18 +74,17 @@
             {% set alt_text = descripcion_personalizada + " - Foto " ~ loop.index %}
         {% else %}
             {% set cat_nombre = {"infantil": "Book infantil", "quince": "15 años", "bodas": "Boda"}.get(categoria, categoria) %}
-            {% set alt_text = "Sesión de " ~ cat_nombre ~ " " ~ trabajo.nombre ~ " en Zona Sur Buenos Aires - Foto " ~ loop.index %}
+            {% set alt_text = cat_nombre ~ " " ~ trabajo.nombre ~ " en Zona Sur Buenos Aires - Foto " ~ loop.index %}
         {% endif %}
-    <div class="item-foto">
-        <a href="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
-           class="glightbox"
-           data-gallery="galeria-sesion"
-           data-title="{{ alt_text }}">
-            <img src="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
-                 alt="{{ alt_text }}"
-                 loading="lazy">
-        </a>
-    </div>
+        <div class="item-foto">
+            <a href="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
+               class="glightbox"
+               data-gallery="galeria-sesion">
+                <img src="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
+                     alt="{{ alt_text }}"
+                     loading="lazy">
+            </a>
+        </div>
     {% endfor %}
 </div>
 {% endblock %}

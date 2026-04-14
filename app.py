@@ -38,7 +38,6 @@ def get_trabajos_data():
             })
     return trabajos
 
-# ─── RUTAS PRINCIPALES ────────────────────
 
 @app.route("/")
 def inicio():
@@ -56,19 +55,26 @@ def ver_fotos_trabajo(categoria, trabajo):
     if not trabajo_info:
         return render_template("404.html"), 404
 
-    # Leer descripción personalizada si existe
     carpeta = os.path.join(BASE_IMAGENES, categoria, trabajo_info["slug"])
+
     descripcion_personalizada = None
     desc_path = os.path.join(carpeta, "descripcion.txt")
     if os.path.exists(desc_path):
         with open(desc_path, "r", encoding="utf-8") as f:
             descripcion_personalizada = f.read().strip()
 
+    descripcion_evento = None
+    evento_path = os.path.join(carpeta, "descripcion_evento.txt")
+    if os.path.exists(evento_path):
+        with open(evento_path, "r", encoding="utf-8") as f:
+            descripcion_evento = f.read().strip()
+
     return render_template("trabajo_detalle.html",
                            categoria=categoria,
                            trabajo=trabajo_info,
                            fotos=trabajo_info["fotos"],
-                           descripcion_personalizada=descripcion_personalizada)
+                           descripcion_personalizada=descripcion_personalizada,
+                           descripcion_evento=descripcion_evento)
 
 @app.route("/contacto")
 def contacto():
@@ -78,7 +84,6 @@ def contacto():
 def pagina_no_encontrada(e):
     return render_template("404.html"), 404
 
-# ─── SEO ──────────────────
 
 @app.route("/sitemap.xml")
 def sitemap():
@@ -121,7 +126,6 @@ Disallow: /admin
 Sitemap: {DOMINIO}/sitemap.xml"""
     return Response(txt, mimetype='text/plain')
 
-# ─── ADMIN ─────────────
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
@@ -143,18 +147,22 @@ def nuevo_trabajo():
     if not session.get("admin"):
         return redirect(url_for("admin"))
 
-    categoria = request.form["categoria"]
-    nombre    = request.form["nombre"].strip().lower().replace(" ", "-")
-    descripcion = request.form.get("descripcion", "").strip()
-    fotos     = request.files.getlist("fotos")
+    categoria          = request.form["categoria"]
+    nombre             = request.form["nombre"].strip().lower().replace(" ", "-")
+    descripcion        = request.form.get("descripcion", "").strip()
+    descripcion_evento = request.form.get("descripcion_evento", "").strip()
+    fotos              = request.files.getlist("fotos")
 
     carpeta = os.path.join(BASE_IMAGENES, categoria, nombre)
     os.makedirs(carpeta, exist_ok=True)
 
-    # Guardar descripción en archivo
     if descripcion:
         with open(os.path.join(carpeta, "descripcion.txt"), "w", encoding="utf-8") as f:
             f.write(descripcion)
+
+    if descripcion_evento:
+        with open(os.path.join(carpeta, "descripcion_evento.txt"), "w", encoding="utf-8") as f:
+            f.write(descripcion_evento)
 
     for foto in fotos:
         if foto.filename:
