@@ -176,7 +176,6 @@
             margin-top: -1px;
         }
 
-        /* ===== HEADER ===== */
         header {
             background: linear-gradient(135deg, #fce4ec, #f8bbd0);
             padding: 10px 20px 8px;
@@ -188,7 +187,7 @@
         }
 
         header img {
-            width: 220px;
+            width: 260px;
             height: auto;
             object-fit: contain;
             transition: all 0.4s ease;
@@ -204,8 +203,7 @@
         /* ===== STICKY ===== */
         nav {
             background-color: #f48fb1;
-            padding: 6px 24px;
-            min-height: 48px;
+            padding: 0 24px;
             text-align: center;
             position: sticky;
             top: 0;
@@ -225,7 +223,7 @@
         }
 
         nav .nav-logo img {
-            height: 60px;
+            height: 48px;
             width: auto;
             object-fit: contain;
             display: block;
@@ -234,52 +232,58 @@
         /* Logo visible y links a la derecha */
         body.scrolled nav {
             justify-content: space-between;
-            padding: 5px 24px;
         }
 
         body.scrolled nav .nav-logo {
-            max-width: 180px;
+            max-width: 220px;
             opacity: 1;
         }
 
         nav .nav-links {
             display: flex;
             align-items: center;
+            height: 60px;
+            gap: 8px;
         }
 
-        nav a {
+        nav .nav-links > a,
+        .nav-dropdown-toggle {
             color: white;
             text-decoration: none;
-            margin: 0 14px;
-            font-size: 14px;
+            margin: 0;
+            padding: 0 12px;
+            font-size: 17px;
             font-weight: 700;
             letter-spacing: 1px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            height: 60px;
+            line-height: normal;
+            white-space: nowrap;
         }
 
-        nav a:hover {
+        nav .nav-links > a:hover,
+        .nav-dropdown-toggle:hover {
             text-decoration: underline;
         }
 
         /* Galería */
         .nav-dropdown {
             position: relative;
-            display: inline-block;
-        }
-
-        .nav-dropdown-toggle {
-            cursor: pointer;
-            user-select: none;
+            display: flex;
+            align-items: center;
+            height: 60px;
         }
 
         .nav-dropdown-menu {
             display: none !important;
             position: absolute;
-            top: calc(100% + 16px);
+            top: 60px;
             left: 50%;
             transform: translateX(-50%);
             background-color: #c2185b;
-            border-radius: 10px;
+            border-radius: 0 0 10px 10px;
             min-width: 170px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
             z-index: 9999;
@@ -292,15 +296,17 @@
 
         .nav-dropdown-menu a {
             display: block;
-            padding: 13px 20px;
+            padding: 0 20px;
             margin: 0;
-            font-size: 14px;
+            font-size: 15px;
             color: white;
             text-align: center;
             border-bottom: 1px solid rgba(255,255,255,0.2);
             text-decoration: none;
             letter-spacing: 1px;
             text-shadow: none;
+            line-height: 50px;
+            height: auto;
         }
 
         .nav-dropdown-menu a:last-child {
@@ -450,8 +456,9 @@
                 display: flex;
             }
             nav {
-                flex-wrap: wrap;
-                padding: 12px 20px;
+                height: auto;
+                min-height: 60px;
+                padding: 0 20px;
                 justify-content: space-between;
             }
             nav .nav-links {
@@ -459,27 +466,28 @@
                 flex-direction: column;
                 width: 100%;
                 padding: 12px 0 8px;
-                gap: 0;
+                height: auto;
                 align-items: stretch;
+                gap: 0;
             }
             nav .nav-links.open {
                 display: flex;
             }
-            nav .nav-links > a {
+            nav .nav-links > a,
+            .nav-dropdown-toggle {
                 margin: 0;
-                padding: 13px 8px;
+                padding: 14px 16px;
                 border-bottom: 1px solid rgba(255,255,255,0.15);
-                font-size: 15px;
+                font-size: 16px;
+                line-height: normal;
+                height: auto;
+                justify-content: flex-start;
+                white-space: normal;
             }
             .nav-dropdown {
                 width: 100%;
-            }
-            .nav-dropdown-toggle {
+                height: auto;
                 display: block;
-                width: 100%;
-                padding: 13px 8px;
-                border-bottom: 1px solid rgba(255,255,255,0.15);
-                margin: 0;
             }
             .nav-dropdown-menu {
                 position: static !important;
@@ -488,28 +496,13 @@
                 border-radius: 0 !important;
                 background-color: rgba(0,0,0,0.12) !important;
                 min-width: 100% !important;
+                top: 0;
             }
             .nav-dropdown-menu a {
-                padding: 11px 24px !important;
-                font-size: 13px !important;
+                padding: 12px 24px !important;
+                font-size: 14px !important;
                 text-align: left !important;
-            }
-            .wsp-flotante {
-                bottom: 20px;
-                right: 20px;
-            }
-            header {
-                padding: 0 !important;
-            }
-            header img {
-                width: 200px;
-            }
-            body.scrolled nav {
-                justify-content: space-between;
-            }
-            body.scrolled nav .nav-logo {
-                max-width: 160px;
-                opacity: 1;
+                line-height: normal;
             }
         }
     </style>
@@ -524,8 +517,7 @@
     <header id="site-header">
         <a href="/">
             <img src="{{ url_for('static', filename='imagenes/logo.webp') }}"
-                 alt="Melina Diaz Fotografía - Books infantiles, 15 años y bodas en Zona Sur Buenos Aires"
-                 width="280" height="auto" />
+                 alt="Melina Diaz Fotografía" width="280" height="auto" />
         </a>
     </header>
 
@@ -534,7 +526,7 @@
         <div class="nav-logo">
             <a href="/">
                 <img src="{{ url_for('static', filename='imagenes/logo.webp') }}"
-                     alt="Melina Diaz Fotografía Zona Sur Buenos Aires" width="auto" height="52" />
+                     alt="Melina Diaz Fotografía" />
             </a>
         </div>
         <div class="nav-links" id="nav-links">
@@ -550,10 +542,7 @@
             <a href="/#sobre-mi">Sobre mí</a>
             <a href="/contacto">Contacto</a>
         </div>
-        <button class="hamburguesa" id="hamburguesa"
-                aria-label="Abrir menú de navegación"
-                aria-expanded="false"
-                aria-controls="nav-links">
+        <button class="hamburguesa" id="hamburguesa" aria-label="Menú" aria-expanded="false" aria-controls="nav-links">
             <span></span><span></span><span></span>
         </button>
     </nav>
@@ -563,59 +552,32 @@
             {% block contenido %}{% endblock %}
         </div>
 
-        <footer aria-label="Pie de página">
+        <footer>
             <div class="footer-redes">
-                <!-- WhatsApp -->
-                <a href="https://wa.me/5491176348089" target="_blank" rel="noopener noreferrer"
-                   title="WhatsApp de Melina Diaz Fotografía" aria-label="WhatsApp">
-                    <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                    </svg>
+                <a href="https://wa.me/5491176348089" target="_blank" rel="noopener" aria-label="WhatsApp">
+                    <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                 </a>
-                <!-- Instagram -->
-                <a href="https://instagram.com/melinadiazfotografia" target="_blank" rel="noopener noreferrer"
-                   title="Instagram de Melina Diaz Fotografía" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-                    </svg>
-                </a>
-                <!-- Facebook -->
-                <a href="https://www.facebook.com/melina.diaz.284008" target="_blank" rel="noopener noreferrer"
-                   title="Facebook de Melina Diaz Fotografía" aria-label="Facebook">
-                    <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
+                <a href="https://instagram.com/melinadiazfotografia" target="_blank" rel="noopener" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
                 </a>
             </div>
-            <p>© 2026 Melina Diaz Fotografía · Zona Sur Buenos Aires · Todos los derechos reservados</p>
+            <p>© 2026 Melina Diaz Fotografía · Todos los derechos reservados</p>
         </footer>
     </div>
 
-    <!-- wsp flotante -->
-    <a href="https://wa.me/5491176348089?text=Hola%20Melina!%20Me%20gustaría%20consultar%20sobre%20una%20sesión%20de%20fotos."
-       class="wsp-flotante" target="_blank" title="Escribinos por WhatsApp">
-        <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
+    <a href="https://wa.me/5491176348089" class="wsp-flotante" target="_blank" title="WhatsApp">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     </a>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
     <script>
-        // GLightbox
-        const lightbox = GLightbox({
-            selector: '.glightbox',
-            touchNavigation: true,
-            loop: true,
-            zoomable: true
-        });
+        const lightbox = GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });
 
-        // Galería
         const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
         if (dropdownToggle) {
             dropdownToggle.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation(); // evita que el menú hamburguesa lo cierre
+                e.stopPropagation();
                 this.closest('.nav-dropdown').classList.toggle('open');
             });
             document.addEventListener('click', function(e) {
@@ -625,7 +587,6 @@
             });
         }
 
-        // Menú celular
         const hamburguesa = document.getElementById('hamburguesa');
         const navLinks = document.getElementById('nav-links');
         if (hamburguesa && navLinks) {
@@ -635,29 +596,14 @@
                 navLinks.classList.toggle('open');
                 this.setAttribute('aria-expanded', isOpen);
             });
-            navLinks.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    // Si es el toggle de galería, no cerramos el menú
-                    if (this.classList.contains('nav-dropdown-toggle')) {
-                        e.stopPropagation();
-                        return;
-                    }
-                    if (window.innerWidth <= 768) {
-                        hamburguesa.classList.remove('open');
-                        navLinks.classList.remove('open');
-                        hamburguesa.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            });
         }
 
-        // Scroll:
         (function() {
             let ticking = false;
             function toggleScrolledClass() {
-                if (window.scrollY > 120) {
+                if (window.scrollY > 150) {
                     document.body.classList.add('scrolled');
-                } else {
+                } else if (window.scrollY <= 10) {
                     document.body.classList.remove('scrolled');
                 }
                 ticking = false;
@@ -668,46 +614,7 @@
                     ticking = true;
                 }
             }, { passive: true });
-            toggleScrolledClass();
         })();
-
-        function closeGlightbox() {
-            if (window.lightbox && typeof window.lightbox.close === 'function') {
-                window.lightbox.close();
-            }
-            document.querySelectorAll('.glightbox-clean, .goverlay').forEach(el => el.remove());
-            document.body.classList.remove('glightbox-open');
-        }
-
-        const isTouchDevice = () => ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-
-        document.querySelectorAll('a').forEach(link => {
-            if (link.hostname === window.location.hostname &&
-                !link.href.includes('#') &&
-                link.target !== '_blank' &&
-                !link.classList.contains('glightbox') &&
-                !link.classList.contains('nav-dropdown-toggle')) {
-                
-                link.addEventListener('click', function(e) {
-                    if (isTouchDevice()) return;
-                    e.preventDefault();
-                    const href = this.href;
-                    closeGlightbox();
-                    document.body.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    document.body.style.opacity = '0';
-                    document.body.style.transform = 'translateY(-8px)';
-                    setTimeout(() => { window.location.href = href; }, 300);
-                });
-            }
-        });
-
-        window.addEventListener('pageshow', function(event) {
-            document.body.style.opacity = '1';
-            document.body.style.transform = 'none';
-            if (event.persisted) closeGlightbox();
-        });
-
-        window.addEventListener('beforeunload', closeGlightbox);
     </script>
 </body>
 </html>
