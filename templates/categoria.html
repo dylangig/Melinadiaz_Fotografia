@@ -122,7 +122,7 @@
     {% for trabajo in trabajos %}
     <a href="{{ url_for('ver_fotos_trabajo', categoria=categoria, trabajo=trabajo.slug) }}" style="text-decoration:none;">
         <div class="tarjeta-trabajo">
-            <img src="{{ url_for('static', filename='imagenes/' + categoria + '/' + trabajo.slug + '/' + (trabajo.fotos[0] if trabajo.fotos else 'default.jpg')) }}"
+            <img src="{{ imagen_url(categoria, trabajo.slug, trabajo.fotos[0] if trabajo.fotos else '') }}"
                  alt="Portada {{ trabajo.nombre }} — {{ nombre_categoria }} en Zona Sur Buenos Aires"
                  loading="lazy">
             <div class="tarjeta-overlay">

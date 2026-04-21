@@ -129,10 +129,10 @@
             {% set alt_text = nombre_categoria ~ " " ~ trabajo.nombre ~ " en Zona Sur Buenos Aires - Foto " ~ loop.index %}
         {% endif %}
         <div class="item-foto">
-            <a href="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
+            <a href="{{ imagen_url(categoria, trabajo.slug, foto) }}"
                class="glightbox"
                data-gallery="galeria-sesion">
-                <img src="/static/imagenes/{{ categoria }}/{{ trabajo.slug }}/{{ foto }}"
+                <img src="{{ imagen_url(categoria, trabajo.slug, foto) }}"
                      alt="{{ alt_text }}"
                      loading="lazy">
             </a>

@@ -16,8 +16,7 @@ ADMIN_PASSWORD       = os.environ.get("ADMIN_PASSWORD", "melina2026")
 DOMINIO              = "https://melinadiazfotografia.com.ar"
 R2_ACCOUNT_ID        = os.environ.get("R2_ACCOUNT_ID", "f05d4a1ce85a4539c5283aca3811f9ea")
 R2_ACCESS_KEY_ID     = os.environ.get("R2_ACCESS_KEY_ID", "2b51d72379586c915e2753b11a878c87")
-R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "ef29dbacca24a2636f7c5cdf29d3a35bc3e1638bd9fe8121070125daa71f29c7
-")
+R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "ef29dbacca24a2636f7c5cdf29d3a35bc3e1638bd9fe8121070125daa71f29c7")
 R2_BUCKET_NAME       = os.environ.get("R2_BUCKET_NAME", "fotosmelinaapp")
 R2_PUBLIC_URL        = "https://imagenes.melinadiazfotografia.com.ar"
 
