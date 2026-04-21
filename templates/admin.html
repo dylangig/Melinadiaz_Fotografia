@@ -228,7 +228,7 @@
                 <div class="fotos-preview sortable-container" id="fotos-{{ cat.slug }}-{{ t.slug }}">
                     {% for foto in t.fotos %}
                     <div class="foto-preview-item" data-foto="{{ foto }}">
-                        <img src="{{ url_for('static', filename='imagenes/' + cat.slug + '/' + t.slug + '/' + foto) }}" alt="Foto">
+                        <img src="{{ imagen_url(cat.slug, t.slug, foto) }}" alt="Foto">
                         <button class="btn-eliminar-foto" title="Eliminar foto"
                                 onclick="eliminarFoto('{{ cat.slug }}', '{{ t.slug }}', '{{ foto }}')">✕</button>
                     </div>
