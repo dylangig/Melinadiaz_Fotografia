@@ -16,6 +16,12 @@
     background: #fff;
     color: #333;
     margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
   }
 }
 
@@ -24,9 +30,8 @@
     font-family: 'Playfair Display', serif;
   }
 
-  /* AOS-like fade-up animation */
   .animate-fade-up {
-    animation: fadeUp 0.6s ease forwards;
+    animation: fadeUp 0.6s ease-out forwards;
   }
 
   @keyframes fadeUp {
@@ -40,7 +45,6 @@
     }
   }
 
-  /* Floating animation for 404 */
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
@@ -50,7 +54,6 @@
     50%       { transform: translateY(-12px); }
   }
 
-  /* Pulse green dot */
   .animate-pulse-green {
     animation: pulsoVerde 1.5s infinite;
   }
@@ -58,5 +61,24 @@
   @keyframes pulsoVerde {
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.4; }
+  }
+
+  .animate-whatsapp-pulse {
+    animation: whatsappPulse 2s infinite;
+  }
+
+  @keyframes whatsappPulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+      transform: scale(1);
+    }
+    70% {
+      box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+      transform: scale(1.05);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      transform: scale(1);
+    }
   }
 }
