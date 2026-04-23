@@ -11,17 +11,68 @@ from botocore.client import Config
 from PIL import Image
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 app.secret_key = os.environ.get("SECRET_KEY", "clave-secreta-melina-2026")
 
+# ── CORS ──────────────────────────────────────────────────────────────────────
+# Agregá acá la URL que te dé Cloudflare Pages después del deploy
+CORS(app, origins=[
+    "http://localhost:5173",                          # desarrollo local
+    "https://melinadiazfotografia.pages.dev",         # Cloudflare Pages (reemplazar con tu URL real)
+    "https://melinadiazfotografia.com.ar",            # dominio propio
+    "https://www.melinadiazfotografia.com.ar",        # dominio con www
+], supports_credentials=True)
+
+# ── Configuración ─────────────────────────────────────────────────────────────
 ADMIN_PASSWORD       = os.environ.get("ADMIN_PASSWORD", "melina2026")
 DOMINIO              = "https://melinadiazfotografia.com.ar"
-R2_ACCOUNT_ID        = os.environ.get("R2_ACCOUNT_ID", "f05d4a1ce85a4539c5283aca3811f9ea")
-R2_ACCESS_KEY_ID     = os.environ.get("R2_ACCESS_KEY_ID", "2b51d72379586c915e2753b11a878c87")
+R2_ACCOUNT_ID        = os.environ.get("R2_ACCOUNT_ID",        "f05d4a1ce85a4539c5283aca3811f9ea")
+R2_ACCESS_KEY_ID     = os.environ.get("R2_ACCESS_KEY_ID",     "2b51d72379586c915e2753b11a878c87")
 R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "ef29dbacca24a2636f7c5cdf29d3a35bc3e1638bd9fe8121070125daa71f29c7")
-R2_BUCKET_NAME       = os.environ.get("R2_BUCKET_NAME", "fotosmelinaapp")
+R2_BUCKET_NAME       = os.environ.get("R2_BUCKET_NAME",       "fotosmelinaapp")
 R2_PUBLIC_URL        = "https://imagenes.melinadiazfotografia.com.ar"
 
+# ── Datos estáticos ───────────────────────────────────────────────────────────
+categorias = [
+    {"nombre": "BOOK INFANTIL", "slug": "infantil", "portada": "portada-infantil.webp"},
+    {"nombre": "15 AÑOS",       "slug": "quince",   "portada": "portada-15.webp"},
+    {"nombre": "BODAS",         "slug": "bodas",    "portada": "portada-bodas.webp"},
+]
+
+NOMBRES_CATEGORIAS = {
+    "infantil": "Book Infantil",
+    "quince":   "15 Años",
+    "bodas":    "Bodas",
+}
+
+servicios = [
+    {
+        "nombre":      "Book Infantil",
+        "descripcion": "Sesión de fotos profesional para bebés y niños de todas las edades. "
+                       "Capturamos su personalidad y los momentos más tiernos con una mirada sensible y divertida.",
+        "fotos":       [],
+    },
+    {
+        "nombre":      "15 Años",
+        "descripcion": "Capturamos ese momento mágico de los 15 con sesiones al aire libre o en estudio. "
+                       "Trabajamos juntas para que tu personalidad brille en cada foto.",
+        "fotos":       [],
+    },
+    {
+        "nombre":      "Bodas",
+        "descripcion": "Fotografiamos el día más especial de tu vida con discreción, emoción y un ojo "
+                       "para los detalles que hacen única cada boda en Zona Sur Buenos Aires.",
+        "fotos":       [],
+    },
+]
+
+# ── Cache de trabajos ─────────────────────────────────────────────────────────
+_trabajos_cache = {"data": None, "ts": 0}
+
+def invalidar_cache():
+    _trabajos_cache["data"] = None
+    _trabajos_cache["ts"]   = 0
+
+# ── Helpers R2 ────────────────────────────────────────────────────────────────
 def get_r2():
     return boto3.client(
         "s3",
@@ -40,24 +91,6 @@ def portada_url(nombre_archivo):
 
 app.jinja_env.globals["imagen_url"] = imagen_url
 app.jinja_env.globals["portada_url"] = portada_url
-
-categorias = [
-    {"nombre": "BOOK INFANTIL", "slug": "infantil", "portada": "portada-infantil.webp"},
-    {"nombre": "15 AÑOS",       "slug": "quince",   "portada": "portada-15.webp"},
-    {"nombre": "BODAS",         "slug": "bodas",    "portada": "portada-bodas.webp"}
-]
-
-NOMBRES_CATEGORIAS = {
-    "infantil": "Book Infantil",
-    "quince":   "15 Años",
-    "bodas":    "Bodas"
-}
-
-_trabajos_cache = {"data": None, "ts": 0}
-
-def invalidar_cache():
-    _trabajos_cache["data"] = None
-    _trabajos_cache["ts"]   = 0
 
 def slugify(texto):
     texto = unicodedata.normalize('NFKD', texto)
@@ -172,6 +205,10 @@ def get_trabajos_data():
     return trabajos
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# RUTAS HTML (Flask templates — se mantienen para compatibilidad)
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route("/")
 def inicio():
     return render_template("inicio.html", categorias=categorias)
@@ -248,6 +285,7 @@ Disallow: /admin
 Sitemap: {DOMINIO}/sitemap.xml"""
     return Response(txt, mimetype='text/plain')
 
+# ── Admin HTML (sesión por cookie — compatibilidad con el panel viejo) ────────
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if request.method == "POST" and "password" in request.form:
@@ -398,34 +436,22 @@ def admin_logout():
     session.pop("admin", None)
     return redirect(url_for("inicio"))
 
-if __name__ == "__main__":
-    app.run(debug=True)
 
-  # ══════════════════════════════════════════════════════════════════════════════
-# AGREGAR AL app.py EXISTENTE
-# Estos son los endpoints JSON que el frontend React va a consumir.
-# También hay que instalar flask-cors: pip install flask-cors
-# Y agregar al inicio del app.py:
-#   from flask_cors import CORS
-#   CORS(app, origins=["http://localhost:5173", "https://tudominio.com"], supports_credentials=True)
+# ══════════════════════════════════════════════════════════════════════════════
+# API JSON — consumida por el frontend React
 # ══════════════════════════════════════════════════════════════════════════════
 
-from flask import jsonify
+# ── Públicos ──────────────────────────────────────────────────────────────────
 
-# ── /api/categorias ────────────────────────────────────────────────────────
 @app.route("/api/categorias")
 def api_categorias():
     return jsonify(categorias)
 
-
-# ── /api/trabajos/<categoria> ──────────────────────────────────────────────
 @app.route("/api/trabajos/<categoria_slug>")
 def api_trabajos(categoria_slug):
     trabajos = get_trabajos_data().get(categoria_slug, [])
     return jsonify(trabajos)
 
-
-# ── /api/trabajos/<categoria>/<trabajo> ────────────────────────────────────
 @app.route("/api/trabajos/<categoria>/<trabajo>")
 def api_trabajo_detalle(categoria, trabajo):
     lista = get_trabajos_data().get(categoria, [])
@@ -434,30 +460,18 @@ def api_trabajo_detalle(categoria, trabajo):
         return jsonify({"error": "No encontrado"}), 404
     return jsonify(t)
 
-
-# ── /api/trabajos-todos (para el admin) ────────────────────────────────────
-@app.route("/api/trabajos-todos")
-def api_trabajos_todos():
-    if not session.get("admin"):
-        return jsonify({"error": "No autorizado"}), 401
-    return jsonify(get_trabajos_data())
-
-
-# ── /api/servicios ─────────────────────────────────────────────────────────
 @app.route("/api/servicios")
 def api_servicios():
-    return jsonify(categorias)
+    return jsonify(servicios)
 
+# ── Admin JSON ────────────────────────────────────────────────────────────────
 
-# ── /api/admin/check ──────────────────────────────────────────────────────
 @app.route("/api/admin/check")
 def api_admin_check():
     if session.get("admin"):
         return jsonify({"ok": True})
     return jsonify({"ok": False}), 401
 
-
-# ── /api/admin/login ──────────────────────────────────────────────────────
 @app.route("/api/admin/login", methods=["POST"])
 def api_admin_login():
     data = request.get_json()
@@ -466,15 +480,17 @@ def api_admin_login():
         return jsonify({"ok": True})
     return jsonify({"error": "Contraseña incorrecta"}), 401
 
-
-# ── /api/admin/logout ─────────────────────────────────────────────────────
 @app.route("/api/admin/logout")
 def api_admin_logout():
     session.pop("admin", None)
     return jsonify({"ok": True})
 
+@app.route("/api/admin/trabajos-todos")
+def api_trabajos_todos():
+    if not session.get("admin"):
+        return jsonify({"error": "No autorizado"}), 401
+    return jsonify(get_trabajos_data())
 
-# ── /api/admin/nuevo-trabajo ──────────────────────────────────────────────
 @app.route("/api/admin/nuevo-trabajo", methods=["POST"])
 def api_nuevo_trabajo():
     if not session.get("admin"):
@@ -495,8 +511,6 @@ def api_nuevo_trabajo():
     invalidar_cache()
     return jsonify({"mensaje": f"Trabajo '{nombre}' creado con {guardadas} fotos."})
 
-
-# ── /api/admin/agregar-fotos ──────────────────────────────────────────────
 @app.route("/api/admin/agregar-fotos", methods=["POST"])
 def api_agregar_fotos():
     if not session.get("admin"):
@@ -511,8 +525,25 @@ def api_agregar_fotos():
     invalidar_cache()
     return jsonify({"mensaje": f"{guardadas} fotos agregadas a '{trabajo}'."})
 
+@app.route("/api/admin/editar-trabajo", methods=["POST"])
+def api_editar_trabajo():
+    if not session.get("admin"):
+        return jsonify({"error": "No autorizado"}), 401
+    categoria          = request.form["categoria"]
+    trabajo            = request.form["trabajo"]
+    descripcion        = request.form.get("descripcion", "").strip()
+    descripcion_evento = request.form.get("descripcion_evento", "").strip()
+    if descripcion:
+        subir_texto(categoria, trabajo, "descripcion.txt", descripcion)
+    else:
+        eliminar_objeto_r2(f"{categoria}/{trabajo}/descripcion.txt")
+    if descripcion_evento:
+        subir_texto(categoria, trabajo, "descripcion_evento.txt", descripcion_evento)
+    else:
+        eliminar_objeto_r2(f"{categoria}/{trabajo}/descripcion_evento.txt")
+    invalidar_cache()
+    return jsonify({"mensaje": f"Trabajo '{trabajo}' actualizado."})
 
-# ── /api/admin/eliminar-trabajo ───────────────────────────────────────────
 @app.route("/api/admin/eliminar-trabajo", methods=["POST"])
 def api_eliminar_trabajo():
     if not session.get("admin"):
@@ -531,8 +562,6 @@ def api_eliminar_trabajo():
         return jsonify({"mensaje": f"Trabajo '{trabajo}' eliminado."})
     return jsonify({"mensaje": f"No se encontraron archivos para '{trabajo}'."})
 
-
-# ── /api/admin/eliminar-foto ──────────────────────────────────────────────
 @app.route("/api/admin/eliminar-foto", methods=["POST"])
 def api_eliminar_foto():
     if not session.get("admin"):
@@ -548,3 +577,8 @@ def api_eliminar_foto():
         return jsonify({"mensaje": f"Foto '{foto}' eliminada."})
     except Exception:
         return jsonify({"error": "La foto no existe en R2."}), 404
+
+
+# ── Entry point ───────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    app.run(debug=True)
