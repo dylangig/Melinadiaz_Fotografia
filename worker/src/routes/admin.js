@@ -1,10 +1,8 @@
 // ── routes/admin.js ──────────────────────────────────────────────────────────
-// Endpoints del panel de administración (requieren token JWT)
 
 import { json, error, slugify, subirImagenAR2 } from '../helpers.js';
 import { generarToken, verificarToken, tokenDesdeRequest } from '../auth.js';
 
-// ── Middleware: verificar token ───────────────────────────────────────────────
 async function requireAdmin(request, env) {
   const token = tokenDesdeRequest(request);
   if (!token) return false;
@@ -12,7 +10,6 @@ async function requireAdmin(request, env) {
 }
 
 // POST /api/admin/login
-// Body JSON: { password: "..." }
 export async function adminLogin(request, env) {
   const body = await request.json().catch(() => ({}));
   if (body.password !== env.ADMIN_PASSWORD) {
@@ -55,7 +52,6 @@ export async function getTodosTrabaj(request, env) {
 }
 
 // POST /api/admin/nuevo-trabajo
-// Body: FormData con campos: categoria, nombre, descripcion?, descripcion_evento?, fotos (files)
 export async function nuevoTrabajo(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
@@ -64,11 +60,10 @@ export async function nuevoTrabajo(request, env) {
   const nombre    = form.get('nombre')?.trim();
   if (!categoria || !nombre) return error('Faltan campos obligatorios');
 
-  const slug             = slugify(nombre);
-  const descripcion      = form.get('descripcion')?.trim()       || null;
-  const descripcionEvento= form.get('descripcion_evento')?.trim()|| null;
+  const slug              = slugify(nombre);
+  const descripcion       = form.get('descripcion')?.trim()        || null;
+  const descripcionEvento = form.get('descripcion_evento')?.trim() || null;
 
-  // Insertar trabajo en D1
   const { meta } = await env.DB.prepare(
     `INSERT OR IGNORE INTO trabajos (categoria_slug, slug, nombre, descripcion, descripcion_evento)
      VALUES (?, ?, ?, ?, ?)`
@@ -77,7 +72,6 @@ export async function nuevoTrabajo(request, env) {
   const trabajoId = meta.last_row_id;
   if (!trabajoId) return error('El trabajo ya existe o hubo un error', 409);
 
-  // Subir fotos a R2 y registrar en D1
   let guardadas = 0;
   const fotos = form.getAll('fotos');
   for (const [idx, foto] of fotos.entries()) {
@@ -97,12 +91,11 @@ export async function nuevoTrabajo(request, env) {
 }
 
 // POST /api/admin/agregar-fotos
-// Body: FormData con campos: categoria, trabajo, fotos (files)
 export async function agregarFotos(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
-  const form      = await request.formData();
-  const categoria = form.get('categoria');
+  const form        = await request.formData();
+  const categoria   = form.get('categoria');
   const trabajoSlug = form.get('trabajo');
 
   const trabajo = await env.DB.prepare(
@@ -110,11 +103,10 @@ export async function agregarFotos(request, env) {
   ).bind(categoria, trabajoSlug).first();
   if (!trabajo) return error('Trabajo no encontrado', 404);
 
-  // Determinar el máximo orden actual
   const maxOrden = await env.DB.prepare(
     'SELECT COALESCE(MAX(orden), 0) as m FROM fotos WHERE trabajo_id = ?'
   ).bind(trabajo.id).first();
-  let ordenBase = (maxOrden?.m ?? 0);
+  const ordenBase = maxOrden?.m ?? 0;
 
   let guardadas = 0;
   const fotos = form.getAll('fotos');
@@ -136,15 +128,14 @@ export async function agregarFotos(request, env) {
 }
 
 // POST /api/admin/editar-trabajo
-// Body: FormData con campos: categoria, trabajo, descripcion?, descripcion_evento?
 export async function editarTrabajo(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
-  const form             = await request.formData();
-  const categoria        = form.get('categoria');
-  const trabajoSlug      = form.get('trabajo');
-  const descripcion      = form.get('descripcion')?.trim()        || null;
-  const descripcionEvento= form.get('descripcion_evento')?.trim() || null;
+  const form              = await request.formData();
+  const categoria         = form.get('categoria');
+  const trabajoSlug       = form.get('trabajo');
+  const descripcion       = form.get('descripcion')?.trim()        || null;
+  const descripcionEvento = form.get('descripcion_evento')?.trim() || null;
 
   await env.DB.prepare(
     `UPDATE trabajos SET descripcion = ?, descripcion_evento = ?
@@ -155,7 +146,6 @@ export async function editarTrabajo(request, env) {
 }
 
 // POST /api/admin/eliminar-trabajo
-// Body: FormData con campos: categoria, trabajo
 export async function eliminarTrabajo(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
@@ -168,7 +158,6 @@ export async function eliminarTrabajo(request, env) {
   ).bind(categoria, trabajoSlug).first();
   if (!trabajo) return error('Trabajo no encontrado', 404);
 
-  // Eliminar fotos de R2
   const { results: fotos } = await env.DB.prepare(
     'SELECT nombre FROM fotos WHERE trabajo_id = ?'
   ).bind(trabajo.id).all();
@@ -177,16 +166,12 @@ export async function eliminarTrabajo(request, env) {
     fotos.map(f => env.BUCKET.delete(`${categoria}/${trabajoSlug}/${f.nombre}`))
   );
 
-  // Eliminar de D1 (las fotos se eliminan por CASCADE)
-  await env.DB.prepare(
-    'DELETE FROM trabajos WHERE id = ?'
-  ).bind(trabajo.id).run();
+  await env.DB.prepare('DELETE FROM trabajos WHERE id = ?').bind(trabajo.id).run();
 
   return json({ mensaje: `Trabajo '${trabajoSlug}' eliminado.` });
 }
 
 // POST /api/admin/eliminar-foto
-// Body: FormData con campos: categoria, trabajo, foto
 export async function eliminarFoto(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
@@ -200,9 +185,7 @@ export async function eliminarFoto(request, env) {
   ).bind(categoria, trabajoSlug).first();
   if (!trabajo) return error('Trabajo no encontrado', 404);
 
-  const key = `${categoria}/${trabajoSlug}/${fotoNombre}`;
-  await env.BUCKET.delete(key);
-
+  await env.BUCKET.delete(`${categoria}/${trabajoSlug}/${fotoNombre}`);
   await env.DB.prepare(
     'DELETE FROM fotos WHERE trabajo_id = ? AND nombre = ?'
   ).bind(trabajo.id, fotoNombre).run();
@@ -211,7 +194,6 @@ export async function eliminarFoto(request, env) {
 }
 
 // POST /api/admin/reordenar-fotos
-// Body JSON: { categoria, trabajo, orden: ["1.webp", "3.webp", "2.webp"] }
 export async function reordenarFotos(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
@@ -222,7 +204,6 @@ export async function reordenarFotos(request, env) {
   ).bind(categoria, trabajoSlug).first();
   if (!trabajo) return error('Trabajo no encontrado', 404);
 
-  // Actualizar el campo orden en D1 según el array recibido
   await Promise.all(
     orden.map((nombreFoto, idx) =>
       env.DB.prepare(
@@ -232,4 +213,60 @@ export async function reordenarFotos(request, env) {
   );
 
   return json({ mensaje: 'Fotos reordenadas correctamente.' });
+}
+
+// ── CONFIGURACIÓN GLOBAL (para la plantilla) ──────────────────────────────────
+
+// GET /api/configuracion  (pública — la usa el Navbar)
+export async function getConfiguracion(env) {
+  try {
+    const row = await env.DB.prepare(
+      'SELECT nombre_marca, logo_url FROM configuracion WHERE id = 1'
+    ).first();
+    // Si la tabla aún no existe o está vacía devuelve valores por defecto
+    return json(row ?? { nombre_marca: 'Melina Diaz Fotografía', logo_url: '' });
+  } catch {
+    return json({ nombre_marca: 'Melina Diaz Fotografía', logo_url: '' });
+  }
+}
+
+// POST /api/admin/configuracion  — guarda nombre_marca
+export async function actualizarConfiguracion(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+
+  const body         = await request.json().catch(() => ({}));
+  const nombre_marca = body.nombre_marca?.trim() ?? '';
+
+  // Upsert: insertar si no existe, actualizar si existe
+  await env.DB.prepare(`
+    INSERT INTO configuracion (id, nombre_marca)
+    VALUES (1, ?)
+    ON CONFLICT(id) DO UPDATE SET nombre_marca = excluded.nombre_marca
+  `).bind(nombre_marca).run();
+
+  return json({ mensaje: 'Nombre de marca actualizado.' });
+}
+
+// POST /api/admin/configuracion/logo  — sube logo a R2 y guarda la URL en D1
+export async function subirLogo(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+
+  const form = await request.formData();
+  const file = form.get('file');
+  if (!file || !file.name) return error('No se recibió ningún archivo');
+
+  const ext      = file.name.split('.').pop()?.toLowerCase() || 'webp';
+  const key      = `assets/logo.${ext}`;
+  const buffer   = await file.arrayBuffer();
+  await subirImagenAR2(env.BUCKET, key, buffer, file.type);
+
+  const logoUrl = `${env.R2_PUBLIC_URL}/${key}`;
+
+  await env.DB.prepare(`
+    INSERT INTO configuracion (id, logo_url)
+    VALUES (1, ?)
+    ON CONFLICT(id) DO UPDATE SET logo_url = excluded.logo_url
+  `).bind(logoUrl).run();
+
+  return json({ url: logoUrl, mensaje: 'Logo actualizado.' });
 }

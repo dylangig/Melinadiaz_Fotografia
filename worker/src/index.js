@@ -1,21 +1,5 @@
 // ══════════════════════════════════════════════════════════════════════════════
 // index.js — Cloudflare Worker principal
-// Melina Diaz Fotografía — API completa
-//
-// Rutas disponibles:
-//   GET  /api/categorias
-//   GET  /api/trabajos/:categoria
-//   GET  /api/trabajos/:categoria/:trabajo
-//   GET  /api/servicios
-//   POST /api/admin/login
-//   GET  /api/admin/check
-//   GET  /api/admin/trabajos-todos
-//   POST /api/admin/nuevo-trabajo
-//   POST /api/admin/agregar-fotos
-//   POST /api/admin/editar-trabajo
-//   POST /api/admin/eliminar-trabajo
-//   POST /api/admin/eliminar-foto
-//   POST /api/admin/reordenar-fotos
 // ══════════════════════════════════════════════════════════════════════════════
 
 import { getCorsHeaders, json, error, preflight } from './helpers.js';
@@ -24,30 +8,29 @@ import {
   adminLogin, adminCheck, getTodosTrabaj,
   nuevoTrabajo, agregarFotos, editarTrabajo,
   eliminarTrabajo, eliminarFoto, reordenarFotos,
+  getConfiguracion, actualizarConfiguracion, subirLogo,
 } from './routes/admin.js';
 
 export default {
   async fetch(request, env) {
-    const cors = getCorsHeaders(request, env);
-    const url  = new URL(request.url);
-    const path = url.pathname;
+    const cors   = getCorsHeaders(request, env);
+    const url    = new URL(request.url);
+    const path   = url.pathname;
     const method = request.method;
 
-    // ── Preflight CORS ──────────────────────────────────────────────────────
+    // Preflight CORS
     if (method === 'OPTIONS') return preflight(cors);
 
-    // ── Solo procesar rutas /api/* ──────────────────────────────────────────
+    // Solo rutas /api/*
     if (!path.startsWith('/api/')) {
       return new Response('Not found', { status: 404, headers: cors });
     }
 
     try {
-      // Extraer segmentos de la URL
-      // /api/categorias → ['', 'api', 'categorias']
-      const segments = path.split('/').filter(Boolean); // ['api', 'categorias', ...]
-      const [, ...parts] = segments; // parts = ['categorias', ...]
+      const segments = path.split('/').filter(Boolean); // ['api', ...]
+      const [, ...parts] = segments;                    // ['categorias', ...]
 
-      // ── Rutas públicas ────────────────────────────────────────────────────
+      // ── RUTAS PÚBLICAS ──────────────────────────────────────────────────
 
       // GET /api/categorias
       if (method === 'GET' && parts[0] === 'categorias') {
@@ -69,7 +52,12 @@ export default {
         return withCors(await getTrabajoDetalle(env, parts[1], parts[2]), cors);
       }
 
-      // ── Rutas admin ───────────────────────────────────────────────────────
+      // GET /api/configuracion  ← usada por el Navbar para el logo dinámico
+      if (method === 'GET' && parts[0] === 'configuracion') {
+        return withCors(await getConfiguracion(env), cors);
+      }
+
+      // ── RUTAS ADMIN ─────────────────────────────────────────────────────
 
       // POST /api/admin/login
       if (method === 'POST' && parts[0] === 'admin' && parts[1] === 'login') {
@@ -116,7 +104,16 @@ export default {
         return withCors(await reordenarFotos(request, env), cors);
       }
 
-      // Ruta no encontrada
+      // POST /api/admin/configuracion  ← guarda nombre_marca
+      if (method === 'POST' && parts[0] === 'admin' && parts[1] === 'configuracion' && parts.length === 2) {
+        return withCors(await actualizarConfiguracion(request, env), cors);
+      }
+
+      // POST /api/admin/configuracion/logo  ← sube logo a R2
+      if (method === 'POST' && parts[0] === 'admin' && parts[1] === 'configuracion' && parts[2] === 'logo') {
+        return withCors(await subirLogo(request, env), cors);
+      }
+
       return withCors(error('Ruta no encontrada', 404), cors);
 
     } catch (err) {
@@ -132,7 +129,6 @@ export default {
   },
 };
 
-// Agrega headers CORS a una Response existente
 function withCors(response, cors) {
   const r = new Response(response.body, response);
   Object.entries(cors).forEach(([k, v]) => r.headers.set(k, v));
