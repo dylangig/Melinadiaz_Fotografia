@@ -1,32 +1,90 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategorias } from '../hooks/useApi';
 
-const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
+const R2      = 'https://imagenes.melinadiazfotografia.com.ar';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function Inicio() {
   const { categorias, loading } = useCategorias();
+  const [heroUrl, setHeroUrl]   = useState('');
+
+  // Cargar imagen de hero desde la config (si existe)
+  useEffect(() => {
+    fetch(`${API_BASE}/api/configuracion`)
+      .then(r => { if (r.ok) return r.json(); throw new Error(); })
+      .then(data => { if (data?.hero_url) setHeroUrl(data.hero_url); })
+      .catch(() => {});
+  }, []);
 
   return (
     <>
       {/* ── HERO ─────────────────────────────────────────────────────────────
-          Ocupa el ancho completo. El navbar transparente lo superpone.    */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-br from-pink-50 via-white to-pink-100 text-center">
-        {/* Burbujas decorativas */}
-        <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-pink-200/30 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-pink-100/40 translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+          Si hay hero_url: imagen de fondo con overlay oscuro.
+          Si no: gradiente rosa por defecto.                               */}
+      <section
+        className="relative w-full overflow-hidden text-center"
+        style={
+          heroUrl
+            ? {
+                backgroundImage:    `url(${heroUrl})`,
+                backgroundSize:     'cover',
+                backgroundPosition: 'center',
+              }
+            : undefined
+        }
+      >
+        {/* Overlay — más oscuro sobre foto, suave sobre gradiente */}
+        <div
+          className={`absolute inset-0 ${
+            heroUrl
+              ? 'bg-black/45'
+              : 'bg-gradient-to-br from-pink-50 via-white to-pink-100'
+          }`}
+        />
 
-        <div className="relative max-w-4xl mx-auto px-6 pt-40 pb-24">
-          <p className="text-xs tracking-[4px] uppercase text-pink-800 font-semibold mb-5">
+        {/* Burbujas decorativas (solo visibles sin imagen) */}
+        {!heroUrl && (
+          <>
+            <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-pink-200/30 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-pink-100/40 translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+          </>
+        )}
+
+        {/* Contenido del hero */}
+        <div className="relative max-w-4xl mx-auto px-6 pt-44 pb-28">
+          <p
+            className={`text-xs tracking-[4px] uppercase font-semibold mb-5 ${
+              heroUrl ? 'text-pink-200' : 'text-pink-800'
+            }`}
+          >
             Fotografía Profesional · Zona Sur Buenos Aires
           </p>
-          <h1 className="font-playfair text-5xl sm:text-6xl font-light text-pink-950 leading-tight mb-6">
+
+          <h1
+            className={`font-playfair text-5xl sm:text-6xl font-light leading-tight mb-6 ${
+              heroUrl ? 'text-white' : 'text-pink-950'
+            }`}
+          >
             Capturando momentos<br />
-            <em className="italic font-normal text-pink-700">que duran toda la vida</em>
+            <em
+              className={`italic font-normal ${
+                heroUrl ? 'text-pink-200' : 'text-pink-700'
+              }`}
+            >
+              que duran toda la vida
+            </em>
           </h1>
-          <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-            Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora,
-            Quilmes y toda la Zona Sur.
+
+          <p
+            className={`text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed ${
+              heroUrl ? 'text-white/85' : 'text-gray-500'
+            }`}
+          >
+            Books infantiles, quinceañeras y bodas en Almirante Brown,
+            Lomas de Zamora, Quilmes y toda la Zona Sur.
           </p>
+
           <div className="flex flex-wrap gap-4 justify-center">
             <Link
               to="/contacto"
@@ -36,7 +94,11 @@ export default function Inicio() {
             </Link>
             <Link
               to="/galeria/infantil"
-              className="border-2 border-pink-200 text-pink-700 px-8 py-3.5 rounded-full font-bold text-sm tracking-wide uppercase hover:border-pink-700 transition-colors"
+              className={`border-2 px-8 py-3.5 rounded-full font-bold text-sm tracking-wide uppercase transition-colors ${
+                heroUrl
+                  ? 'border-white/60 text-white hover:border-white'
+                  : 'border-pink-200 text-pink-700 hover:border-pink-700'
+              }`}
             >
               Ver galerías
             </Link>
@@ -88,8 +150,7 @@ export default function Inicio() {
         )}
       </section>
 
-      {/* ── TESTIMONIOS ──────────────────────────────────────────────────────
-          Full-width con fondo degradado                                   */}
+      {/* ── TESTIMONIOS ──────────────────────────────────────────────────────*/}
       <section className="w-full bg-gradient-to-br from-pink-50 to-pink-100 py-16">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-12">
@@ -98,14 +159,14 @@ export default function Inicio() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
               {
-                texto: 'Fue la mejor decisión. Melina nos hizo sentir cómodos en todo momento y los resultados superaron todas nuestras expectativas.',
+                texto:  'Fue la mejor decisión. Melina nos hizo sentir cómodos en todo momento y los resultados superaron todas nuestras expectativas.',
                 autora: 'Sofía L.',
-                tipo: '15 años',
+                tipo:   '15 años',
               },
               {
-                texto: 'Las fotos del book de mi nena son una obra de arte. Tiene una sensibilidad especial para capturar la personalidad de los chicos.',
+                texto:  'Las fotos del book de mi nena son una obra de arte. Tiene una sensibilidad especial para capturar la personalidad de los chicos.',
                 autora: 'Laura P.',
-                tipo: 'Book infantil',
+                tipo:   'Book infantil',
               },
             ].map((t, i) => (
               <div key={i} className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/80 shadow-sm">

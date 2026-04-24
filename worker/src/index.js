@@ -8,7 +8,8 @@ import {
   adminLogin, adminCheck, getTodosTrabaj,
   nuevoTrabajo, agregarFotos, editarTrabajo,
   eliminarTrabajo, eliminarFoto, reordenarFotos,
-  getConfiguracion, actualizarConfiguracion, subirLogo,
+  getConfiguracion, actualizarConfiguracion,
+  subirLogo, subirHero, subirPortada,
 } from './routes/admin.js';
 
 export default {
@@ -18,22 +19,20 @@ export default {
     const path   = url.pathname;
     const method = request.method;
 
-    // Preflight CORS
     if (method === 'OPTIONS') return preflight(cors);
 
-    // Solo rutas /api/*
     if (!path.startsWith('/api/')) {
       return new Response('Not found', { status: 404, headers: cors });
     }
 
     try {
-      const segments = path.split('/').filter(Boolean); // ['api', ...]
-      const [, ...parts] = segments;                    // ['categorias', ...]
+      const segments = path.split('/').filter(Boolean);
+      const [, ...parts] = segments;
 
       // ── RUTAS PÚBLICAS ──────────────────────────────────────────────────
 
       // GET /api/categorias
-      if (method === 'GET' && parts[0] === 'categorias') {
+      if (method === 'GET' && parts[0] === 'categorias' && parts.length === 1) {
         return withCors(await getCategorias(env), cors);
       }
 
@@ -52,7 +51,7 @@ export default {
         return withCors(await getTrabajoDetalle(env, parts[1], parts[2]), cors);
       }
 
-      // GET /api/configuracion  ← usada por el Navbar para el logo dinámico
+      // GET /api/configuracion
       if (method === 'GET' && parts[0] === 'configuracion') {
         return withCors(await getConfiguracion(env), cors);
       }
@@ -104,14 +103,24 @@ export default {
         return withCors(await reordenarFotos(request, env), cors);
       }
 
-      // POST /api/admin/configuracion  ← guarda nombre_marca
+      // POST /api/admin/configuracion  (nombre_marca, hero_url)
       if (method === 'POST' && parts[0] === 'admin' && parts[1] === 'configuracion' && parts.length === 2) {
         return withCors(await actualizarConfiguracion(request, env), cors);
       }
 
-      // POST /api/admin/configuracion/logo  ← sube logo a R2
+      // POST /api/admin/configuracion/logo
       if (method === 'POST' && parts[0] === 'admin' && parts[1] === 'configuracion' && parts[2] === 'logo') {
         return withCors(await subirLogo(request, env), cors);
+      }
+
+      // POST /api/admin/configuracion/hero
+      if (method === 'POST' && parts[0] === 'admin' && parts[1] === 'configuracion' && parts[2] === 'hero') {
+        return withCors(await subirHero(request, env), cors);
+      }
+
+      // POST /api/admin/categorias/portada
+      if (method === 'POST' && parts[0] === 'admin' && parts[1] === 'categorias' && parts[2] === 'portada') {
+        return withCors(await subirPortada(request, env), cors);
       }
 
       return withCors(error('Ruta no encontrada', 404), cors);
@@ -119,7 +128,7 @@ export default {
     } catch (err) {
       console.error('Worker error:', err);
       return withCors(
-        new Response(JSON.stringify({ error: 'Error interno del servidor', detail: err.message }), {
+        new Response(JSON.stringify({ error: 'Error interno', detail: err.message }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
         }),

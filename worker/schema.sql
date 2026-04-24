@@ -1,33 +1,33 @@
 -- ══════════════════════════════════════════════════════════════════════════════
 -- SCHEMA D1 — Melina Diaz Fotografía
--- Ejecutar con: wrangler d1 execute melina-db --file=schema.sql --remote
+-- Si ya corriste el schema anterior, solo ejecutá el bloque "MIGRACIÓN" al final
 -- ══════════════════════════════════════════════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS categorias (
   id      INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre  TEXT NOT NULL,
-  slug    TEXT NOT NULL UNIQUE,
-  portada TEXT NOT NULL,
+  nombre  TEXT    NOT NULL,
+  slug    TEXT    NOT NULL UNIQUE,
+  portada TEXT    NOT NULL,
   orden   INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS trabajos (
-  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-  categoria_slug      TEXT NOT NULL REFERENCES categorias(slug),
-  slug                TEXT NOT NULL,
-  nombre              TEXT NOT NULL,
-  año                 TEXT DEFAULT '2026',
-  descripcion         TEXT,
-  descripcion_evento  TEXT,
-  activo              INTEGER DEFAULT 1,
-  orden               INTEGER DEFAULT 0,
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  categoria_slug     TEXT    NOT NULL REFERENCES categorias(slug),
+  slug               TEXT    NOT NULL,
+  nombre             TEXT    NOT NULL,
+  año                TEXT    DEFAULT '2026',
+  descripcion        TEXT,
+  descripcion_evento TEXT,
+  activo             INTEGER DEFAULT 1,
+  orden              INTEGER DEFAULT 0,
   UNIQUE(categoria_slug, slug)
 );
 
 CREATE TABLE IF NOT EXISTS fotos (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   trabajo_id INTEGER NOT NULL REFERENCES trabajos(id) ON DELETE CASCADE,
-  nombre     TEXT NOT NULL,
+  nombre     TEXT    NOT NULL,
   orden      INTEGER DEFAULT 0
 );
 
@@ -35,16 +35,15 @@ CREATE TABLE IF NOT EXISTS servicios (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre      TEXT NOT NULL,
   descripcion TEXT,
-  fotos_json  TEXT DEFAULT '[]',
+  fotos_json  TEXT    DEFAULT '[]',
   orden       INTEGER DEFAULT 0
 );
 
--- ── NUEVA: tabla de configuración global (logo, nombre de marca) ──────────────
 CREATE TABLE IF NOT EXISTS configuracion (
   id           INTEGER PRIMARY KEY DEFAULT 1,
-  nombre_marca TEXT DEFAULT 'Melina Diaz Fotografía',
-  logo_url     TEXT DEFAULT '',
-  -- Restricción: solo puede existir 1 fila
+  nombre_marca TEXT    DEFAULT 'Melina Diaz Fotografía',
+  logo_url     TEXT    DEFAULT '',
+  hero_url     TEXT    DEFAULT '',
   CHECK(id = 1)
 );
 
@@ -66,6 +65,5 @@ INSERT OR IGNORE INTO servicios (nombre, descripcion, fotos_json, orden) VALUES
    'Fotografiamos el día más especial de tu vida con discreción, emoción y un ojo para los detalles que hacen única cada boda en Zona Sur Buenos Aires.',
    '[]', 3);
 
--- Fila de configuración inicial (se puede editar desde el panel admin)
-INSERT OR IGNORE INTO configuracion (id, nombre_marca, logo_url)
-  VALUES (1, 'Melina Diaz Fotografía', '');
+INSERT OR IGNORE INTO configuracion (id, nombre_marca, logo_url, hero_url)
+  VALUES (1, 'Melina Diaz Fotografía', '', '');
