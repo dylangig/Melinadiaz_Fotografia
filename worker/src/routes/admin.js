@@ -213,13 +213,18 @@ export async function actualizarConfiguracion(request, env) {
     'whatsapp', 'email', 'zona', 'footer_texto',
   ];
 
-  const sets   = [];
-  const vals   = [];
+  const sets = [];
+  const vals = [];
   for (const campo of CAMPOS_PERMITIDOS) {
-    if (body[campo] !== undefined) { sets.push(`${campo} = ?`); vals.push(body[campo]); }
+    if (body[campo] !== undefined) {
+      sets.push(`${campo} = ?`);
+      vals.push(body[campo]);
+    }
   }
+
   if (sets.length === 0) return error('No se enviaron campos para actualizar');
 
+  // Upsert correcto
   await env.DB.prepare(
     `INSERT INTO configuracion (id) VALUES (1)
      ON CONFLICT(id) DO UPDATE SET ${sets.join(', ')}`
