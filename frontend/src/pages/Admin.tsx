@@ -131,6 +131,7 @@ export default function Admin() {
   };
 
   const postJson = async (endpoint: string, body: object) => {
+    console.log('postJson body:', JSON.stringify(body)); // ← agregar esta línea
     setLoading(true);
     try {
       const res  = await apiFetch(`/api/admin/${endpoint}`, {
