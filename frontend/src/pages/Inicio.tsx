@@ -5,6 +5,19 @@ import { useCategorias } from '../hooks/useApi';
 const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+const getTexto = (value: unknown, fallback = ''): string =>
+  typeof value === 'string' ? value : fallback;
+
+const normalizarUrlImagen = (value: unknown): string => {
+  const raw = getTexto(value).trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return raw.startsWith('/') ? `${R2}${raw}` : `${R2}/${raw}`;
+};
+
+const conCacheBuster = (url: string, version: number): string =>
+  `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
+
 interface Config {
   hero_url:         string;
   hero_titulo:      string;
@@ -31,18 +44,22 @@ export default function Inicio() {
   const { categorias, loading } = useCategorias();
   const [config,       setConfig]       = useState<Config>(DEFAULT_CONFIG);
   const [testimonios,  setTestimonios]  = useState<Testimonio[]>([]);
+  const [heroVersion,  setHeroVersion]  = useState<number>(() => Date.now());
 
   useEffect(() => {
     // Config general
     fetch(`${API_BASE}/api/configuracion`)
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
-      .then(data => setConfig({
-        hero_url:         data.hero_url         || '',
-        hero_titulo:      data.hero_titulo      || 'Capturando momentos que duran toda la vida',
-        hero_subtitulo:   data.hero_subtitulo   || 'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.',
-        hero_boton_texto: data.hero_boton_texto || 'Reservar sesión',
-        whatsapp:         data.whatsapp         || '5491176348089',
-      }))
+      .then(data => {
+        const cfg = (data && typeof data === 'object') ? data as Partial<Config> : {};
+        setConfig({
+          hero_url:         normalizarUrlImagen(cfg.hero_url),
+          hero_titulo:      getTexto(cfg.hero_titulo, 'Capturando momentos que duran toda la vida'),
+          hero_subtitulo:   getTexto(cfg.hero_subtitulo, 'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.'),
+          hero_boton_texto: getTexto(cfg.hero_boton_texto, 'Reservar sesión'),
+          whatsapp:         getTexto(cfg.whatsapp, '5491176348089'),
+        });
+      })
       .catch(() => {});
 
     // Testimonios desde D1
@@ -58,7 +75,12 @@ export default function Inicio() {
       });
   }, []);
 
-  const conImagen = Boolean(config.hero_url);
+  useEffect(() => {
+    if (config.hero_url) setHeroVersion(Date.now());
+  }, [config.hero_url]);
+
+  const heroUrl = config.hero_url ? conCacheBuster(config.hero_url, heroVersion) : '';
+  const conImagen = Boolean(heroUrl);
 
   return (
     <>
@@ -71,7 +93,7 @@ export default function Inicio() {
         style={{
           minHeight: 'calc(100vh - 64px)',
           ...(conImagen
-            ? { backgroundImage: `url(${config.hero_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+            ? { backgroundImage: `url(${heroUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
             : {}),
         }}
       >
@@ -148,7 +170,7 @@ export default function Inicio() {
         </div>
       </section>
 
-      {/* ── GALERÍAS ─────────────────────────────────────────────────────────*/}
+      {/* ── GALERÍAS ───────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
         <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-2">
           Galerías
@@ -192,7 +214,7 @@ export default function Inicio() {
         )}
       </section>
 
-      {/* ── TESTIMONIOS ──────────────────────────────────────────────────────*/}
+      {/* ── TESTIMONIOS ────────────────────────────────────────────────────── */}
       {testimonios.length > 0 && (
         <section className="w-full bg-gradient-to-br from-pink-50 to-pink-100 py-16">
           <div className="max-w-4xl mx-auto px-6">
@@ -215,7 +237,7 @@ export default function Inicio() {
         </section>
       )}
 
-      {/* ── CTA FINAL ────────────────────────────────────────────────────────*/}
+      {/* ── CTA FINAL ──────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20 text-center">
         <h2 className="font-playfair text-3xl sm:text-4xl text-pink-950 font-light mb-4">
           ¿Lista para tu sesión?

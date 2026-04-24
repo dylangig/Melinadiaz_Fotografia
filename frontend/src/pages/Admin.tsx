@@ -7,6 +7,19 @@ import type { Categoria, TrabajosData } from '../types';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
 
+const getTexto = (value: unknown, fallback = ''): string =>
+  typeof value === 'string' ? value : fallback;
+
+const normalizarUrlImagen = (value: unknown): string => {
+  const raw = getTexto(value).trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return raw.startsWith('/') ? `${R2}${raw}` : `${R2}/${raw}`;
+};
+
+const conCacheBuster = (url: string, version: number): string =>
+  `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
+
 async function apiFetch(path: string, options: RequestInit = {}) {
   const token = getAdminToken();
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> ?? {}) };
@@ -72,6 +85,7 @@ export default function Admin() {
 
   // Datos
   const [config,      setConfig]      = useState<Config>(CONFIG_VACIA);
+  const [heroPreviewVersion, setHeroPreviewVersion] = useState<number>(() => Date.now());
   const [categorias,  setCategorias]  = useState<CatExtended[]>([]);
   const [trabajos,    setTrabajos]    = useState<TrabajosData>({});
   const [testimonios, setTestimonios] = useState<Testimonio[]>([]);
@@ -91,6 +105,10 @@ export default function Admin() {
     adminCheck().then(ok => { if (ok) { setAuthed(true); cargarTodo(); } });
   }, []);
 
+  useEffect(() => {
+    if (config.hero_url) setHeroPreviewVersion(Date.now());
+  }, [config.hero_url]);
+
   const cargarTodo = async () => {
     setLoading(true);
     try {
@@ -103,15 +121,15 @@ export default function Admin() {
       if (catRes.ok)    setCategorias(await catRes.json());
       if (trabRes.ok)   setTrabajos(await trabRes.json());
       if (confRes.ok) {
-      const data = await confRes.json();
+      const data = (await confRes.json()) ?? {};
       setConfig({
         nombre_marca:     data.nombre_marca     || 'Melina Diaz Fotografía',
-        logo_url:         data.logo_url         || '',
+        logo_url:         normalizarUrlImagen(data.logo_url),
         tagline:          data.tagline          || 'Fotografía Profesional · Zona Sur Buenos Aires',
-        hero_url:         data.hero_url         || '',
-        hero_titulo:      data.hero_titulo      || 'Capturando momentos que duran toda la vida',
-        hero_subtitulo:   data.hero_subtitulo   || 'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.',
-        hero_boton_texto: data.hero_boton_texto || 'Reservar sesión',
+        hero_url:         normalizarUrlImagen(data.hero_url),
+        hero_titulo:      getTexto(data.hero_titulo, 'Capturando momentos que duran toda la vida'),
+        hero_subtitulo:   getTexto(data.hero_subtitulo, 'Books infantiles, quinceaneras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.'),
+        hero_boton_texto: getTexto(data.hero_boton_texto, 'Reservar sesion'),
         whatsapp:         data.whatsapp         || '5491176348089',
         email:            data.email            || '',
         zona:             data.zona             || 'Zona Sur, Buenos Aires',
@@ -147,7 +165,6 @@ export default function Admin() {
   };
 
   const postJson = async (endpoint: string, body: object) => {
-    console.log('postJson body:', JSON.stringify(body)); // ← agregar esta línea
     setLoading(true);
     try {
       const res  = await apiFetch(`/api/admin/${endpoint}`, {
@@ -177,8 +194,27 @@ export default function Admin() {
   };
 
   // ── Guardar config ─────────────────────────────────────────────────────────
-  const guardarConfig = (campos: Partial<Config>) =>
-    postJson('configuracion', campos);
+  const limpiarCampos = (obj: any) => {
+  const limpio: any = {};
+
+  Object.keys(obj).forEach((k) => {
+    const val = obj[k];
+    if (val !== undefined && val !== null) {
+      limpio[k] = val;
+    }
+  });
+
+  return limpio;
+};
+
+const guardarConfig = (campos: Partial<Config>) => {
+  const body = limpiarCampos(campos);
+  if (Object.keys(body).length === 0) {
+    showFlash('No hay cambios para guardar.');
+    return Promise.resolve();
+  }
+  return postJson('configuracion', body);
+};
 
   // ── Eliminar ───────────────────────────────────────────────────────────────
   const eliminarTrabajo = async (cat: string, slug: string, nombre: string) => {
@@ -229,6 +265,9 @@ export default function Admin() {
   const refNuevaSes  = useRef<HTMLFormElement>(null);
   const refNuevaCat  = useRef<HTMLFormElement>(null);
   const refAddFotos  = useRef<HTMLFormElement>(null);
+  const heroPreviewUrl = config.hero_url
+    ? conCacheBuster(normalizarUrlImagen(config.hero_url), heroPreviewVersion)
+    : '';
 
   // ══════════════════════════════════════════════════════════════════════════
   // LOGIN
@@ -356,7 +395,7 @@ export default function Admin() {
                   <div className="flex items-start gap-5">
                     <div className="w-40 h-24 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
                       {config.hero_url
-                        ? <img src={config.hero_url} className="w-full h-full object-cover" alt="hero" />
+                        ? <img src={heroPreviewUrl} className="w-full h-full object-cover" alt="hero" />
                         : <span className="text-[10px] text-gray-300 text-center px-2">Sin imagen<br/>(gradiente)</span>}
                     </div>
                     <div className="flex-1 space-y-2">
