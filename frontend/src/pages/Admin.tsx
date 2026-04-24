@@ -7,11 +7,6 @@ import type { Categoria, TrabajosData } from '../types';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
 
-const guardarConfig = (campos: Partial<Config>) => {
-  console.log("GUARDANDO:", campos);
-  return postJson('configuracion', campos);
-};
-
 const getTexto = (value: unknown, fallback = ''): string =>
   typeof value === 'string' ? value : fallback;
 
@@ -183,7 +178,7 @@ export default function Admin() {
     } catch { showFlash('Error de conexión'); }
     finally { setLoading(false); }
   };
-
+  
   const subirImagen = async (endpoint: string, file: File, extra?: Record<string, string>) => {
     const fd = new FormData();
     fd.append('file', file);
@@ -213,11 +208,18 @@ export default function Admin() {
 };
 
 const guardarConfig = (campos: Partial<Config>) => {
+  console.log("CAMBIOS RECIBIDOS:", campos);
+
   const body = limpiarCampos(campos);
+  console.log("BODY LIMPIO:", body);
+
   if (Object.keys(body).length === 0) {
+    console.log("⚠️ BODY VACÍO");
     showFlash('No hay cambios para guardar.');
     return Promise.resolve();
   }
+
+  console.log("ENVIANDO AL BACKEND:", body);
   return postJson('configuracion', body);
 };
 
