@@ -102,7 +102,23 @@ export default function Admin() {
       ]);
       if (catRes.ok)    setCategorias(await catRes.json());
       if (trabRes.ok)   setTrabajos(await trabRes.json());
-      if (confRes.ok)   setConfig(await confRes.json());
+      if (confRes.ok) {
+      const data = await confRes.json();
+      setConfig({
+        nombre_marca:     data.nombre_marca     || 'Melina Diaz Fotografía',
+        logo_url:         data.logo_url         || '',
+        tagline:          data.tagline          || 'Fotografía Profesional · Zona Sur Buenos Aires',
+        hero_url:         data.hero_url         || '',
+        hero_titulo:      data.hero_titulo      || 'Capturando momentos que duran toda la vida',
+        hero_subtitulo:   data.hero_subtitulo   || 'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.',
+        hero_boton_texto: data.hero_boton_texto || 'Reservar sesión',
+        whatsapp:         data.whatsapp         || '5491176348089',
+        email:            data.email            || '',
+        zona:             data.zona             || 'Zona Sur, Buenos Aires',
+        footer_texto:     data.footer_texto     || 'Capturando momentos únicos con sensibilidad y pasión.',
+        seo_descripcion:  data.seo_descripcion  || 'Fotografía profesional en Zona Sur Buenos Aires.',
+      });
+    }
       if (testimRes.ok) setTestimonios(await testimRes.json());
     } catch { showFlash('Error al conectar con el Worker'); }
     finally  { setLoading(false); }
