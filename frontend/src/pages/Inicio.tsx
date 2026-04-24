@@ -36,7 +36,13 @@ export default function Inicio() {
     // Config general
     fetch(`${API_BASE}/api/configuracion`)
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
-      .then(data => setConfig({ ...DEFAULT_CONFIG, ...data }))
+      .then(data => setConfig({
+        hero_url:         data.hero_url         || '',
+        hero_titulo:      data.hero_titulo      || 'Capturando momentos que duran toda la vida',
+        hero_subtitulo:   data.hero_subtitulo   || 'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.',
+        hero_boton_texto: data.hero_boton_texto || 'Reservar sesión',
+        whatsapp:         data.whatsapp         || '5491176348089',
+      }))
       .catch(() => {});
 
     // Testimonios desde D1
