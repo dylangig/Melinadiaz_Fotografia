@@ -7,8 +7,10 @@ import Servicios from './pages/Servicios';
 import Contacto from './pages/Contacto';
 import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
+import { useFavicon } from './hooks/useFavicon';
 
 export default function App() {
+  useFavicon();
   return (
     <BrowserRouter>
       <Routes>
