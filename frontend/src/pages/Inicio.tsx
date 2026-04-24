@@ -2,49 +2,84 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategorias } from '../hooks/useApi';
 
-const R2      = 'https://imagenes.melinadiazfotografia.com.ar';
+const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
 const API_BASE = import.meta.env.VITE_API_URL || '';
+
+interface Config {
+  hero_url:         string;
+  hero_titulo:      string;
+  hero_subtitulo:   string;
+  hero_boton_texto: string;
+  whatsapp:         string;
+}
+
+interface Testimonio {
+  texto:  string;
+  autora: string;
+  tipo:   string;
+}
+
+const DEFAULT_CONFIG: Config = {
+  hero_url:         '',
+  hero_titulo:      'Capturando momentos que duran toda la vida',
+  hero_subtitulo:   'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.',
+  hero_boton_texto: 'Reservar sesión',
+  whatsapp:         '5491176348089',
+};
 
 export default function Inicio() {
   const { categorias, loading } = useCategorias();
-  const [heroUrl, setHeroUrl]   = useState('');
+  const [config,       setConfig]       = useState<Config>(DEFAULT_CONFIG);
+  const [testimonios,  setTestimonios]  = useState<Testimonio[]>([]);
 
-  // Cargar imagen de hero desde la config (si existe)
   useEffect(() => {
+    // Config general
     fetch(`${API_BASE}/api/configuracion`)
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
-      .then(data => { if (data?.hero_url) setHeroUrl(data.hero_url); })
+      .then(data => setConfig({ ...DEFAULT_CONFIG, ...data }))
       .catch(() => {});
+
+    // Testimonios desde D1
+    fetch(`${API_BASE}/api/testimonios`)
+      .then(r => { if (r.ok) return r.json(); throw new Error(); })
+      .then(data => setTestimonios(data))
+      .catch(() => {
+        // Fallback si el endpoint no existe todavía
+        setTestimonios([
+          { texto: 'Fue la mejor decisión. Melina nos hizo sentir cómodos en todo momento y los resultados superaron todas nuestras expectativas.', autora: 'Sofía L.', tipo: '15 años' },
+          { texto: 'Las fotos del book de mi nena son una obra de arte. Tiene una sensibilidad especial para capturar la personalidad de los chicos.', autora: 'Laura P.', tipo: 'Book infantil' },
+        ]);
+      });
   }, []);
+
+  const conImagen = Boolean(config.hero_url);
 
   return (
     <>
       {/* ── HERO ─────────────────────────────────────────────────────────────
-          Si hay hero_url: imagen de fondo con overlay oscuro.
-          Si no: gradiente rosa por defecto.                               */}
+          El navbar ya ocupa 64px fijos (h-16 spacer).
+          El hero ocupa el resto del viewport: calc(100vh - 64px).
+          Si hay imagen de fondo la usa; si no, usa el gradiente rosa.    */}
       <section
-        className="relative w-full overflow-hidden text-center"
-        style={
-          heroUrl
-            ? {
-                backgroundImage:    `url(${heroUrl})`,
-                backgroundSize:     'cover',
-                backgroundPosition: 'center',
-              }
-            : undefined
-        }
+        className="relative w-full overflow-hidden text-center flex flex-col items-center justify-center"
+        style={{
+          minHeight: 'calc(100vh - 64px)',
+          ...(conImagen
+            ? { backgroundImage: `url(${config.hero_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+            : {}),
+        }}
       >
-        {/* Overlay — más oscuro sobre foto, suave sobre gradiente */}
+        {/* Fondo / overlay */}
         <div
           className={`absolute inset-0 ${
-            heroUrl
-              ? 'bg-black/45'
+            conImagen
+              ? 'bg-black/40'
               : 'bg-gradient-to-br from-pink-50 via-white to-pink-100'
           }`}
         />
 
-        {/* Burbujas decorativas (solo visibles sin imagen) */}
-        {!heroUrl && (
+        {/* Burbujas decorativas (solo sin imagen) */}
+        {!conImagen && (
           <>
             <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-pink-200/30 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-pink-100/40 translate-y-1/2 -translate-x-1/4 pointer-events-none" />
@@ -52,37 +87,29 @@ export default function Inicio() {
         )}
 
         {/* Contenido del hero */}
-        <div className="relative max-w-4xl mx-auto px-6 pt-44 pb-28">
-          <p
-            className={`text-xs tracking-[4px] uppercase font-semibold mb-5 ${
-              heroUrl ? 'text-pink-200' : 'text-pink-800'
-            }`}
-          >
-            Fotografía Profesional · Zona Sur Buenos Aires
-          </p>
-
+        <div className="relative max-w-4xl mx-auto px-6 py-20">
           <h1
             className={`font-playfair text-5xl sm:text-6xl font-light leading-tight mb-6 ${
-              heroUrl ? 'text-white' : 'text-pink-950'
+              conImagen ? 'text-white' : 'text-pink-950'
             }`}
           >
-            Capturando momentos<br />
-            <em
-              className={`italic font-normal ${
-                heroUrl ? 'text-pink-200' : 'text-pink-700'
-              }`}
-            >
-              que duran toda la vida
-            </em>
+            {/* El título puede tener una parte en cursiva —
+                si contiene " que " separamos para el efecto */}
+            {config.hero_titulo.includes(' que ')
+              ? <>
+                  {config.hero_titulo.split(' que ')[0]} <br />
+                  <em className={`italic font-normal ${conImagen ? 'text-pink-200' : 'text-pink-700'}`}>
+                    que {config.hero_titulo.split(' que ').slice(1).join(' que ')}
+                  </em>
+                </>
+              : config.hero_titulo
+            }
           </h1>
 
-          <p
-            className={`text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed ${
-              heroUrl ? 'text-white/85' : 'text-gray-500'
-            }`}
-          >
-            Books infantiles, quinceañeras y bodas en Almirante Brown,
-            Lomas de Zamora, Quilmes y toda la Zona Sur.
+          <p className={`text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed ${
+            conImagen ? 'text-white/85' : 'text-gray-500'
+          }`}>
+            {config.hero_subtitulo}
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center">
@@ -90,12 +117,12 @@ export default function Inicio() {
               to="/contacto"
               className="bg-pink-700 text-white px-8 py-3.5 rounded-full font-bold text-sm tracking-wide uppercase hover:bg-pink-900 transition-all hover:-translate-y-0.5 shadow-lg shadow-pink-700/30"
             >
-              Reservar sesión →
+              {config.hero_boton_texto} →
             </Link>
             <Link
               to="/galeria/infantil"
               className={`border-2 px-8 py-3.5 rounded-full font-bold text-sm tracking-wide uppercase transition-colors ${
-                heroUrl
+                conImagen
                   ? 'border-white/60 text-white hover:border-white'
                   : 'border-pink-200 text-pink-700 hover:border-pink-700'
               }`}
@@ -103,6 +130,15 @@ export default function Inicio() {
               Ver galerías
             </Link>
           </div>
+        </div>
+
+        {/* Flecha scroll-down */}
+        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce ${
+          conImagen ? 'text-white/60' : 'text-pink-300'
+        }`}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </section>
 
@@ -151,36 +187,27 @@ export default function Inicio() {
       </section>
 
       {/* ── TESTIMONIOS ──────────────────────────────────────────────────────*/}
-      <section className="w-full bg-gradient-to-br from-pink-50 to-pink-100 py-16">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-12">
-            Lo que dicen mis clientes
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              {
-                texto:  'Fue la mejor decisión. Melina nos hizo sentir cómodos en todo momento y los resultados superaron todas nuestras expectativas.',
-                autora: 'Sofía L.',
-                tipo:   '15 años',
-              },
-              {
-                texto:  'Las fotos del book de mi nena son una obra de arte. Tiene una sensibilidad especial para capturar la personalidad de los chicos.',
-                autora: 'Laura P.',
-                tipo:   'Book infantil',
-              },
-            ].map((t, i) => (
-              <div key={i} className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/80 shadow-sm">
-                <div className="text-pink-500 text-sm mb-3 tracking-widest">★★★★★</div>
-                <p className="text-gray-600 italic text-sm leading-relaxed mb-4">"{t.texto}"</p>
-                <div>
-                  <span className="text-pink-800 font-bold text-xs tracking-widest uppercase">{t.autora}</span>
-                  <span className="text-gray-400 text-xs ml-2">— {t.tipo}</span>
+      {testimonios.length > 0 && (
+        <section className="w-full bg-gradient-to-br from-pink-50 to-pink-100 py-16">
+          <div className="max-w-4xl mx-auto px-6">
+            <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-12">
+              Lo que dicen mis clientes
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {testimonios.map((t, i) => (
+                <div key={i} className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/80 shadow-sm">
+                  <div className="text-pink-500 text-sm mb-3 tracking-widest">★★★★★</div>
+                  <p className="text-gray-600 italic text-sm leading-relaxed mb-4">"{t.texto}"</p>
+                  <div>
+                    <span className="text-pink-800 font-bold text-xs tracking-widest uppercase">{t.autora}</span>
+                    <span className="text-gray-400 text-xs ml-2">— {t.tipo}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── CTA FINAL ────────────────────────────────────────────────────────*/}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20 text-center">
