@@ -7,9 +7,10 @@ export function useFavicon() {
     fetch(`${API_BASE}/api/configuracion`)
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
       .then(data => {
-        if (!data?.logo_url) return;
+        const faviconUrl = data?.favicon_url || data?.logo_url;
+        if (!faviconUrl) return;
         const link = document.getElementById('favicon') as HTMLLinkElement;
-        if (link) link.href = data.logo_url;
+        if (link) link.href = faviconUrl;
       })
       .catch(() => {});
   }, []);

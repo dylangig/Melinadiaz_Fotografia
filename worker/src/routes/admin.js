@@ -208,7 +208,7 @@ export async function actualizarConfiguracion(request, env) {
   const body = await request.json().catch(() => ({}));
 
   const CAMPOS_PERMITIDOS = [
-    'nombre_marca', 'tagline', 'seo_descripcion',
+    'nombre_marca', 'tagline', 'seo_descripcion', 'favicon_url',
     'hero_url', 'hero_titulo', 'hero_subtitulo', 'hero_boton_texto',
     'whatsapp', 'email', 'zona', 'footer_texto',
   ];
