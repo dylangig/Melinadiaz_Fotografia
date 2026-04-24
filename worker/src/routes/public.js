@@ -93,29 +93,15 @@ export async function getTestimonios(env) {
 }
 
 // GET /api/configuracion
-export async function getConfiguracion(env) {
+export async function getConfiguracion(request, env) {
   try {
     const row = await env.DB.prepare(
-      `SELECT nombre_marca, logo_url, tagline,
-              hero_url, hero_titulo, hero_subtitulo, hero_boton_texto,
-              whatsapp, email, zona, footer_texto, seo_descripcion
-       FROM configuracion WHERE id = 1`
+      `SELECT * FROM configuracion WHERE id = 1`
     ).first();
-    return json(row ?? {
-      nombre_marca:     'Melina Diaz Fotografía',
-      logo_url:         '',
-      tagline:          'Fotografía Profesional · Zona Sur Buenos Aires',
-      hero_url:         '',
-      hero_titulo:      'Capturando momentos que duran toda la vida',
-      hero_subtitulo:   'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.',
-      hero_boton_texto: 'Reservar sesión',
-      whatsapp:         '5491176348089',
-      email:            '',
-      zona:             'Zona Sur, Buenos Aires',
-      footer_texto:     'Capturando momentos únicos con sensibilidad y pasión.',
-      seo_descripcion:  'Fotografía profesional en Zona Sur Buenos Aires.',
-    });
-  } catch {
-    return json({ nombre_marca: 'Melina Diaz Fotografía', logo_url: '', hero_url: '' });
+
+    return json(row || {});
+  } catch (e) {
+    console.error('Error en /api/configuracion:', e);
+    return error('Error obteniendo configuración', 500);
   }
 }

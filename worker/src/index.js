@@ -43,7 +43,7 @@ export default {
         if (parts[0] === 'categorias'    && parts.length === 1) return withCors(await getCategorias(env), cors);
         if (parts[0] === 'servicios'     && parts.length === 1) return withCors(await getServicios(env), cors);
         if (parts[0] === 'testimonios'   && parts.length === 1) return withCors(await getTestimonios(env), cors);
-        if (parts[0] === 'configuracion' && parts.length === 1) return withCors(await getConfiguracion(env), cors);
+        if (parts[0] === 'configuracion' && parts.length === 1) return withCors(await getConfiguracion(request, env), cors);
         if (parts[0] === 'trabajos'      && parts.length === 2) return withCors(await getTrabajos(env, parts[1]), cors);
         if (parts[0] === 'trabajos'      && parts.length === 3) return withCors(await getTrabajoDetalle(env, parts[1], parts[2]), cors);
       }
