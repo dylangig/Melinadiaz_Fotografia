@@ -7,6 +7,11 @@ import type { Categoria, TrabajosData } from '../types';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
 
+const guardarConfig = (campos: Partial<Config>) => {
+  console.log("GUARDANDO:", campos);
+  return postJson('configuracion', campos);
+};
+
 const getTexto = (value: unknown, fallback = ''): string =>
   typeof value === 'string' ? value : fallback;
 
