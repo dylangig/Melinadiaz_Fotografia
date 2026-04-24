@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+// pages/Admin.tsx — Plantilla completa v2
+// Secciones: Identidad, Hero, Contacto/Footer, Testimonios, Categorías, Sesiones
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { adminLogin, adminCheck, getAdminToken, setAdminToken } from '../hooks/useApi';
 import type { Categoria, TrabajosData } from '../types';
 
@@ -7,36 +9,83 @@ const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
 
 async function apiFetch(path: string, options: RequestInit = {}) {
   const token = getAdminToken();
-  const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string> ?? {}),
-  };
+  const headers: Record<string, string> = { ...(options.headers as Record<string, string> ?? {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return fetch(`${API_BASE}${path}`, { ...options, headers });
 }
 
+// ── Tipos ─────────────────────────────────────────────────────────────────────
 interface Config {
-  logo_url:     string;
-  nombre_marca: string;
-  hero_url:     string;
+  nombre_marca: string; logo_url: string; tagline: string;
+  hero_url: string; hero_titulo: string; hero_subtitulo: string; hero_boton_texto: string;
+  whatsapp: string; email: string; zona: string;
+  footer_texto: string; seo_descripcion: string;
+}
+interface Testimonio { id?: number; texto: string; autora: string; tipo: string; orden: number; }
+interface CatExtended extends Categoria { portada: string; }
+
+const CONFIG_VACIA: Config = {
+  nombre_marca: '', logo_url: '', tagline: '',
+  hero_url: '', hero_titulo: '', hero_subtitulo: '', hero_boton_texto: '',
+  whatsapp: '', email: '', zona: '', footer_texto: '', seo_descripcion: '',
+};
+
+// ── Componente Tab ─────────────────────────────────────────────────────────────
+function Tab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-5 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-colors whitespace-nowrap ${
+        active ? 'border-pink-600 text-pink-600' : 'border-transparent text-gray-400 hover:text-gray-600'
+      }`}
+    >
+      {label}
+    </button>
+  );
 }
 
-interface CategoriaConPortada extends Categoria {
-  portada: string;
+// ── Input helper ───────────────────────────────────────────────────────────────
+function Field({ label, value, onChange, placeholder, textarea }: {
+  label: string; value: string; onChange: (v: string) => void;
+  placeholder?: string; textarea?: boolean;
+}) {
+  const cls = "w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100 transition-all";
+  return (
+    <div>
+      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{label}</label>
+      {textarea
+        ? <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3} className={cls + ' resize-none'} />
+        : <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={cls} />
+      }
+    </div>
+  );
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
 export default function Admin() {
-  const [authed,     setAuthed]     = useState(false);
-  const [password,   setPassword]   = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [categorias, setCategorias] = useState<CategoriaConPortada[]>([]);
-  const [trabajos,   setTrabajos]   = useState<TrabajosData>({});
-  const [config,     setConfig]     = useState<Config>({ logo_url: '', nombre_marca: '', hero_url: '' });
-  const [flash,      setFlash]      = useState('');
-  const [loading,    setLoading]    = useState(false);
+  const [authed,      setAuthed]      = useState(false);
+  const [password,    setPassword]    = useState('');
+  const [loginError,  setLoginError]  = useState('');
+  const [flash,       setFlash]       = useState('');
+  const [loading,     setLoading]     = useState(false);
+  const [tab,         setTab]         = useState('identidad');
 
-  const [seccionAbierta,  setSeccionAbierta]  = useState<string | null>(null);
-  const [editando,        setEditando]        = useState<{ cat: string; slug: string; desc: string; descEvento: string } | null>(null);
-  const [agregarEnTrabajo, setAgregarEnTrabajo] = useState<{ cat: string; slug: string } | null>(null);
+  // Datos
+  const [config,      setConfig]      = useState<Config>(CONFIG_VACIA);
+  const [categorias,  setCategorias]  = useState<CatExtended[]>([]);
+  const [trabajos,    setTrabajos]    = useState<TrabajosData>({});
+  const [testimonios, setTestimonios] = useState<Testimonio[]>([]);
+
+  // Modales
+  const [modalFotos,    setModalFotos]    = useState<{ cat: string; slug: string } | null>(null);
+  const [modalEditar,   setModalEditar]   = useState<{ cat: string; slug: string; desc: string; descEvento: string } | null>(null);
+  const [modalTestim,   setModalTestim]   = useState<Testimonio | null>(null);
+  const [modalNuevaCat, setModalNuevaCat] = useState(false);
+  const [modalNuevaSes, setModalNuevaSes] = useState(false);
+
+  // Drag & drop fotos
+  const [dragging,    setDragging]    = useState<{ cat: string; slug: string; foto: string } | null>(null);
+  const [dragOver,    setDragOver]    = useState<string | null>(null);
 
   useEffect(() => {
     adminCheck().then(ok => { if (ok) { setAuthed(true); cargarTodo(); } });
@@ -45,34 +94,31 @@ export default function Admin() {
   const cargarTodo = async () => {
     setLoading(true);
     try {
-      const [catRes, trabRes, confRes] = await Promise.all([
+      const [catRes, trabRes, confRes, testimRes] = await Promise.all([
         apiFetch('/api/categorias'),
         apiFetch('/api/admin/trabajos-todos'),
         apiFetch('/api/configuracion'),
+        apiFetch('/api/admin/testimonios'),
       ]);
-      if (catRes.ok)  setCategorias(await catRes.json());
-      if (trabRes.ok) setTrabajos(await trabRes.json());
-      if (confRes.ok) setConfig(await confRes.json());
+      if (catRes.ok)    setCategorias(await catRes.json());
+      if (trabRes.ok)   setTrabajos(await trabRes.json());
+      if (confRes.ok)   setConfig(await confRes.json());
+      if (testimRes.ok) setTestimonios(await testimRes.json());
     } catch { showFlash('Error al conectar con el Worker'); }
     finally  { setLoading(false); }
   };
 
-  const showFlash = (msg: string) => {
-    setFlash(msg);
-    setTimeout(() => setFlash(''), 3500);
-  };
+  const showFlash = (msg: string) => { setFlash(msg); setTimeout(() => setFlash(''), 3500); };
 
-  // ── Login ───────────────────────────────────────────────────────────────────
+  // ── Login ──────────────────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = await adminLogin(password);
     if (ok) { setAuthed(true); cargarTodo(); }
-    else    setLoginError('Contraseña incorrecta');
+    else setLoginError('Contraseña incorrecta');
   };
 
-  const logout = () => { setAdminToken(null); setAuthed(false); };
-
-  // ── POST FormData helper ────────────────────────────────────────────────────
+  // ── Helpers ────────────────────────────────────────────────────────────────
   const postForm = async (endpoint: string, fd: FormData) => {
     setLoading(true);
     try {
@@ -84,118 +130,116 @@ export default function Admin() {
     finally { setLoading(false); }
   };
 
-  // ── Subir imagen genérica (logo, hero, portada) ─────────────────────────────
-  const subirImagen = async (endpoint: string, file: File, extraFields?: Record<string, string>) => {
+  const postJson = async (endpoint: string, body: object) => {
+    setLoading(true);
+    try {
+      const res  = await apiFetch(`/api/admin/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      showFlash(data.mensaje ?? (res.ok ? 'Guardado.' : 'Error.'));
+      if (res.ok) await cargarTodo();
+    } catch { showFlash('Error de conexión'); }
+    finally { setLoading(false); }
+  };
+
+  const subirImagen = async (endpoint: string, file: File, extra?: Record<string, string>) => {
     const fd = new FormData();
     fd.append('file', file);
-    if (extraFields) Object.entries(extraFields).forEach(([k, v]) => fd.append(k, v));
+    if (extra) Object.entries(extra).forEach(([k, v]) => fd.append(k, v));
     setLoading(true);
     try {
       const res  = await apiFetch(`/api/admin/${endpoint}`, { method: 'POST', body: fd });
       const data = await res.json();
-      showFlash(data.mensaje ?? (res.ok ? 'Imagen actualizada.' : 'Error al subir.'));
+      showFlash(data.mensaje ?? (res.ok ? 'Imagen subida.' : 'Error.'));
       if (res.ok) await cargarTodo();
     } catch { showFlash('Error de conexión.'); }
     finally { setLoading(false); }
   };
 
-  // ── Guardar nombre de marca ─────────────────────────────────────────────────
-  const guardarNombreMarca = async () => {
-    setLoading(true);
-    try {
-      const res  = await apiFetch('/api/admin/configuracion', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ nombre_marca: config.nombre_marca }),
-      });
-      const data = await res.json();
-      showFlash(data.mensaje ?? 'Guardado.');
-    } catch { showFlash('Error de conexión.'); }
-    finally { setLoading(false); }
-  };
+  // ── Guardar config ─────────────────────────────────────────────────────────
+  const guardarConfig = (campos: Partial<Config>) =>
+    postJson('configuracion', campos);
 
-  // ── Nuevo trabajo ───────────────────────────────────────────────────────────
-  const refNuevo = useRef<HTMLFormElement>(null);
-  const handleNuevoTrabajo = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await postForm('nuevo-trabajo', new FormData(e.currentTarget));
-    refNuevo.current?.reset();
-    setSeccionAbierta(null);
-  };
-
-  // ── Agregar fotos ───────────────────────────────────────────────────────────
-  const refAgregarFotos = useRef<HTMLFormElement>(null);
-  const handleAgregarFotos = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await postForm('agregar-fotos', new FormData(e.currentTarget));
-    refAgregarFotos.current?.reset();
-    setAgregarEnTrabajo(null);
-  };
-
-  // ── Editar trabajo ──────────────────────────────────────────────────────────
-  const handleEditarTrabajo = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editando) return;
-    const fd = new FormData();
-    fd.append('categoria',          editando.cat);
-    fd.append('trabajo',            editando.slug);
-    fd.append('descripcion',        editando.desc);
-    fd.append('descripcion_evento', editando.descEvento);
-    await postForm('editar-trabajo', fd);
-    setEditando(null);
-  };
-
-  // ── Eliminar trabajo / foto ─────────────────────────────────────────────────
+  // ── Eliminar ───────────────────────────────────────────────────────────────
   const eliminarTrabajo = async (cat: string, slug: string, nombre: string) => {
-    if (!confirm(`¿Eliminar "${nombre}" y TODAS sus fotos? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Eliminar "${nombre}" y TODAS sus fotos?`)) return;
     const fd = new FormData();
-    fd.append('categoria', cat);
-    fd.append('trabajo',   slug);
+    fd.append('categoria', cat); fd.append('trabajo', slug);
     await postForm('eliminar-trabajo', fd);
   };
 
   const eliminarFoto = async (cat: string, slug: string, foto: string) => {
-    if (!confirm(`¿Eliminar la foto "${foto}"?`)) return;
+    if (!confirm(`¿Eliminar "${foto}"?`)) return;
     const fd = new FormData();
-    fd.append('categoria', cat);
-    fd.append('trabajo',   slug);
-    fd.append('foto',      foto);
+    fd.append('categoria', cat); fd.append('trabajo', slug); fd.append('foto', foto);
     await postForm('eliminar-foto', fd);
   };
+
+  // ── Drag & drop reordenar fotos ────────────────────────────────────────────
+  const handleDragStart = (cat: string, slug: string, foto: string) => {
+    setDragging({ cat, slug, foto });
+  };
+
+  const handleDrop = useCallback(async (cat: string, slug: string, fotoDestino: string) => {
+    if (!dragging || dragging.foto === fotoDestino) { setDragging(null); setDragOver(null); return; }
+    const fotos = trabajos[cat]?.find(t => t.slug === slug)?.fotos ?? [];
+    const idxA  = fotos.indexOf(dragging.foto);
+    const idxB  = fotos.indexOf(fotoDestino);
+    if (idxA === -1 || idxB === -1) return;
+    const nuevo = [...fotos];
+    nuevo.splice(idxA, 1);
+    nuevo.splice(idxB, 0, dragging.foto);
+    setDragging(null); setDragOver(null);
+    await postJson('reordenar-fotos', { categoria: cat, trabajo: slug, orden: nuevo });
+  }, [dragging, trabajos]);
+
+  // ── Testimonios ────────────────────────────────────────────────────────────
+  const guardarTestimonio = async (t: Testimonio) => {
+    const endpoint = t.id ? 'testimonios/editar' : 'testimonios/nuevo';
+    await postJson(endpoint, t);
+    setModalTestim(null);
+  };
+
+  const eliminarTestimonio = async (id: number) => {
+    if (!confirm('¿Eliminar este testimonio?')) return;
+    await postJson('testimonios/eliminar', { id });
+  };
+
+  // ── Refs formularios ───────────────────────────────────────────────────────
+  const refNuevaSes  = useRef<HTMLFormElement>(null);
+  const refNuevaCat  = useRef<HTMLFormElement>(null);
+  const refAddFotos  = useRef<HTMLFormElement>(null);
 
   // ══════════════════════════════════════════════════════════════════════════
   // LOGIN
   // ══════════════════════════════════════════════════════════════════════════
-  if (!authed) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-pink-50 px-4">
-        <form onSubmit={handleLogin} className="bg-white w-full max-w-md rounded-3xl shadow-xl p-10 border border-pink-100">
-          <div className="text-center mb-8">
-            <div className="text-4xl mb-3">📷</div>
-            <h1 className="font-playfair text-2xl text-gray-900">Panel Admin</h1>
-            <p className="text-gray-400 text-xs mt-1 tracking-widest uppercase">Melina Diaz Fotografía</p>
-          </div>
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-center text-base focus:outline-none focus:ring-2 focus:ring-pink-200 transition-all mb-3"
-          />
-          {loginError && <p className="text-red-500 text-xs text-center font-bold mb-3">{loginError}</p>}
-          <button type="submit" className="w-full py-4 bg-pink-700 text-white rounded-2xl font-bold hover:bg-pink-900 transition-colors shadow-lg shadow-pink-700/20">
-            Entrar
-          </button>
-        </form>
-      </div>
-    );
-  }
+  if (!authed) return (
+    <div className="min-h-screen flex items-center justify-center bg-pink-50 px-4">
+      <form onSubmit={handleLogin} className="bg-white w-full max-w-md rounded-3xl shadow-xl p-10 border border-pink-100">
+        <div className="text-center mb-8">
+          <div className="text-4xl mb-3">📷</div>
+          <h1 className="font-playfair text-2xl text-gray-900">Panel Admin</h1>
+          <p className="text-gray-400 text-xs mt-1 tracking-widest uppercase">Melina Diaz Fotografía</p>
+        </div>
+        <input type="password" placeholder="Contraseña" value={password}
+          onChange={e => setPassword(e.target.value)}
+          className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-center text-base focus:outline-none focus:ring-2 focus:ring-pink-200 mb-3" />
+        {loginError && <p className="text-red-500 text-xs text-center font-bold mb-3">{loginError}</p>}
+        <button type="submit" className="w-full py-4 bg-pink-700 text-white rounded-2xl font-bold hover:bg-pink-900 transition-colors">
+          Entrar
+        </button>
+      </form>
+    </div>
+  );
 
   // ══════════════════════════════════════════════════════════════════════════
-  // PANEL
+  // PANEL PRINCIPAL
   // ══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-20 px-4 sm:px-6">
+    <div className="min-h-screen bg-gray-50 pt-20 pb-24 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
 
         {/* Flash */}
@@ -204,347 +248,522 @@ export default function Admin() {
             {flash}
           </div>
         )}
-
-        {/* Loader */}
         {loading && (
-          <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[150] flex items-center justify-center pointer-events-none">
+          <div className="fixed inset-0 bg-white/50 backdrop-blur-sm z-[150] flex items-center justify-center pointer-events-none">
             <div className="w-10 h-10 border-4 border-pink-100 border-t-pink-600 rounded-full animate-spin" />
           </div>
         )}
 
         {/* Header */}
-        <div className="flex justify-between items-end mb-10">
+        <div className="flex justify-between items-end mb-8">
           <div>
             <h1 className="font-playfair text-4xl text-gray-900">Panel Admin</h1>
-            <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">Cloudflare Worker + D1 + R2</p>
+            <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">Plantilla Fotográfica</p>
           </div>
-          <button onClick={logout} className="text-xs font-bold text-red-400 border border-red-100 px-4 py-2 rounded-full hover:bg-red-50 transition-colors uppercase tracking-wide">
+          <button onClick={() => { setAdminToken(null); setAuthed(false); }}
+            className="text-xs font-bold text-red-400 border border-red-100 px-4 py-2 rounded-full hover:bg-red-50 transition-colors">
             Salir
           </button>
         </div>
 
-        {/* ── SECCIÓN: IDENTIDAD VISUAL ───────────────────────────────────── */}
-        <section className="bg-white rounded-3xl border border-pink-100 shadow-sm p-6 sm:p-8 mb-6">
-          <button
-            className="flex items-center justify-between w-full text-left"
-            onClick={() => setSeccionAbierta(s => s === 'config' ? null : 'config')}
-          >
-            <h2 className="font-playfair text-xl text-gray-900">🎨 Identidad Visual</h2>
-            <span className="text-gray-400 text-lg">{seccionAbierta === 'config' ? '−' : '+'}</span>
-          </button>
+        {/* Tabs de navegación */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-8 overflow-x-auto">
+          <div className="flex border-b border-gray-100 px-4">
+            {[
+              { key: 'identidad', label: '🎨 Identidad' },
+              { key: 'hero',      label: '🖼 Hero'       },
+              { key: 'contacto',  label: '📱 Contacto'  },
+              { key: 'testimonios',label:'⭐ Testimonios'},
+              { key: 'categorias',label: '📂 Categorías'},
+              { key: 'sesiones',  label: '📸 Sesiones'  },
+            ].map(t => (
+              <Tab key={t.key} label={t.label} active={tab === t.key} onClick={() => setTab(t.key)} />
+            ))}
+          </div>
 
-          {seccionAbierta === 'config' && (
-            <div className="mt-6 border-t border-gray-50 pt-6 space-y-8">
+          <div className="p-6 sm:p-8">
 
-              {/* Logo */}
-              <div className="grid sm:grid-cols-2 gap-8">
+            {/* ── TAB: IDENTIDAD ──────────────────────────────────────────── */}
+            {tab === 'identidad' && (
+              <div className="space-y-6">
+                <h2 className="font-playfair text-xl text-gray-900 mb-4">Identidad Visual</h2>
+
+                {/* Logo */}
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Logo</label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="flex items-center gap-5">
+                    <div className="w-20 h-20 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
                       {config.logo_url
                         ? <img src={config.logo_url} className="w-full h-full object-contain p-2" alt="logo" />
-                        : <span className="text-[10px] text-gray-300 text-center">Sin logo</span>
-                      }
+                        : <span className="text-[10px] text-gray-300">Sin logo</span>}
                     </div>
                     <div>
-                      <input
-                        type="file" accept="image/*"
+                      <input type="file" accept="image/*"
                         onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/logo', f); }}
-                        className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer"
-                      />
-                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, SVG o WEBP · Reemplaza favicon también</p>
+                        className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
+                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, SVG o WEBP · También actualiza el favicon</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Nombre de marca */}
+                <Field label="Nombre del estudio" value={config.nombre_marca}
+                  onChange={v => setConfig(c => ({ ...c, nombre_marca: v }))}
+                  placeholder="Ej: Melina Diaz Fotografía" />
+
+                <Field label="Tagline (texto debajo del logo o en el header)" value={config.tagline}
+                  onChange={v => setConfig(c => ({ ...c, tagline: v }))}
+                  placeholder="Ej: Fotografía Profesional · Zona Sur Buenos Aires" />
+
+                <Field label="Descripción SEO (meta description)" value={config.seo_descripcion}
+                  onChange={v => setConfig(c => ({ ...c, seo_descripcion: v }))}
+                  placeholder="Descripción que aparece en Google" textarea />
+
+                <button onClick={() => guardarConfig({
+                  nombre_marca: config.nombre_marca,
+                  tagline: config.tagline,
+                  seo_descripcion: config.seo_descripcion,
+                })} className="bg-pink-700 text-white px-8 py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 transition-colors">
+                  Guardar identidad
+                </button>
+              </div>
+            )}
+
+            {/* ── TAB: HERO ────────────────────────────────────────────────── */}
+            {tab === 'hero' && (
+              <div className="space-y-6">
+                <h2 className="font-playfair text-xl text-gray-900 mb-4">Sección Hero (inicio)</h2>
+
+                {/* Imagen de fondo */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Nombre del estudio</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={config.nombre_marca}
-                      onChange={e => setConfig(c => ({ ...c, nombre_marca: e.target.value }))}
-                      className="flex-1 bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100"
-                      placeholder="Ej: Melina Diaz Fotografía"
-                    />
-                    <button onClick={guardarNombreMarca} className="bg-gray-900 text-white px-5 py-3 rounded-2xl text-xs font-bold hover:bg-black transition-colors whitespace-nowrap">
-                      Guardar
-                    </button>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Imagen de fondo</label>
+                  <div className="flex items-start gap-5">
+                    <div className="w-40 h-24 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                      {config.hero_url
+                        ? <img src={config.hero_url} className="w-full h-full object-cover" alt="hero" />
+                        : <span className="text-[10px] text-gray-300 text-center px-2">Sin imagen<br/>(gradiente)</span>}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input type="file" accept="image/*"
+                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/hero', f); }}
+                        className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
+                      <p className="text-[10px] text-gray-400">Recomendado: 1920×1080px. JPG o WEBP.</p>
+                      {config.hero_url && (
+                        <button onClick={() => guardarConfig({ hero_url: '' })}
+                          className="text-xs text-red-400 hover:text-red-600 font-bold">
+                          Eliminar → volver al gradiente
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* ── IMAGEN DE HERO ─────────────────────────────────────────── */}
+                <Field label="Título principal" value={config.hero_titulo}
+                  onChange={v => setConfig(c => ({ ...c, hero_titulo: v }))}
+                  placeholder="Capturando momentos que duran toda la vida" />
+
+                <Field label="Subtítulo / descripción" value={config.hero_subtitulo}
+                  onChange={v => setConfig(c => ({ ...c, hero_subtitulo: v }))}
+                  placeholder="Books infantiles, quinceañeras y bodas..." textarea />
+
+                <Field label="Texto del botón principal" value={config.hero_boton_texto}
+                  onChange={v => setConfig(c => ({ ...c, hero_boton_texto: v }))}
+                  placeholder="Reservar sesión" />
+
+                <button onClick={() => guardarConfig({
+                  hero_titulo: config.hero_titulo,
+                  hero_subtitulo: config.hero_subtitulo,
+                  hero_boton_texto: config.hero_boton_texto,
+                })} className="bg-pink-700 text-white px-8 py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 transition-colors">
+                  Guardar textos del hero
+                </button>
+              </div>
+            )}
+
+            {/* ── TAB: CONTACTO ────────────────────────────────────────────── */}
+            {tab === 'contacto' && (
+              <div className="space-y-6">
+                <h2 className="font-playfair text-xl text-gray-900 mb-4">Contacto y Footer</h2>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="WhatsApp (solo números, con código país)"
+                    value={config.whatsapp} onChange={v => setConfig(c => ({ ...c, whatsapp: v }))}
+                    placeholder="5491176348089" />
+                  <Field label="Email (opcional)"
+                    value={config.email} onChange={v => setConfig(c => ({ ...c, email: v }))}
+                    placeholder="hola@tucorreo.com" />
+                </div>
+
+                <Field label="Zona geográfica (aparece en footer y formulario)"
+                  value={config.zona} onChange={v => setConfig(c => ({ ...c, zona: v }))}
+                  placeholder="Zona Sur, Buenos Aires" />
+
+                <Field label="Texto del footer"
+                  value={config.footer_texto} onChange={v => setConfig(c => ({ ...c, footer_texto: v }))}
+                  placeholder="Capturando momentos únicos con sensibilidad y pasión." textarea />
+
+                <button onClick={() => guardarConfig({
+                  whatsapp: config.whatsapp,
+                  email: config.email,
+                  zona: config.zona,
+                  footer_texto: config.footer_texto,
+                })} className="bg-pink-700 text-white px-8 py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 transition-colors">
+                  Guardar contacto y footer
+                </button>
+              </div>
+            )}
+
+            {/* ── TAB: TESTIMONIOS ─────────────────────────────────────────── */}
+            {tab === 'testimonios' && (
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  Imagen del Hero (inicio)
-                </label>
-                <div className="flex items-start gap-5">
-                  {/* Preview */}
-                  <div className="w-40 h-24 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    {config.hero_url
-                      ? <img src={config.hero_url} className="w-full h-full object-cover" alt="hero" />
-                      : <span className="text-[10px] text-gray-300 text-center px-2">Sin imagen<br/>(usa gradiente)</span>
-                    }
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="file" accept="image/*"
-                      onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/hero', f); }}
-                      className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer"
-                    />
-                    <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
-                      Se muestra como fondo de la sección principal del inicio.<br />
-                      Recomendado: 1920×1080px o más. JPG o WEBP.
-                    </p>
-                    {config.hero_url && (
-                      <button
-                        onClick={async () => {
-                          setLoading(true);
-                          const res  = await apiFetch('/api/admin/configuracion', {
-                            method:  'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body:    JSON.stringify({ hero_url: '' }),
-                          });
-                          const data = await res.json();
-                          showFlash(data.mensaje ?? 'Hero eliminado.');
-                          if (res.ok) { setConfig(c => ({ ...c, hero_url: '' })); }
-                          setLoading(false);
-                        }}
-                        className="mt-2 text-xs text-red-400 hover:text-red-600 transition-colors font-bold"
-                      >
-                        Eliminar imagen → volver al gradiente
-                      </button>
-                    )}
-                  </div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-playfair text-xl text-gray-900">Testimonios</h2>
+                  <button
+                    onClick={() => setModalTestim({ texto: '', autora: '', tipo: '', orden: testimonios.length + 1 })}
+                    className="bg-pink-700 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-pink-900 transition-colors"
+                  >
+                    + Agregar testimonio
+                  </button>
                 </div>
-              </div>
-            </div>
-          )}
-        </section>
 
-        {/* ── SECCIÓN: NUEVA SESIÓN ──────────────────────────────────────────── */}
-        <section className="bg-white rounded-3xl border border-pink-100 shadow-sm p-6 sm:p-8 mb-6">
-          <button
-            className="flex items-center justify-between w-full text-left"
-            onClick={() => setSeccionAbierta(s => s === 'nuevo' ? null : 'nuevo')}
-          >
-            <h2 className="font-playfair text-xl text-gray-900">📁 Nueva sesión fotográfica</h2>
-            <span className="text-gray-400 text-lg">{seccionAbierta === 'nuevo' ? '−' : '+'}</span>
-          </button>
-
-          {seccionAbierta === 'nuevo' && (
-            <form ref={refNuevo} onSubmit={handleNuevoTrabajo} className="mt-6 border-t border-gray-50 pt-6">
-              <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Nombre *</label>
-                  <input name="nombre" required placeholder="Ej: José y María"
-                    className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Categoría *</label>
-                  <select name="categoria" required
-                    className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100">
-                    {categorias.map(c => <option key={c.slug} value={c.slug}>{c.nombre}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Descripción SEO</label>
-                  <input name="descripcion" placeholder="Para buscadores"
-                    className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Descripción visible</label>
-                  <input name="descripcion_evento" placeholder="Aparece en la galería"
-                    className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100" />
-                </div>
-              </div>
-              <div className="mb-5">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Fotos</label>
-                <input name="fotos" type="file" accept="image/*" multiple
-                  className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-5 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
-              </div>
-              <div className="flex gap-3">
-                <button type="submit" className="bg-pink-700 text-white px-8 py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 transition-colors">
-                  Crear sesión
-                </button>
-                <button type="button" onClick={() => setSeccionAbierta(null)} className="text-gray-400 text-sm hover:text-gray-600 px-4">
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          )}
-        </section>
-
-        {/* ── GALERÍAS ──────────────────────────────────────────────────────── */}
-        <h2 className="font-playfair text-2xl text-gray-900 mb-6">Galerías y portadas</h2>
-
-        {categorias.map(cat => (
-          <section key={cat.slug} className="bg-white rounded-3xl border border-gray-100 shadow-sm mb-6 overflow-hidden">
-
-            {/* Header categoría */}
-            <div className="px-6 sm:px-8 py-5 bg-gradient-to-r from-pink-50/50 to-white border-b border-gray-50">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  {/* Portada actual + botón para cambiarla */}
-                  <div className="relative group w-16 h-16 flex-shrink-0">
-                    <img
-                      src={`${R2}/${cat.portada}`}
-                      alt={cat.nombre}
-                      className="w-full h-full object-cover rounded-xl border border-gray-100"
-                    />
-                    {/* Overlay "Cambiar" */}
-                    <label className="absolute inset-0 bg-black/50 text-white text-[9px] font-bold uppercase tracking-wide flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      Cambiar
-                      <input
-                        type="file" accept="image/*" className="hidden"
-                        onChange={e => {
-                          const f = e.target.files?.[0];
-                          if (f) subirImagen('categorias/portada', f, { slug: cat.slug });
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800 text-lg">{cat.nombre}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Portada: <span className="font-mono">{cat.portada}</span>
-                      <span className="ml-2 text-pink-500">· Hover sobre la imagen para cambiarla</span>
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs text-gray-400 font-bold">
-                  {(trabajos[cat.slug] ?? []).length} sesiones
-                </span>
-              </div>
-            </div>
-
-            {/* Trabajos */}
-            <div className="p-6 sm:p-8">
-              {(trabajos[cat.slug] ?? []).length === 0 ? (
-                <p className="text-gray-300 text-sm italic text-center py-4">No hay sesiones en esta categoría aún.</p>
-              ) : (
-                <div className="space-y-5">
-                  {(trabajos[cat.slug] ?? []).map(t => (
-                    <div key={t.slug} className="border border-gray-100 rounded-2xl p-5 hover:border-pink-100 transition-colors">
-                      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                        <div>
-                          <span className="font-bold text-gray-800">{t.nombre}</span>
-                          <span className="text-gray-400 text-xs ml-2">({t.año})</span>
-                          <span className="text-gray-300 text-xs ml-3">{t.fotos.length} fotos</span>
+                {testimonios.length === 0 ? (
+                  <p className="text-gray-300 text-sm italic text-center py-8">No hay testimonios todavía.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {testimonios.map((t, i) => (
+                      <div key={i} className="border border-gray-100 rounded-2xl p-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-gray-600 italic text-sm mb-2">"{t.texto}"</p>
+                            <div className="flex gap-3 text-xs">
+                              <span className="font-bold text-pink-700 uppercase tracking-widest">{t.autora}</span>
+                              <span className="text-gray-400">— {t.tipo}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button onClick={() => setModalTestim(t)}
+                              className="text-xs font-bold text-gray-400 border border-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-50">
+                              Editar
+                            </button>
+                            <button onClick={() => t.id && eliminarTestimonio(t.id)}
+                              className="text-xs font-bold text-red-400 border border-red-50 px-3 py-1.5 rounded-full hover:bg-red-50">
+                              Eliminar
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex gap-2 flex-wrap">
-                          <button onClick={() => setAgregarEnTrabajo({ cat: cat.slug, slug: t.slug })}
-                            className="text-xs font-bold text-pink-600 border border-pink-100 px-3 py-1.5 rounded-full hover:bg-pink-50 transition-colors">
-                            + Fotos
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── TAB: CATEGORÍAS ──────────────────────────────────────────── */}
+            {tab === 'categorias' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-playfair text-xl text-gray-900">Categorías de galería</h2>
+                  <button onClick={() => setModalNuevaCat(true)}
+                    className="bg-pink-700 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-pink-900 transition-colors">
+                    + Nueva categoría
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {categorias.map(cat => (
+                    <div key={cat.slug} className="border border-gray-100 rounded-2xl p-5">
+                      <div className="flex items-center gap-4">
+                        {/* Portada con hover para cambiar */}
+                        <div className="relative group w-16 h-16 flex-shrink-0">
+                          <img src={`${R2}/${cat.portada}`} alt={cat.nombre}
+                            className="w-full h-full object-cover rounded-xl border border-gray-100" />
+                          <label className="absolute inset-0 bg-black/50 text-white text-[9px] font-bold uppercase flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                            Cambiar
+                            <input type="file" accept="image/*" className="hidden"
+                              onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('categorias/portada', f, { slug: cat.slug }); }} />
+                          </label>
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-gray-800">{cat.nombre}</p>
+                          <p className="text-xs text-gray-400 font-mono">/galeria/{cat.slug}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const nuevoNombre = prompt('Nuevo nombre para la categoría:', cat.nombre);
+                              if (nuevoNombre && nuevoNombre !== cat.nombre) {
+                                postJson('categorias/renombrar', { slug: cat.slug, nombre: nuevoNombre.trim() });
+                              }
+                            }}
+                            className="text-xs font-bold text-gray-400 border border-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-50">
+                            Renombrar
                           </button>
-                          <button onClick={() => setEditando({ cat: cat.slug, slug: t.slug, desc: t.descripcion ?? '', descEvento: t.descripcion_evento ?? '' })}
-                            className="text-xs font-bold text-gray-500 border border-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-50 transition-colors">
-                            Editar
-                          </button>
-                          <button onClick={() => eliminarTrabajo(cat.slug, t.slug, t.nombre)}
-                            className="text-xs font-bold text-red-400 border border-red-50 px-3 py-1.5 rounded-full hover:bg-red-50 transition-colors">
+                          <button
+                            onClick={() => {
+                              if (!confirm(`¿Eliminar la categoría "${cat.nombre}" y TODAS sus sesiones? Esta acción no se puede deshacer.`)) return;
+                              postJson('categorias/eliminar', { slug: cat.slug });
+                            }}
+                            className="text-xs font-bold text-red-400 border border-red-50 px-3 py-1.5 rounded-full hover:bg-red-50">
                             Eliminar
                           </button>
                         </div>
                       </div>
-
-                      {t.fotos.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {t.fotos.map(foto => (
-                            <div key={foto} className="relative group w-20 h-20 flex-shrink-0">
-                              <img
-                                src={`${R2}/${cat.slug}/${t.slug}/${foto}`}
-                                alt={foto}
-                                className="w-full h-full object-cover rounded-xl border border-gray-100"
-                              />
-                              <button onClick={() => eliminarFoto(cat.slug, t.slug, foto)}
-                                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md">
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          </section>
-        ))}
+              </div>
+            )}
 
-        {/* ── MODAL: AGREGAR FOTOS ─────────────────────────────────────────── */}
-        {agregarEnTrabajo && (
-          <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
-            <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-              <h3 className="font-playfair text-xl text-gray-900 mb-1">Agregar fotos</h3>
-              <p className="text-gray-400 text-xs mb-6 uppercase tracking-widest">
-                {agregarEnTrabajo.cat} / {agregarEnTrabajo.slug}
-              </p>
-              <form ref={refAgregarFotos} onSubmit={handleAgregarFotos}>
-                <input type="hidden" name="categoria" value={agregarEnTrabajo.cat} />
-                <input type="hidden" name="trabajo"   value={agregarEnTrabajo.slug} />
-                <div className="mb-6">
-                  <input name="fotos" type="file" accept="image/*" multiple required
-                    className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-5 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
-                </div>
-                <div className="flex gap-3">
-                  <button type="submit" className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 transition-colors">
-                    Subir fotos
-                  </button>
-                  <button type="button" onClick={() => setAgregarEnTrabajo(null)}
-                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200 transition-colors">
-                    Cancelar
+            {/* ── TAB: SESIONES ────────────────────────────────────────────── */}
+            {tab === 'sesiones' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-playfair text-xl text-gray-900">Sesiones fotográficas</h2>
+                  <button onClick={() => setModalNuevaSes(true)}
+                    className="bg-pink-700 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-pink-900 transition-colors">
+                    + Nueva sesión
                   </button>
                 </div>
-              </form>
-            </div>
-          </div>
-        )}
 
-        {/* ── MODAL: EDITAR TRABAJO ────────────────────────────────────────── */}
-        {editando && (
-          <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
-            <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-              <h3 className="font-playfair text-xl text-gray-900 mb-1">Editar sesión</h3>
-              <p className="text-gray-400 text-xs mb-6 uppercase tracking-widest">
-                {editando.cat} / {editando.slug}
-              </p>
-              <form onSubmit={handleEditarTrabajo}>
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Descripción SEO</label>
-                    <input type="text" value={editando.desc}
-                      onChange={e => setEditando(v => v ? { ...v, desc: e.target.value } : v)}
-                      className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100"
-                      placeholder="Descripción para buscadores" />
+                {categorias.map(cat => (
+                  <div key={cat.slug} className="mb-8">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-4">
+                      {cat.nombre}
+                    </h3>
+
+                    {(trabajos[cat.slug] ?? []).length === 0 ? (
+                      <p className="text-gray-300 text-sm italic py-3">Sin sesiones en esta categoría.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {(trabajos[cat.slug] ?? []).map(t => (
+                          <div key={t.slug} className="border border-gray-100 rounded-2xl p-5 hover:border-pink-100 transition-colors">
+                            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                              <div>
+                                <span className="font-bold text-gray-800">{t.nombre}</span>
+                                <span className="text-gray-400 text-xs ml-2">({t.año})</span>
+                                <span className="text-gray-300 text-xs ml-2">{t.fotos.length} fotos</span>
+                              </div>
+                              <div className="flex gap-2 flex-wrap">
+                                <button onClick={() => setModalFotos({ cat: cat.slug, slug: t.slug })}
+                                  className="text-xs font-bold text-pink-600 border border-pink-100 px-3 py-1.5 rounded-full hover:bg-pink-50">
+                                  + Fotos
+                                </button>
+                                <button onClick={() => setModalEditar({ cat: cat.slug, slug: t.slug, desc: t.descripcion ?? '', descEvento: t.descripcion_evento ?? '' })}
+                                  className="text-xs font-bold text-gray-500 border border-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-50">
+                                  Editar
+                                </button>
+                                <button onClick={() => eliminarTrabajo(cat.slug, t.slug, t.nombre)}
+                                  className="text-xs font-bold text-red-400 border border-red-50 px-3 py-1.5 rounded-full hover:bg-red-50">
+                                  Eliminar
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Fotos con drag & drop */}
+                            {t.fotos.length > 0 && (
+                              <>
+                                <p className="text-[10px] text-gray-300 uppercase tracking-widest mb-2">
+                                  Arrastrá para reordenar · Hover para eliminar
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {t.fotos.map(foto => (
+                                    <div
+                                      key={foto}
+                                      draggable
+                                      onDragStart={() => handleDragStart(cat.slug, t.slug, foto)}
+                                      onDragOver={e => { e.preventDefault(); setDragOver(foto); }}
+                                      onDragLeave={() => setDragOver(null)}
+                                      onDrop={() => handleDrop(cat.slug, t.slug, foto)}
+                                      onDragEnd={() => { setDragging(null); setDragOver(null); }}
+                                      className={`relative group w-20 h-20 flex-shrink-0 cursor-grab active:cursor-grabbing transition-all ${
+                                        dragOver === foto ? 'scale-110 ring-2 ring-pink-400' : ''
+                                      } ${dragging?.foto === foto ? 'opacity-40' : ''}`}
+                                    >
+                                      <img
+                                        src={`${R2}/${cat.slug}/${t.slug}/${foto}`}
+                                        alt={foto}
+                                        draggable={false}
+                                        className="w-full h-full object-cover rounded-xl border border-gray-100 select-none"
+                                      />
+                                      <button
+                                        onClick={() => eliminarFoto(cat.slug, t.slug, foto)}
+                                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md"
+                                      >×</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Descripción visible</label>
-                    <input type="text" value={editando.descEvento}
-                      onChange={e => setEditando(v => v ? { ...v, descEvento: e.target.value } : v)}
-                      className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100"
-                      placeholder="Descripción en la galería" />
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <button type="submit" className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 transition-colors">
-                    Guardar
-                  </button>
-                  <button type="button" onClick={() => setEditando(null)}
-                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200 transition-colors">
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+                ))}
+              </div>
+            )}
 
+          </div>
+        </div>
       </div>
+
+      {/* ── MODAL: AGREGAR FOTOS ──────────────────────────────────────────── */}
+      {modalFotos && (
+        <Modal titulo="Agregar fotos" onClose={() => setModalFotos(null)}>
+          <p className="text-gray-400 text-xs mb-5 uppercase tracking-widest">{modalFotos.cat} / {modalFotos.slug}</p>
+          <form ref={refAddFotos} onSubmit={e => {
+            e.preventDefault();
+            postForm('agregar-fotos', new FormData(e.currentTarget));
+            refAddFotos.current?.reset();
+            setModalFotos(null);
+          }}>
+            <input type="hidden" name="categoria" value={modalFotos.cat} />
+            <input type="hidden" name="trabajo"   value={modalFotos.slug} />
+            <input name="fotos" type="file" accept="image/*" multiple required
+              className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-5 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer mb-5 block" />
+            <BotonesModal onCancel={() => setModalFotos(null)} labelOk="Subir fotos" />
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL: EDITAR SESIÓN ──────────────────────────────────────────── */}
+      {modalEditar && (
+        <Modal titulo="Editar sesión" onClose={() => setModalEditar(null)}>
+          <form onSubmit={e => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('categoria', modalEditar.cat);
+            fd.append('trabajo',   modalEditar.slug);
+            fd.append('descripcion', modalEditar.desc);
+            fd.append('descripcion_evento', modalEditar.descEvento);
+            postForm('editar-trabajo', fd);
+            setModalEditar(null);
+          }} className="space-y-4">
+            <Field label="Descripción SEO" value={modalEditar.desc}
+              onChange={v => setModalEditar(m => m ? { ...m, desc: v } : m)} placeholder="Para buscadores" />
+            <Field label="Descripción visible" value={modalEditar.descEvento}
+              onChange={v => setModalEditar(m => m ? { ...m, descEvento: v } : m)} placeholder="Aparece en la galería" />
+            <BotonesModal onCancel={() => setModalEditar(null)} labelOk="Guardar" />
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL: TESTIMONIO ─────────────────────────────────────────────── */}
+      {modalTestim && (
+        <Modal titulo={modalTestim.id ? 'Editar testimonio' : 'Nuevo testimonio'} onClose={() => setModalTestim(null)}>
+          <div className="space-y-4">
+            <Field label="Texto del testimonio" value={modalTestim.texto}
+              onChange={v => setModalTestim(m => m ? { ...m, texto: v } : m)} textarea
+              placeholder="Fue la mejor decisión..." />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Nombre / autora" value={modalTestim.autora}
+                onChange={v => setModalTestim(m => m ? { ...m, autora: v } : m)} placeholder="Sofía L." />
+              <Field label="Tipo de sesión" value={modalTestim.tipo}
+                onChange={v => setModalTestim(m => m ? { ...m, tipo: v } : m)} placeholder="15 años" />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => modalTestim && guardarTestimonio(modalTestim)}
+                className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900">
+                Guardar
+              </button>
+              <button onClick={() => setModalTestim(null)}
+                className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── MODAL: NUEVA CATEGORÍA ────────────────────────────────────────── */}
+      {modalNuevaCat && (
+        <Modal titulo="Nueva categoría" onClose={() => setModalNuevaCat(false)}>
+          <form ref={refNuevaCat} onSubmit={e => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            postJson('categorias/nueva', {
+              nombre: fd.get('nombre') as string,
+              slug:   fd.get('slug')   as string,
+            });
+            refNuevaCat.current?.reset();
+            setModalNuevaCat(false);
+          }} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Nombre visible</label>
+              <input name="nombre" required placeholder="Ej: EMBARAZO" className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Slug (URL, solo minúsculas y guiones)</label>
+              <input name="slug" required placeholder="Ej: embarazo" pattern="[a-z0-9\-]+"
+                className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100 font-mono" />
+              <p className="text-[10px] text-gray-400 mt-1">Va a quedar en la URL: /galeria/<strong>slug</strong></p>
+            </div>
+            <BotonesModal onCancel={() => setModalNuevaCat(false)} labelOk="Crear categoría" />
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL: NUEVA SESIÓN ───────────────────────────────────────────── */}
+      {modalNuevaSes && (
+        <Modal titulo="Nueva sesión fotográfica" onClose={() => setModalNuevaSes(false)}>
+          <form ref={refNuevaSes} onSubmit={e => {
+            e.preventDefault();
+            postForm('nuevo-trabajo', new FormData(e.currentTarget));
+            refNuevaSes.current?.reset();
+            setModalNuevaSes(false);
+          }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Nombre *</label>
+                <input name="nombre" required placeholder="Ej: José y María"
+                  className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Categoría *</label>
+                <select name="categoria" required className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100">
+                  {categorias.map(c => <option key={c.slug} value={c.slug}>{c.nombre}</option>)}
+                </select>
+              </div>
+            </div>
+            <Field label="Descripción SEO" value="" onChange={() => {}} placeholder="Para buscadores" />
+            <Field label="Descripción visible" value="" onChange={() => {}} placeholder="Aparece en la galería" />
+            <div>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Fotos</label>
+              <input name="fotos" type="file" accept="image/*" multiple
+                className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
+            </div>
+            <BotonesModal onCancel={() => setModalNuevaSes(false)} labelOk="Crear sesión" />
+          </form>
+        </Modal>
+      )}
+
+    </div>
+  );
+}
+
+// ── Sub-componentes reutilizables ─────────────────────────────────────────────
+function Modal({ titulo, children, onClose }: { titulo: string; children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-playfair text-xl text-gray-900">{titulo}</h3>
+          <button onClick={onClose} className="text-gray-300 hover:text-gray-600 text-2xl leading-none">×</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function BotonesModal({ onCancel, labelOk }: { onCancel: () => void; labelOk: string }) {
+  return (
+    <div className="flex gap-3 pt-2">
+      <button type="submit" className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900">
+        {labelOk}
+      </button>
+      <button type="button" onClick={onCancel} className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200">
+        Cancelar
+      </button>
     </div>
   );
 }
