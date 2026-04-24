@@ -256,21 +256,42 @@ export async function subirLogo(request, env) {
 export async function subirHero(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
-  const form = await request.formData();
-  const file = form.get('file');
-  if (!file?.name) return error('No se recibió ningún archivo');
+  try {
+    const form = await request.formData();
+    const file = form.get('file');
+    if (!file || typeof file === 'string' || !file.name) {
+      return error('No se recibió ningún archivo');
+    }
 
-  const ext     = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const key     = `assets/hero.${ext}`;
-  await subirImagenAR2(env.BUCKET, key, await file.arrayBuffer(), file.type);
-  const heroUrl = `${env.R2_PUBLIC_URL}/${key}`;
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const key = `assets/hero.${ext}`;
 
-  await env.DB.prepare(
-    `INSERT INTO configuracion (id, hero_url) VALUES (1, ?)
-     ON CONFLICT(id) DO UPDATE SET hero_url = excluded.hero_url`
-  ).bind(heroUrl).run();
+    // Mantener la lógica actual de subida a R2
+    await subirImagenAR2(env.BUCKET, key, await file.arrayBuffer(), file.type);
 
-  return json({ url: heroUrl, mensaje: 'Imagen de hero actualizada.' });
+    const baseUrl = String(env.R2_PUBLIC_URL || '').replace(/\/+$/, '');
+    if (!baseUrl) return error('R2_PUBLIC_URL no configurada', 500);
+    const heroUrl = `${baseUrl}/${key}`;
+
+    const result = await env.DB.prepare(
+      `UPDATE configuracion
+       SET hero_url = ?
+       WHERE id = 1`
+    ).bind(heroUrl).run();
+
+    // Si no existe id=1, lo crea para mantener compatibilidad.
+    if ((result?.meta?.changes ?? 0) === 0) {
+      await env.DB.prepare(
+        `INSERT INTO configuracion (id, hero_url) VALUES (1, ?)
+         ON CONFLICT(id) DO UPDATE SET hero_url = excluded.hero_url`
+      ).bind(heroUrl).run();
+    }
+
+    return json({ success: true, hero_url: heroUrl });
+  } catch (e) {
+    console.error('Error en /api/admin/configuracion/hero:', e);
+    return error('No se pudo actualizar la imagen del hero', 500);
+  }
 }
 
 export async function subirPortada(request, env) {
