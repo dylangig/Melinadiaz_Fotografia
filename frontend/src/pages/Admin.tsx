@@ -129,8 +129,8 @@ export default function Admin() {
         tagline:          data.tagline          || 'Fotografía Profesional · Zona Sur Buenos Aires',
         hero_url:         normalizarUrlImagen(data.hero_url),
         hero_titulo:      getTexto(data.hero_titulo, 'Capturando momentos que duran toda la vida'),
-        hero_subtitulo:   getTexto(data.hero_subtitulo, 'Books infantiles, quinceaneras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.'),
-        hero_boton_texto: getTexto(data.hero_boton_texto, 'Reservar sesion'),
+        hero_subtitulo:   getTexto(data.hero_subtitulo, 'Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora, Quilmes y toda la Zona Sur.'),
+        hero_boton_texto: getTexto(data.hero_boton_texto, 'Reservar sesión'),
         whatsapp:         data.whatsapp         || '5491176348089',
         email:            data.email            || '',
         zona:             data.zona             || 'Zona Sur, Buenos Aires',
@@ -240,7 +240,9 @@ const guardarConfig = (campos: Partial<Config>) => {
   };
 
   // ── Drag & drop reordenar fotos ────────────────────────────────────────────
-  const handleDragStart = (cat: string, slug: string, foto: string) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, cat: string, slug: string, foto: string) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', foto);
     setDragging({ cat, slug, foto });
   };
 
@@ -365,7 +367,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                       <input type="file" accept="image/*"
                         onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/logo', f); }}
                         className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
-                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, SVG o WEBP � Logo del sitio</p>
+                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, SVG o WEBP · Logo del sitio</p>
                     </div>
                   </div>
                 </div>
@@ -630,33 +632,44 @@ const guardarConfig = (campos: Partial<Config>) => {
                             {/* Fotos con drag & drop */}
                             {t.fotos.length > 0 && (
                               <>
-                                <p className="text-[10px] text-gray-300 uppercase tracking-widest mb-2">
-                                  Arrastrá para reordenar · Hover para eliminar
+                                <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-3">
+                                  Arrastr? para reordenar ? solt? sobre la posici?n deseada
                                 </p>
-                                <div className="flex flex-wrap gap-2">
+                                <div className={`flex flex-wrap gap-3 rounded-2xl border border-dashed p-3 transition-colors duration-200 ${
+                                  dragging?.cat === cat.slug && dragging?.slug === t.slug
+                                    ? 'border-pink-200 bg-pink-50/70'
+                                    : 'border-transparent bg-transparent'
+                                }`}>
                                   {t.fotos.map(foto => (
-                                    <div
-                                      key={foto}
-                                      draggable
-                                      onDragStart={() => handleDragStart(cat.slug, t.slug, foto)}
-                                      onDragOver={e => { e.preventDefault(); setDragOver(foto); }}
-                                      onDragLeave={() => setDragOver(null)}
-                                      onDrop={() => handleDrop(cat.slug, t.slug, foto)}
-                                      onDragEnd={() => { setDragging(null); setDragOver(null); }}
-                                      className={`relative group w-20 h-20 flex-shrink-0 cursor-grab active:cursor-grabbing transition-all ${
-                                        dragOver === foto ? 'scale-110 ring-2 ring-pink-400' : ''
-                                      } ${dragging?.foto === foto ? 'opacity-40' : ''}`}
-                                    >
-                                      <img
-                                        src={`${R2}/${cat.slug}/${t.slug}/${foto}`}
-                                        alt={foto}
-                                        draggable={false}
-                                        className="w-full h-full object-cover rounded-xl border border-gray-100 select-none"
-                                      />
-                                      <button
-                                        onClick={() => eliminarFoto(cat.slug, t.slug, foto)}
-                                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md"
-                                      >×</button>
+                                    <div key={foto} className="flex items-center gap-2">
+                                      {dragOver === foto && dragging?.foto !== foto && (
+                                        <div className="h-20 w-1.5 rounded-full bg-pink-400 shadow-[0_0_0_4px_rgba(233,111,154,0.16)]" />
+                                      )}
+                                      <div
+                                        draggable
+                                        aria-grabbed={dragging?.foto === foto}
+                                        onDragStart={e => handleDragStart(e, cat.slug, t.slug, foto)}
+                                        onDragEnter={() => { if (dragging?.foto !== foto) setDragOver(foto); }}
+                                        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOver !== foto) setDragOver(foto); }}
+                                        onDragLeave={() => setDragOver(current => current === foto ? null : current)}
+                                        onDrop={() => handleDrop(cat.slug, t.slug, foto)}
+                                        onDragEnd={() => { setDragging(null); setDragOver(null); }}
+                                        className={`relative group w-20 h-20 flex-shrink-0 cursor-grab rounded-2xl border bg-white p-1 shadow-sm transition-all duration-200 ease-out active:cursor-grabbing hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-[0_12px_24px_rgba(141,26,68,0.12)] focus-within:ring-2 focus-within:ring-pink-200 ${
+                                          dragOver === foto ? 'border-pink-300 ring-2 ring-pink-200' : 'border-pink-50'
+                                        } ${dragging?.foto === foto ? 'scale-95 opacity-45 shadow-none ring-2 ring-pink-200' : ''}`}
+                                      >
+                                        <img
+                                          src={`${R2}/${cat.slug}/${t.slug}/${foto}`}
+                                          alt={foto}
+                                          draggable={false}
+                                          className="w-full h-full object-cover rounded-xl select-none"
+                                        />
+                                        <div className="pointer-events-none absolute inset-1 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                                        <button
+                                          onClick={() => eliminarFoto(cat.slug, t.slug, foto)}
+                                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md"
+                                        >?</button>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>

@@ -74,8 +74,8 @@ export default function Inicio() {
         setConfig({
           hero_url: normalizarUrlImagen(cfg.hero_url),
           hero_titulo: getTexto(cfg.hero_titulo, 'Transformo momentos en recuerdos eternos'),
-          hero_subtitulo: getTexto(cfg.hero_subtitulo, 'Books infantiles, 15 anos y bodas con una mirada artistica y emocional.'),
-          hero_boton_texto: getTexto(cfg.hero_boton_texto, 'Reservar sesion'),
+          hero_subtitulo: getTexto(cfg.hero_subtitulo, 'Books infantiles, 15 años y bodas con una mirada artística y emocional.'),
+          hero_boton_texto: getTexto(cfg.hero_boton_texto, 'Reservar sesión'),
           favicon_url: normalizarUrlImagen(cfg.favicon_url),
           whatsapp: getTexto(cfg.whatsapp, '5491176348089'),
         });
@@ -160,24 +160,16 @@ export default function Inicio() {
             <Link to="/contacto" className="btn-premium-primary px-10 py-4 text-sm font-semibold">
               {config.hero_boton_texto}
             </Link>
-            <Link
-              to="/galeria/infantil"
-              className={`btn-premium px-10 py-4 text-sm font-semibold border ${conImagen
-                ? 'border-white/70 text-white hover:border-white hover:bg-white/10'
-                : 'border-pink-300 text-pink-700 hover:border-pink-700 hover:bg-pink-50'}`}
-            >
-              Ver trabajos
-            </Link>
           </div>
         </div>
       </section>
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 scroll-fade">
         <h2 className="font-playfair text-3xl sm:text-4xl text-center text-pink-950 font-light mb-3">
-          Galerias
+          Galerías
         </h2>
         <p className="text-center text-pink-800/70 text-xs tracking-[0.28em] uppercase mb-10 sm:mb-12">
-          Explora mis trabajos
+          Explorá mis trabajos
         </p>
 
         {loading ? (
@@ -206,7 +198,7 @@ export default function Inicio() {
                     {cat.nombre}
                   </p>
                   <p className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase">
-                    Ver galeria
+                    Ver galería
                   </p>
                 </div>
               </Link>
@@ -237,13 +229,13 @@ export default function Inicio() {
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center scroll-fade">
         <h2 className="font-playfair text-3xl sm:text-4xl text-pink-950 font-light mb-5">
-          Lista para tu sesion?
+          ¿Lista para tu sesión?
         </h2>
         <p className="text-gray-500 text-base mb-10 max-w-xl mx-auto leading-relaxed">
-          Completa el formulario y en menos de 24 hs te contacto para coordinar tu sesion.
+          Completá el formulario y en menos de 24 hs te contacto para coordinar tu sesión.
         </p>
         <Link to="/contacto" className="btn-premium-primary px-12 py-4 text-sm font-semibold inline-block">
-          Reservar sesion
+          Reservar sesión
         </Link>
       </section>
     </>
