@@ -13,8 +13,23 @@ export default function Navbar() {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 60);
+    // Histeresis + RAF para evitar jitter en el punto de cambio.
+    const ENTER_SCROLL = 150;
+    const LEAVE_SCROLL = 95;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setScrolled(prev => (prev ? y > LEAVE_SCROLL : y > ENTER_SCROLL));
+        ticking = false;
+      });
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
 
     fetch(`${API_BASE}/api/configuracion`)
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
@@ -49,17 +64,17 @@ export default function Navbar() {
         scrolled ? 'shadow-md' : 'shadow-sm'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Desktop top state: logo centrado arriba, menu abajo */}
         <div className={`hidden md:flex flex-col items-center justify-center transition-all duration-300 overflow-hidden ${
-          scrolled ? 'max-h-0 opacity-0 py-0 pointer-events-none' : 'max-h-60 opacity-100 py-4'
+          scrolled ? 'max-h-0 opacity-0 py-0 pointer-events-none' : 'max-h-72 opacity-100 py-2'
         }`}>
-          <Link to="/" className="mb-4 transition-all duration-300">
+          <Link to="/" className="mb-2 transition-all duration-300">
             <img
               src={logoUrl}
               alt={nombreMarca}
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              className="h-16 w-auto object-contain"
+              className="h-24 w-auto object-contain"
             />
           </Link>
           <nav className="flex items-center gap-8">
@@ -70,7 +85,7 @@ export default function Navbar() {
                 end={to === '/'}
                 className={({ isActive }) =>
                   `text-[11px] font-bold uppercase tracking-[0.18em] transition-colors ${
-                    isActive ? 'text-pink-600' : 'text-gray-700 hover:text-pink-500'
+                    isActive ? 'text-[#8d1a44]' : 'text-[#8d1a44] hover:text-pink-400'
                   }`
                 }
               >
@@ -84,12 +99,12 @@ export default function Navbar() {
         <div className={`hidden md:flex items-center justify-between transition-all duration-300 overflow-hidden ${
           scrolled ? 'max-h-20 h-16 opacity-100' : 'max-h-0 h-0 opacity-0 pointer-events-none'
         }`}>
-          <Link to="/" className="transition-all duration-300">
+          <Link to="/" className="transition-all duration-300 pl-1">
             <img
               src={logoUrl}
               alt={nombreMarca}
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              className="h-9 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
           </Link>
           <div className="flex items-center gap-7">
@@ -101,7 +116,7 @@ export default function Navbar() {
                   end={to === '/'}
                   className={({ isActive }) =>
                     `text-[11px] font-bold uppercase tracking-[0.16em] transition-colors ${
-                      isActive ? 'text-pink-600' : 'text-gray-700 hover:text-pink-500'
+                      isActive ? 'text-[#8d1a44]' : 'text-[#8d1a44] hover:text-pink-400'
                     }`
                   }
                 >
@@ -132,7 +147,7 @@ export default function Navbar() {
           </Link>
 
           <button
-            className="p-2 text-gray-700"
+            className="p-2 text-[#8d1a44]"
             onClick={() => setOpen(v => !v)}
             aria-label="Menu"
           >
@@ -156,7 +171,7 @@ export default function Navbar() {
             end={to === '/'}
             className={({ isActive }) =>
               `block px-8 py-4 text-xs font-bold uppercase tracking-widest border-b border-gray-50 transition-colors ${
-                isActive ? 'text-pink-600 bg-pink-50' : 'text-gray-700 hover:bg-pink-50'
+                isActive ? 'text-[#8d1a44] bg-pink-50' : 'text-[#8d1a44] hover:bg-pink-50 hover:text-pink-400'
               }`
             }
           >
