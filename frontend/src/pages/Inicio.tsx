@@ -85,6 +85,22 @@ export default function Inicio() {
     if (link) link.href = config.favicon_url;
   }, [config.favicon_url]);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible');
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    const items = document.querySelectorAll('.scroll-fade');
+    items.forEach(item => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, []);
+
   const heroUrl = config.hero_url ? conCacheBuster(config.hero_url, heroVersion) : '';
   const conImagen = Boolean(heroUrl);
 
@@ -132,10 +148,9 @@ export default function Inicio() {
           </div>
         </div>
 
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-b from-transparent to-white" />
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-24 scroll-fade">
         <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-3">
           Galerías
         </h2>
@@ -179,7 +194,7 @@ export default function Inicio() {
       </section>
 
       {testimonios.length > 0 && (
-        <section className="w-full bg-gradient-to-b from-pink-50 to-white py-24">
+        <section className="w-full bg-gradient-to-b from-pink-50 to-white py-24 scroll-fade">
           <div className="max-w-5xl mx-auto px-6">
             <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-14">
               Lo que dicen mis clientes
@@ -200,7 +215,7 @@ export default function Inicio() {
         </section>
       )}
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center scroll-fade">
         <h2 className="font-playfair text-3xl sm:text-4xl text-pink-950 font-light mb-5">
           ¿Lista para tu sesión?
         </h2>

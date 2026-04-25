@@ -72,15 +72,12 @@ export default function Contacto() {
           {/* Beneficios */}
           <div className="flex flex-col gap-3.5 mb-8 relative z-10">
             {[
-              { icon: '📸', text: 'Fotos ilimitadas durante toda la sesión, editadas en alta calidad' },
-              { icon: '☁️', text: 'Entrega por Google Drive en tiempo y forma' },
-              { icon: '📍', text: 'Nos movemos por toda la Zona Sur de Buenos Aires' },
-              { icon: '💬', text: 'Atención personalizada desde el primer mensaje' },
+              { text: 'Fotos ilimitadas durante toda la sesión, editadas en alta calidad' },
+              { text: 'Entrega por Google Drive en tiempo y forma' },
+              { text: 'Nos movemos por toda la Zona Sur de Buenos Aires' },
+              { text: 'Atención personalizada desde el primer mensaje' },
             ].map((b, i) => (
-              <div key={i} className="flex items-start gap-3 text-pink-950/80 text-sm">
-                <span className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm text-xs flex-shrink-0">
-                  {b.icon}
-                </span>
+              <div key={i} className="text-pink-950/80 text-sm leading-relaxed">
                 {b.text}
               </div>
             ))}
