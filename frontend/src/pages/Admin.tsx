@@ -633,28 +633,32 @@ const guardarConfig = (campos: Partial<Config>) => {
                             {t.fotos.length > 0 && (
                               <>
                                 <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-3">
-                                  Arrastr? para reordenar ? solt? sobre la posici?n deseada
+                                  Arrastra para reordenar - solta sobre la posicion deseada
                                 </p>
-                                <div className={`flex flex-wrap gap-3 rounded-2xl border border-dashed p-3 transition-colors duration-200 ${
+                                <div
+                                  onDragLeave={e => {
+                                    const next = e.relatedTarget as Node | null;
+                                    if (!next || !e.currentTarget.contains(next)) setDragOver(null);
+                                  }}
+                                  className={`flex flex-wrap gap-3 rounded-2xl border border-dashed p-3 transition-colors duration-200 ${
                                   dragging?.cat === cat.slug && dragging?.slug === t.slug
                                     ? 'border-pink-200 bg-pink-50/70'
                                     : 'border-transparent bg-transparent'
-                                }`}>
+                                }`}
+                                >
                                   {t.fotos.map(foto => (
-                                    <div key={foto} className="flex items-center gap-2">
+                                    <div key={foto} className="relative w-20 h-20 flex-shrink-0">
                                       {dragOver === foto && dragging?.foto !== foto && (
-                                        <div className="h-20 w-1.5 rounded-full bg-pink-400 shadow-[0_0_0_4px_rgba(233,111,154,0.16)]" />
+                                        <div className="pointer-events-none absolute inset-y-1 left-0 z-10 w-1.5 rounded-full bg-pink-400 shadow-[0_0_0_4px_rgba(233,111,154,0.16)]" />
                                       )}
                                       <div
                                         draggable
                                         aria-grabbed={dragging?.foto === foto}
                                         onDragStart={e => handleDragStart(e, cat.slug, t.slug, foto)}
-                                        onDragEnter={() => { if (dragging?.foto !== foto) setDragOver(foto); }}
                                         onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOver !== foto) setDragOver(foto); }}
-                                        onDragLeave={() => setDragOver(current => current === foto ? null : current)}
                                         onDrop={() => handleDrop(cat.slug, t.slug, foto)}
                                         onDragEnd={() => { setDragging(null); setDragOver(null); }}
-                                        className={`relative group w-20 h-20 flex-shrink-0 cursor-grab rounded-2xl border bg-white p-1 shadow-sm transition-all duration-200 ease-out active:cursor-grabbing hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-[0_12px_24px_rgba(141,26,68,0.12)] focus-within:ring-2 focus-within:ring-pink-200 ${
+                                        className={`relative group h-full w-full cursor-grab rounded-2xl border bg-white p-1 shadow-sm transition-all duration-200 ease-out active:cursor-grabbing hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-[0_12px_24px_rgba(141,26,68,0.12)] focus-within:ring-2 focus-within:ring-pink-200 ${
                                           dragOver === foto ? 'border-pink-300 ring-2 ring-pink-200' : 'border-pink-50'
                                         } ${dragging?.foto === foto ? 'scale-95 opacity-45 shadow-none ring-2 ring-pink-200' : ''}`}
                                       >
@@ -668,7 +672,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                                         <button
                                           onClick={() => eliminarFoto(cat.slug, t.slug, foto)}
                                           className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md"
-                                        >?</button>
+                                        >x</button>
                                       </div>
                                     </div>
                                   ))}

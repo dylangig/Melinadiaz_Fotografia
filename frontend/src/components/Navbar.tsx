@@ -11,39 +11,61 @@ export default function Navbar() {
   const [nombreMarca, setNombreMarca] = useState('Melina Diaz Fotografía');
   const [whatsapp, setWhatsapp] = useState('5491176348089');
   const lastScrollY = useRef(0);
+  const compactRef = useRef(false);
   const rafId = useRef<number | null>(null);
   const location = useLocation();
 
   useEffect(() => {
-    const TOP_LOCK = 80;
-    const ENTER_SCROLL = 170;
-    const LEAVE_SCROLL = 110;
-    const MIN_DELTA = 10;
+    const NORMAL_UNTIL = 80;
+    const COMPACT_FROM = 140;
+    const MIN_DELTA = 12;
+    const getScrollTop = () => Math.max(
+      window.scrollY || 0,
+      document.documentElement?.scrollTop || 0,
+      document.body?.scrollTop || 0
+    );
 
-    lastScrollY.current = Math.max(window.scrollY, 0);
-    setScrolled(lastScrollY.current > ENTER_SCROLL);
+    lastScrollY.current = getScrollTop();
+    compactRef.current = lastScrollY.current > COMPACT_FROM;
+    setScrolled(compactRef.current);
+
+    const updateCompactState = () => {
+      const y = getScrollTop();
+      const delta = y - lastScrollY.current;
+
+      if (y > COMPACT_FROM && !compactRef.current) {
+        compactRef.current = true;
+        setScrolled(true);
+      } else if (y < NORMAL_UNTIL && compactRef.current) {
+        compactRef.current = false;
+        setScrolled(false);
+      }
+
+      if (Math.abs(delta) >= MIN_DELTA || y > COMPACT_FROM || y < NORMAL_UNTIL) {
+        lastScrollY.current = y;
+      }
+    };
 
     const handleScroll = () => {
       if (rafId.current !== null) return;
       rafId.current = requestAnimationFrame(() => {
-        const y = Math.max(window.scrollY, 0);
-        const delta = y - lastScrollY.current;
-
-        if (y < TOP_LOCK) {
-          setScrolled(false);
-          lastScrollY.current = y;
-        } else if (Math.abs(delta) >= MIN_DELTA) {
-          if (delta > 0 && y > ENTER_SCROLL) setScrolled(prev => prev ? prev : true);
-          if (delta < 0 && y < LEAVE_SCROLL) setScrolled(prev => prev ? false : prev);
-          lastScrollY.current = y;
-        }
-
+        updateCompactState();
         rafId.current = null;
       });
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    const scrollOptions: AddEventListenerOptions = { passive: true, capture: true };
+    const scrollTargets: EventTarget[] = [
+      window,
+      document,
+      document.documentElement,
+      document.body,
+    ].filter(Boolean);
+
+    scrollTargets.forEach(target => {
+      target.addEventListener('scroll', handleScroll, scrollOptions);
+    });
+    updateCompactState();
 
     fetch(`${API_BASE}/api/configuracion`)
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
@@ -55,7 +77,9 @@ export default function Navbar() {
       .catch(() => {});
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      scrollTargets.forEach(target => {
+        target.removeEventListener('scroll', handleScroll, scrollOptions);
+      });
       if (rafId.current !== null) cancelAnimationFrame(rafId.current);
     };
   }, []);
@@ -77,66 +101,40 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 w-full z-50 bg-[#FFF6F8]/95 backdrop-blur-md border-b border-[#ead2d9] shadow-[0_8px_26px_rgba(138,79,100,0.08)] transition-shadow duration-300 ${
-        scrolled ? 'shadow-[0_12px_32px_rgba(138,79,100,0.13)]' : 'shadow-[0_8px_26px_rgba(138,79,100,0.08)]'
+      className={`sticky top-0 w-full z-50 bg-[#FFF6F8]/75 backdrop-blur-md border-b border-rose-100 transition-[box-shadow,background-color] duration-300 ease-out ${
+        scrolled ? 'shadow-[0_14px_34px_rgba(138,79,100,0.14)]' : 'shadow-none'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Desktop top state: logo centrado arriba, menu abajo */}
+      <div className={`mx-auto transition-[max-width,padding] duration-300 ease-out ${
+        scrolled ? 'max-w-none px-6 sm:px-8 lg:px-10' : 'max-w-7xl px-4 sm:px-6'
+      }`}>
+        {/* Desktop */}
         <div
-          aria-hidden={scrolled}
-          className={`hidden md:flex flex-col items-center justify-center overflow-hidden transition-[max-height,opacity,padding] duration-500 ease-out will-change-[max-height,opacity] ${
-          scrolled ? 'max-h-0 opacity-0 py-0 pointer-events-none' : 'max-h-72 opacity-100 py-3'
-        }`}>
-          <Link to="/" className="mb-2 transition-all duration-300">
+          className={`hidden md:flex overflow-hidden transition-[height,padding] duration-300 ease-out ${
+            scrolled
+              ? 'h-16 flex-row items-center justify-between py-1'
+              : 'h-40 flex-col items-center justify-center py-3'
+          }`}
+        >
+          <Link to="/" className={`flex items-center transition-all duration-300 ${scrolled ? '' : 'mb-2'}`}>
             <img
               src={logoUrl}
               alt={nombreMarca}
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              className="h-24 lg:h-28 w-auto object-contain"
+              className={`w-auto object-contain transition-[height,max-width] duration-300 ease-out ${
+                scrolled ? 'h-12 lg:h-14 max-w-[110px]' : 'h-24 lg:h-28 max-w-none'
+              }`}
             />
           </Link>
-          <nav className="flex items-center gap-8">
-            {links.map(({ to, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={to === '/'}
-                className={({ isActive }) =>
-                  `text-[11px] font-bold uppercase tracking-[0.18em] transition-colors ${
-                    isActive ? 'text-[#8A4F64]' : 'text-[#9B5F73] hover:text-[#C76B8A]'
-                  }`
-                }
-              >
-                {label}
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-
-        {/* Desktop scrolled: fila horizontal, logo izquierda y menu derecha */}
-        <div
-          aria-hidden={!scrolled}
-          className={`hidden md:flex items-center justify-between overflow-hidden transition-[max-height,height,opacity] duration-500 ease-out will-change-[max-height,opacity] ${
-          scrolled ? 'max-h-16 h-14 opacity-100' : 'max-h-0 h-0 opacity-0 pointer-events-none'
-        }`}>
-          <Link to="/" className="transition-all duration-300 pl-1">
-            <img
-              src={logoUrl}
-              alt={nombreMarca}
-              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              className="h-10 lg:h-11 w-auto max-w-[190px] object-contain"
-            />
-          </Link>
-          <div className="flex items-center gap-5">
-            <nav className="flex items-center gap-4 lg:gap-5">
+          <div className={`flex items-center transition-all duration-300 ${scrolled ? 'justify-end gap-6' : 'justify-center'}`}>
+            <nav className={`flex items-center ${scrolled ? 'gap-5 lg:gap-7' : 'gap-8'}`}>
               {links.map(({ to, label }) => (
                 <NavLink
                   key={to}
                   to={to}
                   end={to === '/'}
                   className={({ isActive }) =>
-                    `text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.14em] transition-colors ${
+                    `${scrolled ? 'text-[10px] lg:text-[11px] tracking-[0.15em]' : 'text-[11px] tracking-[0.18em]'} font-bold uppercase transition-colors ${
                       isActive ? 'text-[#8A4F64]' : 'text-[#9B5F73] hover:text-[#C76B8A]'
                     }`
                   }
@@ -149,7 +147,9 @@ export default function Navbar() {
               href={`https://wa.me/${whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#E96F9A] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[0_12px_24px_rgba(201,80,124,0.22)] hover:bg-[#D95F89] transition-all duration-300"
+              className={`bg-[#E96F9A] text-white rounded-full font-bold uppercase tracking-widest shadow-[0_12px_24px_rgba(201,80,124,0.22)] hover:bg-[#D95F89] transition-all duration-300 ${
+                scrolled ? 'px-5 py-2.5 text-[10px]' : 'hidden'
+              }`}
             >
               Reservar
             </a>
