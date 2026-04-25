@@ -60,21 +60,21 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-pink-100 transition-all duration-300 ${
+      className={`sticky top-0 w-full z-50 bg-white border-b border-pink-100 shadow-[0_6px_24px_rgba(141,26,68,0.06)] transition-all duration-300 ${
         scrolled ? 'shadow-md' : 'shadow-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Desktop top state: logo centrado arriba, menu abajo */}
         <div className={`hidden md:flex flex-col items-center justify-center transition-all duration-300 overflow-hidden ${
-          scrolled ? 'max-h-0 opacity-0 py-0 pointer-events-none' : 'max-h-72 opacity-100 py-2'
+          scrolled ? 'max-h-0 opacity-0 py-0 pointer-events-none' : 'max-h-72 opacity-100 py-3'
         }`}>
           <Link to="/" className="mb-2 transition-all duration-300">
             <img
               src={logoUrl}
               alt={nombreMarca}
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              className="h-24 w-auto object-contain"
+              className="h-24 lg:h-28 w-auto object-contain"
             />
           </Link>
           <nav className="flex items-center gap-8">
@@ -104,7 +104,7 @@ export default function Navbar() {
               src={logoUrl}
               alt={nombreMarca}
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              className="h-12 w-auto object-contain"
+              className="h-12 lg:h-14 w-auto object-contain"
             />
           </Link>
           <div className="flex items-center gap-7">
@@ -128,7 +128,7 @@ export default function Navbar() {
               href={`https://wa.me/${whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-pink-700 text-white px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-pink-900 transition-all duration-300"
+              className="bg-pink-700 text-white px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest shadow-[0_12px_24px_rgba(141,26,68,0.16)] hover:bg-pink-900 transition-all duration-300"
             >
               Reservar
             </a>
