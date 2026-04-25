@@ -36,25 +36,25 @@ interface Testimonio {
 const DEFAULT_CONFIG: Config = {
   hero_url: '',
   hero_titulo: 'Transformo momentos en recuerdos eternos',
-  hero_subtitulo: 'Books infantiles, 15 anos y bodas con una mirada artistica y emocional.',
-  hero_boton_texto: 'Reservar sesion',
+  hero_subtitulo: 'Books infantiles, 15 años y bodas con una mirada artística y emocional.',
+  hero_boton_texto: 'Reservar sesión',
   favicon_url: '',
   whatsapp: '5491176348089',
 };
 
 const TESTIMONIOS_FALLBACK: Testimonio[] = [
   {
-    texto: 'Cada foto transmitio exactamente lo que vivimos ese dia. Todo se sintio natural, cuidado y muy emotivo.',
-    autora: 'Sofia L.',
-    tipo: '15 anos',
+    texto: 'Cada foto transmitió exactamente lo que vivimos ese día. Todo se sintió natural, cuidado y muy emotivo.',
+    autora: 'Sofía L.',
+    tipo: '15 años',
   },
   {
-    texto: 'Nos encanto la calidez del proceso y el resultado final. Las imagenes tienen una sensibilidad preciosa.',
+    texto: 'Nos encantó la calidez del proceso y el resultado final. Las imágenes tienen una sensibilidad preciosa.',
     autora: 'Carla y Tomas',
     tipo: 'Boda',
   },
   {
-    texto: 'Mi hija se sintio comoda desde el primer minuto y eso se nota en cada imagen. Una experiencia hermosa.',
+    texto: 'Mi hija se sintió cómoda desde el primer minuto y eso se nota en cada imagen. Una experiencia hermosa.',
     autora: 'Laura P.',
     tipo: 'Book infantil',
   },
@@ -121,7 +121,7 @@ export default function Inicio() {
     items.forEach(item => observer.observe(item));
 
     return () => observer.disconnect();
-  }, [categorias.length, testimonios.length]);
+  }, [loading]);
 
   const heroUrl = config.hero_url ? conCacheBuster(config.hero_url, heroVersion) : '';
   const conImagen = Boolean(heroUrl);
