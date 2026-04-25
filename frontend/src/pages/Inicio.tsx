@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategorias } from '../hooks/useApi';
 
-const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
+const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const getTexto = (value: unknown, fallback = ''): string =>
@@ -19,27 +19,27 @@ const conCacheBuster = (url: string, version: number): string =>
   `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
 
 interface Config {
-  hero_url: string;
-  hero_titulo: string;
-  hero_subtitulo: string;
+  hero_url:         string;
+  hero_titulo:      string;
+  hero_subtitulo:   string;
   hero_boton_texto: string;
-  favicon_url: string;
-  whatsapp: string;
+  favicon_url:      string;
+  whatsapp:         string;
 }
 
 interface Testimonio {
-  texto: string;
+  texto:  string;
   autora: string;
-  tipo: string;
+  tipo:   string;
 }
 
 const DEFAULT_CONFIG: Config = {
-  hero_url: '',
-  hero_titulo: 'Transformo momentos en recuerdos eternos',
-  hero_subtitulo: 'Books infantiles, 15 anos y bodas con una mirada artistica y emocional.',
-  hero_boton_texto: 'Reservar sesion',
-  favicon_url: '',
-  whatsapp: '5491176348089',
+  hero_url:         '',
+  hero_titulo:      'Transformo momentos en recuerdos eternos',
+  hero_subtitulo:   'Books infantiles, 15 años y bodas con una mirada artística y emocional.',
+  hero_boton_texto: 'Reservar sesión',
+  favicon_url:      '',
+  whatsapp:         '5491176348089',
 };
 
 export default function Inicio() {
@@ -54,12 +54,12 @@ export default function Inicio() {
       .then(data => {
         const cfg = (data && typeof data === 'object') ? data as Partial<Config> : {};
         setConfig({
-          hero_url: normalizarUrlImagen(cfg.hero_url),
-          hero_titulo: getTexto(cfg.hero_titulo, 'Transformo momentos en recuerdos eternos'),
-          hero_subtitulo: getTexto(cfg.hero_subtitulo, 'Books infantiles, 15 anos y bodas con una mirada artistica y emocional.'),
-          hero_boton_texto: getTexto(cfg.hero_boton_texto, 'Reservar sesion'),
-          favicon_url: normalizarUrlImagen(cfg.favicon_url),
-          whatsapp: getTexto(cfg.whatsapp, '5491176348089'),
+          hero_url:         normalizarUrlImagen(cfg.hero_url),
+          hero_titulo:      getTexto(cfg.hero_titulo, 'Transformo momentos en recuerdos eternos'),
+          hero_subtitulo:   getTexto(cfg.hero_subtitulo, 'Books infantiles, 15 años y bodas con una mirada artística y emocional.'),
+          hero_boton_texto: getTexto(cfg.hero_boton_texto, 'Reservar sesión'),
+          favicon_url:      normalizarUrlImagen(cfg.favicon_url),
+          whatsapp:         getTexto(cfg.whatsapp, '5491176348089'),
         });
       })
       .catch(() => {});
@@ -69,16 +69,8 @@ export default function Inicio() {
       .then(data => setTestimonios(data))
       .catch(() => {
         setTestimonios([
-          {
-            texto: 'Fue la mejor decision. Melina nos hizo sentir comodos en todo momento y los resultados superaron todas nuestras expectativas.',
-            autora: 'Sofia L.',
-            tipo: '15 anos',
-          },
-          {
-            texto: 'Las fotos del book de mi nena son una obra de arte. Tiene una sensibilidad especial para capturar la personalidad de los chicos.',
-            autora: 'Laura P.',
-            tipo: 'Book infantil',
-          },
+          { texto: 'Fue la mejor decisión. Melina nos hizo sentir cómodos en todo momento y los resultados superaron todas nuestras expectativas.', autora: 'Sofía L.', tipo: '15 años' },
+          { texto: 'Las fotos del book de mi nena son una obra de arte. Tiene una sensibilidad especial para capturar la personalidad de los chicos.', autora: 'Laura P.', tipo: 'Book infantil' },
         ]);
       });
   }, []);
@@ -100,7 +92,7 @@ export default function Inicio() {
           if (entry.isIntersecting) entry.target.classList.add('is-visible');
         });
       },
-      { threshold: 0.05, rootMargin: '0px 0px -10% 0px' }
+      { threshold: 0.15 }
     );
 
     const items = document.querySelectorAll('.scroll-fade');
@@ -111,43 +103,43 @@ export default function Inicio() {
 
   const heroUrl = config.hero_url ? conCacheBuster(config.hero_url, heroVersion) : '';
   const conImagen = Boolean(heroUrl);
-  const categoriasHome = categorias.slice(0, 3);
 
   return (
     <>
       <section
-        className="relative flex min-h-[calc(100vh-64px)] w-full items-center justify-center overflow-hidden text-center"
-        style={
-          conImagen
+        className="relative w-full overflow-hidden text-center flex flex-col items-center justify-center"
+        style={{
+          minHeight: 'calc(100vh - 64px)',
+          ...(conImagen
             ? { backgroundImage: `url(${heroUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-            : undefined
-        }
+            : {}),
+        }}
       >
         <div className={`absolute inset-0 ${conImagen ? 'bg-black/50' : 'bg-gradient-to-br from-pink-50 via-white to-pink-100'}`} />
 
         {!conImagen && (
           <>
-            <div className="absolute right-0 top-0 h-80 w-80 -translate-y-1/2 translate-x-1/3 rounded-full bg-pink-200/30 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 h-64 w-64 -translate-x-1/4 translate-y-1/2 rounded-full bg-pink-100/40 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-pink-200/30 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-pink-100/40 translate-y-1/2 -translate-x-1/4 pointer-events-none" />
           </>
         )}
 
-        <div className="relative mx-auto max-w-4xl px-6 py-24 animate-fade-in">
-          <h1 className={`font-playfair mb-8 text-5xl font-light leading-tight sm:text-6xl lg:text-7xl ${conImagen ? 'text-white' : 'text-pink-950'}`}>
+        <div className="relative max-w-4xl mx-auto px-6 py-24 animate-fade-in">
+          <h1 className={`font-playfair text-5xl sm:text-6xl lg:text-7xl font-light leading-tight mb-8 ${conImagen ? 'text-white' : 'text-pink-950'}`}>
             {config.hero_titulo}
           </h1>
 
-          <p className={`mx-auto mb-12 max-w-2xl text-base leading-relaxed sm:text-xl ${conImagen ? 'text-white/90' : 'text-gray-600'}`}>
+          <p className={`text-base sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed ${conImagen ? 'text-white/90' : 'text-gray-600'}`}>
             {config.hero_subtitulo}
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/contacto" className="btn-premium-primary px-10 py-4 text-sm font-semibold">
               {config.hero_boton_texto}
             </Link>
             <Link
               to="/galeria/infantil"
-              className={`btn-premium border px-10 py-4 text-sm font-semibold ${conImagen
+              className={`btn-premium px-10 py-4 text-sm font-semibold border ${conImagen
                 ? 'border-white/70 text-white hover:border-white hover:bg-white/10'
                 : 'border-pink-300 text-pink-700 hover:border-pink-700 hover:bg-pink-50'}`}
             >
@@ -155,48 +147,44 @@ export default function Inicio() {
             </Link>
           </div>
         </div>
+
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-12 scroll-fade is-visible">
-          <h2 className="font-playfair mb-3 text-center text-3xl font-light text-pink-950 sm:text-4xl">
-            Galerias
-          </h2>
-          <p className="text-center text-xs uppercase tracking-[0.28em] text-pink-800/70">
-            Explora mis trabajos
-          </p>
-        </div>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-24 scroll-fade">
+        <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-3">
+          Galerías
+        </h2>
+        <p className="text-center text-gray-400 text-xs tracking-[3px] uppercase mb-14">
+          Explorá mis trabajos
+        </p>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 lg:gap-7">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-7">
             {[1, 2, 3].map(i => (
-              <div key={i} className="aspect-[4/5] rounded-[28px] bg-pink-50 animate-pulse" />
+              <div key={i} className="aspect-square rounded-xl bg-pink-50 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 lg:gap-7">
-            {categoriasHome.map(cat => (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-7">
+            {categorias.map(cat => (
               <Link
                 key={cat.slug}
                 to={`/galeria/${cat.slug}`}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-[28px] bg-pink-100 shadow-[0_18px_45px_rgba(141,26,68,0.12)] ring-1 ring-pink-100/80 scroll-fade is-visible"
+                className="group relative aspect-square overflow-hidden rounded-xl block shadow-sm"
               >
                 <img
                   src={`${R2}/${cat.portada}`}
                   alt={cat.nombre}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500" />
-                <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7">
-                  <p className="font-playfair text-[1.7rem] font-light tracking-wide text-white sm:text-[1.9rem]">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent transition-opacity duration-500" />
+                <div className="absolute bottom-0 left-0 right-0 p-7">
+                  <p className="font-playfair text-white text-2xl font-light tracking-wide uppercase">
                     {cat.nombre}
                   </p>
-                  <p className="mt-2 max-w-[16rem] text-sm leading-relaxed text-white/85">
-                    Una mirada delicada y emocional para recordar cada etapa.
-                  </p>
-                  <p className="mt-4 text-[11px] uppercase tracking-[0.28em] text-white/90 opacity-0 transition-opacity group-hover:opacity-100">
-                    Ver galeria
+                  <p className="text-white/85 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity tracking-[3px] uppercase">
+                    Ver galería
                   </p>
                 </div>
               </Link>
@@ -206,19 +194,19 @@ export default function Inicio() {
       </section>
 
       {testimonios.length > 0 && (
-        <section className="w-full bg-gradient-to-b from-pink-50 to-white py-16 sm:py-20">
-          <div className="max-w-5xl mx-auto px-6 scroll-fade">
-            <h2 className="font-playfair mb-10 text-center text-3xl font-light text-pink-950 sm:mb-12">
+        <section className="w-full bg-gradient-to-b from-pink-50 to-white py-24 scroll-fade">
+          <div className="max-w-5xl mx-auto px-6">
+            <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-14">
               Lo que dicen mis clientes
             </h2>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-7">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-7">
               {testimonios.map((t, i) => (
-                <div key={i} className="rounded-[24px] border border-pink-100 bg-white p-7 shadow-[0_16px_36px_rgba(141,26,68,0.08)] sm:p-8">
-                  <div className="mb-4 text-sm tracking-widest text-pink-500">*****</div>
-                  <p className="mb-6 text-sm font-light italic leading-relaxed text-gray-600">"{t.texto}"</p>
-                  <div className="text-xs uppercase tracking-widest">
-                    <span className="font-semibold text-pink-800">{t.autora}</span>
-                    <span className="ml-2 text-gray-400">- {t.tipo}</span>
+                <div key={i} className="bg-white rounded-2xl p-8 border border-pink-100 shadow-md shadow-pink-100/50">
+                  <div className="text-pink-500 text-sm mb-4 tracking-widest">★★★★★</div>
+                  <p className="text-gray-600 italic text-sm leading-relaxed mb-6 font-light">"{t.texto}"</p>
+                  <div className="text-xs tracking-widest uppercase">
+                    <span className="text-pink-800 font-semibold">{t.autora}</span>
+                    <span className="text-gray-400 ml-2">— {t.tipo}</span>
                   </div>
                 </div>
               ))}
@@ -227,18 +215,16 @@ export default function Inicio() {
         </section>
       )}
 
-      <section className="max-w-6xl mx-auto px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-4xl rounded-[32px] bg-white px-6 py-12 text-center shadow-[0_24px_60px_rgba(141,26,68,0.08)] ring-1 ring-pink-100 scroll-fade">
-          <h2 className="font-playfair mb-5 text-3xl font-light text-pink-950 sm:text-4xl">
-            Lista para tu sesion?
-          </h2>
-          <p className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-gray-500">
-            Completa el formulario y en menos de 24 hs te contacto para coordinar tu sesion.
-          </p>
-          <Link to="/contacto" className="btn-premium-primary inline-block px-12 py-4 text-sm font-semibold">
-            Reservar sesion
-          </Link>
-        </div>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center scroll-fade">
+        <h2 className="font-playfair text-3xl sm:text-4xl text-pink-950 font-light mb-5">
+          ¿Lista para tu sesión?
+        </h2>
+        <p className="text-gray-500 text-base mb-10 max-w-xl mx-auto leading-relaxed">
+          Completá el formulario y en menos de 24 hs te contacto para coordinar tu sesión.
+        </p>
+        <Link to="/contacto" className="btn-premium-primary px-12 py-4 text-sm font-semibold inline-block">
+          Reservar sesión
+        </Link>
       </section>
     </>
   );
