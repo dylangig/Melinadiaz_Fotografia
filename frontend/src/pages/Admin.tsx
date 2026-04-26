@@ -90,7 +90,17 @@ async function convertImageToWebP(
   }
 }
 
-async function convertirFotosDeFormulario(form: HTMLFormElement): Promise<FormData> {
+async function optimizeImageForUpload(file: File): Promise<ImageOptimizationResult> {
+  const optimizedFile = await convertImageToWebP(file);
+  return {
+    file: optimizedFile,
+    originalSize: file.size,
+    finalSize: optimizedFile.size,
+    changed: optimizedFile !== file,
+  };
+}
+
+async function convertirFotosDeFormulario(form: HTMLFormElement): Promise<{ fd: FormData; optimizationMessage: string }> {
   const original = new FormData(form);
   const fd = new FormData();
 
@@ -101,11 +111,11 @@ async function convertirFotosDeFormulario(form: HTMLFormElement): Promise<FormDa
   const fotos = original
     .getAll('fotos')
     .filter((value): value is File => value instanceof File && value.size > 0);
-  const fotosConvertidas = await Promise.all(fotos.map(file => convertImageToWebP(file)));
+  const resultados = await Promise.all(fotos.map(file => optimizeImageForUpload(file)));
 
-  fotosConvertidas.forEach(file => fd.append('fotos', file));
+  resultados.forEach(result => fd.append('fotos', result.file));
 
-  return fd;
+  return { fd, optimizationMessage: getOptimizationSummary(resultados) };
 }
 
 async function apiFetch(path: string, options: RequestInit = {}) {
@@ -125,6 +135,8 @@ interface Config {
 interface Testimonio { id?: number; texto: string; autora: string; tipo: string; orden: number; }
 interface CatExtended extends Categoria { portada: string; }
 interface NuevoTrabajoForm { descripcion: string; descripcion_evento: string; }
+interface ImageOptimizationResult { file: File; originalSize: number; finalSize: number; changed: boolean; }
+interface ImagePreview { url: string; name: string; }
 
 const CONFIG_VACIA: Config = {
   nombre_marca: '', logo_url: '', favicon_url: '', tagline: '',
@@ -132,6 +144,26 @@ const CONFIG_VACIA: Config = {
   whatsapp: '', email: '', zona: '', footer_texto: '', seo_descripcion: '',
 };
 const NUEVO_TRABAJO_FORM_VACIO: NuevoTrabajoForm = { descripcion: '', descripcion_evento: '' };
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+};
+
+const getOptimizationMessage = (result: ImageOptimizationResult): string =>
+  result.changed
+    ? `Imagen optimizada a WebP: ${formatFileSize(result.originalSize)} -> ${formatFileSize(result.finalSize)}`
+    : `Imagen lista: ${formatFileSize(result.finalSize)}`;
+
+const getOptimizationSummary = (results: ImageOptimizationResult[]): string => {
+  if (results.length === 0) return '';
+  const originalSize = results.reduce((sum, item) => sum + item.originalSize, 0);
+  const finalSize = results.reduce((sum, item) => sum + item.finalSize, 0);
+  const changedCount = results.filter(item => item.changed).length;
+  return changedCount > 0
+    ? `${changedCount} imagen${changedCount === 1 ? '' : 'es'} optimizada${changedCount === 1 ? '' : 's'} a WebP: ${formatFileSize(originalSize)} -> ${formatFileSize(finalSize)}`
+    : `${results.length} imagen${results.length === 1 ? '' : 'es'} lista${results.length === 1 ? '' : 's'}: ${formatFileSize(finalSize)}`;
+};
 
 // ── Componente Tab ─────────────────────────────────────────────────────────────
 function Tab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
@@ -237,6 +269,9 @@ export default function Admin() {
   const [modalNuevaCat, setModalNuevaCat] = useState(false);
   const [modalNuevaSes, setModalNuevaSes] = useState(false);
   const [nuevoTrabajoForm, setNuevoTrabajoForm] = useState<NuevoTrabajoForm>(NUEVO_TRABAJO_FORM_VACIO);
+  const [imagePreviews, setImagePreviews] = useState<Record<string, ImagePreview>>({});
+  const [addPhotoPreviews, setAddPhotoPreviews] = useState<ImagePreview[]>([]);
+  const [newSessionPhotoPreviews, setNewSessionPhotoPreviews] = useState<ImagePreview[]>([]);
 
   // Drag & drop fotos
   const [dragging,    setDragging]    = useState<{ cat: string; slug: string; foto: string } | null>(null);
@@ -296,6 +331,56 @@ export default function Admin() {
 
   const showFlash = (msg: string) => { setFlash(msg); setTimeout(() => setFlash(''), 3500); };
 
+  const revokePreview = (preview?: ImagePreview) => {
+    if (preview) URL.revokeObjectURL(preview.url);
+  };
+
+  const createPreview = (file: File): ImagePreview => ({
+    url: URL.createObjectURL(file),
+    name: file.name,
+  });
+
+  const setSingleImagePreview = (key: string, file: File) => {
+    const next = createPreview(file);
+    setImagePreviews(prev => {
+      revokePreview(prev[key]);
+      return { ...prev, [key]: next };
+    });
+  };
+
+  const buildPhotoPreviews = (files: FileList | null): ImagePreview[] =>
+    Array.from(files ?? []).slice(0, 8).map(createPreview);
+
+  const replaceAddPhotoPreviews = (files: FileList | null) => {
+    const next = buildPhotoPreviews(files);
+    setAddPhotoPreviews(prev => {
+      prev.forEach(revokePreview);
+      return next;
+    });
+  };
+
+  const replaceNewSessionPhotoPreviews = (files: FileList | null) => {
+    const next = buildPhotoPreviews(files);
+    setNewSessionPhotoPreviews(prev => {
+      prev.forEach(revokePreview);
+      return next;
+    });
+  };
+
+  const clearAddPhotoPreviews = () => {
+    setAddPhotoPreviews(prev => {
+      prev.forEach(revokePreview);
+      return [];
+    });
+  };
+
+  const clearNewSessionPhotoPreviews = () => {
+    setNewSessionPhotoPreviews(prev => {
+      prev.forEach(revokePreview);
+      return [];
+    });
+  };
+
   // ── Login ──────────────────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -312,6 +397,7 @@ export default function Admin() {
       const data = await res.json();
       showFlash(data.mensaje ?? (res.ok ? 'Listo.' : 'Error.'));
       if (res.ok) await cargarTodo();
+      return res.ok;
     } catch { showFlash('Error de conexión'); }
     finally { setLoading(false); }
   };
@@ -331,15 +417,18 @@ export default function Admin() {
     finally { setLoading(false); }
   };
   
-  const subirImagen = async (endpoint: string, file: File, extra?: Record<string, string>) => {
-    const fd = new FormData();
-    fd.append('file', await convertImageToWebP(file));
-    if (extra) Object.entries(extra).forEach(([k, v]) => fd.append(k, v));
+  const subirImagen = async (endpoint: string, file: File, extra?: Record<string, string>, previewKey?: string) => {
+    if (previewKey) setSingleImagePreview(previewKey, file);
     setLoading(true);
     try {
+      const result = await optimizeImageForUpload(file);
+      const fd = new FormData();
+      fd.append('file', result.file);
+      if (extra) Object.entries(extra).forEach(([k, v]) => fd.append(k, v));
       const res  = await apiFetch(`/api/admin/${endpoint}`, { method: 'POST', body: fd });
       const data = await res.json();
-      showFlash(data.mensaje ?? (res.ok ? 'Imagen subida.' : 'Error.'));
+      const message = data.mensaje ?? (res.ok ? 'Imagen subida.' : 'Error.');
+      showFlash(res.ok ? `${message} ${getOptimizationMessage(result)}` : message);
       if (res.ok) await cargarTodo();
     } catch { showFlash('Error de conexión.'); }
     finally { setLoading(false); }
@@ -492,6 +581,12 @@ const guardarConfig = (campos: Partial<Config>) => {
   const cerrarNuevaSesion = () => {
     setModalNuevaSes(false);
     setNuevoTrabajoForm(NUEVO_TRABAJO_FORM_VACIO);
+    clearNewSessionPhotoPreviews();
+  };
+
+  const cerrarModalFotos = () => {
+    clearAddPhotoPreviews();
+    setModalFotos(null);
   };
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -530,8 +625,11 @@ const guardarConfig = (campos: Partial<Config>) => {
           </div>
         )}
         {loading && (
-          <div className="fixed inset-0 bg-white/50 backdrop-blur-sm z-[150] flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 border-4 border-pink-100 border-t-pink-600 rounded-full animate-spin" />
+          <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[150] flex items-center justify-center">
+            <div className="rounded-3xl border border-pink-100 bg-white px-7 py-5 shadow-2xl text-center">
+              <div className="mx-auto mb-3 w-10 h-10 border-4 border-pink-100 border-t-pink-600 rounded-full animate-spin" />
+              <p className="text-xs font-bold uppercase tracking-widest text-pink-700">Subiendo...</p>
+            </div>
           </div>
         )}
 
@@ -574,13 +672,13 @@ const guardarConfig = (campos: Partial<Config>) => {
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Logo</label>
                   <div className="flex items-center gap-5">
                     <div className="w-20 h-20 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                      {config.logo_url
-                        ? <img src={config.logo_url} className="w-full h-full object-contain p-2" alt="logo" loading="lazy" decoding="async" />
+                      {(imagePreviews.logo?.url || config.logo_url)
+                        ? <img src={imagePreviews.logo?.url || config.logo_url} className="w-full h-full object-contain p-2" alt="logo" loading="lazy" decoding="async" />
                         : <span className="text-[10px] text-gray-300">Sin logo</span>}
                     </div>
                     <div>
                       <input type="file" accept="image/*"
-                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/logo', f); }}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/logo', f, undefined, 'logo'); }}
                         className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
                       <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, SVG o WEBP · Logo del sitio</p>
                     </div>
@@ -624,13 +722,13 @@ const guardarConfig = (campos: Partial<Config>) => {
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Imagen de fondo</label>
                   <div className="flex items-start gap-5">
                     <div className="w-40 h-24 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                      {config.hero_url
-                        ? <img src={heroPreviewUrl} className="w-full h-full object-cover" alt="hero" loading="lazy" decoding="async" />
+                      {(imagePreviews.hero?.url || config.hero_url)
+                        ? <img src={imagePreviews.hero?.url || heroPreviewUrl} className="w-full h-full object-cover" alt="hero" loading="lazy" decoding="async" />
                         : <span className="text-[10px] text-gray-300 text-center px-2">Sin imagen<br/>(gradiente)</span>}
                     </div>
                     <div className="flex-1 space-y-2">
                       <input type="file" accept="image/*"
-                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/hero', f); }}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/hero', f, undefined, 'hero'); }}
                         className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
                       <p className="text-[10px] text-gray-400">Recomendado: 1920×1080px. JPG o WEBP.</p>
                       {config.hero_url && (
@@ -760,12 +858,12 @@ const guardarConfig = (campos: Partial<Config>) => {
                       <div className="flex items-center gap-4">
                         {/* Portada con hover para cambiar */}
                         <div className="relative group w-16 h-16 flex-shrink-0">
-                          <img src={`${R2}/${cat.portada}`} alt={cat.nombre} loading="lazy" decoding="async"
+                          <img src={imagePreviews[`portada:${cat.slug}`]?.url || `${R2}/${cat.portada}`} alt={cat.nombre} loading="lazy" decoding="async"
                             className="w-full h-full object-cover rounded-xl border border-gray-100" />
                           <label className="absolute inset-0 bg-black/50 text-white text-[9px] font-bold uppercase flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                             Cambiar
                             <input type="file" accept="image/*" className="hidden"
-                              onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('categorias/portada', f, { slug: cat.slug }); }} />
+                              onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('categorias/portada', f, { slug: cat.slug }, `portada:${cat.slug}`); }} />
                           </label>
                         </div>
                         <div className="flex-1">
@@ -900,20 +998,33 @@ const guardarConfig = (campos: Partial<Config>) => {
 
       {/* ── MODAL: AGREGAR FOTOS ──────────────────────────────────────────── */}
       {modalFotos && (
-        <Modal titulo="Agregar fotos" onClose={() => setModalFotos(null)}>
+        <Modal titulo="Agregar fotos" onClose={cerrarModalFotos}>
           <p className="text-gray-400 text-xs mb-5 uppercase tracking-widest">{modalFotos.cat} / {modalFotos.slug}</p>
           <form ref={refAddFotos} onSubmit={async e => {
             e.preventDefault();
-            const fd = await convertirFotosDeFormulario(e.currentTarget);
-            await postForm('agregar-fotos', fd);
+            const { fd, optimizationMessage } = await convertirFotosDeFormulario(e.currentTarget);
+            const uploaded = await postForm('agregar-fotos', fd);
+            if (!uploaded) return;
+            if (optimizationMessage) showFlash(optimizationMessage);
             refAddFotos.current?.reset();
+            clearAddPhotoPreviews();
             setModalFotos(null);
           }}>
             <input type="hidden" name="categoria" value={modalFotos.cat} />
             <input type="hidden" name="trabajo"   value={modalFotos.slug} />
             <input name="fotos" type="file" accept="image/*" multiple required
+              onChange={e => replaceAddPhotoPreviews(e.target.files)}
               className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-5 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer mb-5 block" />
-            <BotonesModal onCancel={() => setModalFotos(null)} labelOk="Subir fotos" />
+            {addPhotoPreviews.length > 0 && (
+              <div className="mb-5 grid grid-cols-4 gap-2">
+                {addPhotoPreviews.map(preview => (
+                  <div key={preview.url} className="aspect-square overflow-hidden rounded-xl border border-pink-100 bg-pink-50">
+                    <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+            <BotonesModal onCancel={cerrarModalFotos} labelOk="Subir fotos" disabled={loading} />
           </form>
         </Modal>
       )}
@@ -1000,8 +1111,10 @@ const guardarConfig = (campos: Partial<Config>) => {
         <Modal titulo="Nueva sesión fotográfica" onClose={cerrarNuevaSesion}>
           <form ref={refNuevaSes} onSubmit={async e => {
             e.preventDefault();
-            const fd = await convertirFotosDeFormulario(e.currentTarget);
-            await postForm('nuevo-trabajo', fd);
+            const { fd, optimizationMessage } = await convertirFotosDeFormulario(e.currentTarget);
+            const uploaded = await postForm('nuevo-trabajo', fd);
+            if (!uploaded) return;
+            if (optimizationMessage) showFlash(optimizationMessage);
             refNuevaSes.current?.reset();
             cerrarNuevaSesion();
           }} className="space-y-4">
@@ -1027,9 +1140,19 @@ const guardarConfig = (campos: Partial<Config>) => {
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Fotos</label>
               <input name="fotos" type="file" accept="image/*" multiple
+                onChange={e => replaceNewSessionPhotoPreviews(e.target.files)}
                 className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
+              {newSessionPhotoPreviews.length > 0 && (
+                <div className="mt-4 grid grid-cols-4 gap-2">
+                  {newSessionPhotoPreviews.map(preview => (
+                    <div key={preview.url} className="aspect-square overflow-hidden rounded-xl border border-pink-100 bg-pink-50">
+                      <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <BotonesModal onCancel={cerrarNuevaSesion} labelOk="Crear sesión" />
+            <BotonesModal onCancel={cerrarNuevaSesion} labelOk="Crear sesión" disabled={loading} />
           </form>
         </Modal>
       )}
@@ -1053,13 +1176,13 @@ function Modal({ titulo, children, onClose }: { titulo: string; children: React.
   );
 }
 
-function BotonesModal({ onCancel, labelOk }: { onCancel: () => void; labelOk: string }) {
+function BotonesModal({ onCancel, labelOk, disabled = false }: { onCancel: () => void; labelOk: string; disabled?: boolean }) {
   return (
     <div className="flex gap-3 pt-2">
-      <button type="submit" className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900">
-        {labelOk}
+      <button type="submit" disabled={disabled} className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 disabled:cursor-not-allowed disabled:opacity-60">
+        {disabled ? 'Subiendo...' : labelOk}
       </button>
-      <button type="button" onClick={onCancel} className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200">
+      <button type="button" onClick={onCancel} disabled={disabled} className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60">
         Cancelar
       </button>
     </div>
