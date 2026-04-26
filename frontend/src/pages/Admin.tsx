@@ -1,6 +1,20 @@
 // pages/Admin.tsx — Plantilla completa v2
 // Secciones: Identidad, Hero, Contacto/Footer, Testimonios, Categorías, Sesiones
 import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { adminLogin, adminCheck, getAdminToken, setAdminToken } from '../hooks/useApi';
 import type { Categoria, TrabajosData } from '../types';
 
@@ -75,6 +89,56 @@ function Field({ label, value, onChange, placeholder, textarea }: {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+function SortableFoto({ foto, src, onDelete }: {
+  foto: string;
+  src: string;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id: foto });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className="relative aspect-square min-w-0"
+    >
+      {isOver && !isDragging && (
+        <>
+          <div className="pointer-events-none absolute inset-y-1 left-0 z-20 w-1.5 rounded-full bg-[#E96F9A] shadow-[0_0_0_4px_rgba(233,111,154,0.16)]" />
+          <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl ring-2 ring-[#E96F9A]/30 ring-offset-2 ring-offset-pink-50" />
+        </>
+      )}
+      <div
+        {...attributes}
+        {...listeners}
+        aria-label={`Reordenar ${foto}`}
+        className={`relative group h-full w-full cursor-grab touch-none rounded-2xl border bg-white p-1 shadow-sm transition-[transform,opacity,box-shadow,border-color] duration-300 ease-out active:cursor-grabbing hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-[0_14px_26px_rgba(141,26,68,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-200 ${
+          isOver ? 'border-pink-300 shadow-[0_12px_24px_rgba(141,26,68,0.12)]' : 'border-pink-50'
+        } ${isDragging ? 'opacity-35 shadow-none ring-2 ring-pink-200' : ''}`}
+      >
+        <img src={src} alt={foto} draggable={false} className="h-full w-full select-none rounded-xl object-cover" />
+        <div className="pointer-events-none absolute inset-1 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <button
+          type="button"
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onDelete(); }}
+          className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border border-white/80 bg-white text-[11px] font-bold text-red-500 opacity-0 shadow-[0_8px_18px_rgba(127,29,29,0.18)] transition-all duration-200 ease-out hover:scale-105 hover:bg-red-500 hover:text-white group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-red-200"
+        >
+          x
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FotoDragOverlay({ src, foto }: { src: string; foto: string }) {
+  return (
+    <div className="h-24 w-24 rounded-2xl border border-pink-100 bg-white p-1 shadow-[0_22px_44px_rgba(141,26,68,0.24)] ring-2 ring-pink-200">
+      <img src={src} alt={foto} draggable={false} className="h-full w-full rounded-xl object-cover" />
+    </div>
+  );
+}
+
 export default function Admin() {
   const [authed,      setAuthed]      = useState(false);
   const [password,    setPassword]    = useState('');
@@ -100,6 +164,10 @@ export default function Admin() {
   // Drag & drop fotos
   const [dragging,    setDragging]    = useState<{ cat: string; slug: string; foto: string } | null>(null);
   const [dragOver,    setDragOver]    = useState<string | null>(null);
+  const [activeFoto,  setActiveFoto]  = useState<{ cat: string; slug: string; foto: string } | null>(null);
+  const autoScrollFrame = useRef<number | null>(null);
+  const autoScrollPointerY = useRef<number | null>(null);
+  const autoScrollDirection = useRef<'up' | 'down' | null>(null);
 
   useEffect(() => {
     adminCheck().then(ok => { if (ok) { setAuthed(true); cargarTodo(); } });
@@ -108,6 +176,12 @@ export default function Admin() {
   useEffect(() => {
     if (config.hero_url) setHeroPreviewVersion(Date.now());
   }, [config.hero_url]);
+
+  useEffect(() => {
+    return () => {
+      if (autoScrollFrame.current !== null) cancelAnimationFrame(autoScrollFrame.current);
+    };
+  }, []);
 
   const cargarTodo = async () => {
     setLoading(true);
@@ -240,24 +314,78 @@ const guardarConfig = (campos: Partial<Config>) => {
   };
 
   // ── Drag & drop reordenar fotos ────────────────────────────────────────────
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, cat: string, slug: string, foto: string) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', foto);
+  const handleDragStart = (event: DragStartEvent, cat: string, slug: string) => {
+    const foto = String(event.active.id);
     setDragging({ cat, slug, foto });
+    setActiveFoto({ cat, slug, foto });
   };
 
-  const handleDrop = useCallback(async (cat: string, slug: string, fotoDestino: string) => {
-    if (!dragging || dragging.foto === fotoDestino) { setDragging(null); setDragOver(null); return; }
+  const stopAutoScroll = useCallback(() => {
+    autoScrollPointerY.current = null;
+    autoScrollDirection.current = null;
+    if (autoScrollFrame.current !== null) {
+      cancelAnimationFrame(autoScrollFrame.current);
+      autoScrollFrame.current = null;
+    }
+  }, []);
+
+  const runAutoScroll = useCallback(() => {
+    const pointerY = autoScrollPointerY.current;
+    if (pointerY === null) {
+      autoScrollFrame.current = null;
+      return;
+    }
+
+    const activateEdge = 90;
+    const releaseEdge = 130;
+    const maxSpeed = 14;
+    const viewportHeight = window.innerHeight;
+    let speed = 0;
+
+    if (autoScrollDirection.current === null) {
+      if (pointerY < activateEdge) autoScrollDirection.current = 'up';
+      else if (pointerY > viewportHeight - activateEdge) autoScrollDirection.current = 'down';
+    } else if (autoScrollDirection.current === 'up' && pointerY > releaseEdge) {
+      autoScrollDirection.current = null;
+    } else if (autoScrollDirection.current === 'down' && pointerY < viewportHeight - releaseEdge) {
+      autoScrollDirection.current = null;
+    }
+
+    if (autoScrollDirection.current === 'up') {
+      speed = -Math.min(maxSpeed, Math.max(2, (releaseEdge - pointerY) / 8));
+    } else if (autoScrollDirection.current === 'down') {
+      speed = Math.min(maxSpeed, Math.max(2, (pointerY - (viewportHeight - releaseEdge)) / 8));
+    }
+
+    if (speed !== 0) window.scrollBy({ top: speed, left: 0, behavior: 'auto' });
+    autoScrollFrame.current = requestAnimationFrame(runAutoScroll);
+  }, []);
+
+  const handleDragMove = useCallback((event: { activatorEvent: Event }) => {
+    const sourceEvent = event.activatorEvent;
+    if ('clientY' in sourceEvent && typeof sourceEvent.clientY === 'number') {
+      autoScrollPointerY.current = sourceEvent.clientY;
+      if (autoScrollFrame.current === null) {
+        autoScrollFrame.current = requestAnimationFrame(runAutoScroll);
+      }
+    }
+  }, [runAutoScroll]);
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent, cat: string, slug: string) => {
+    stopAutoScroll();
+    const fotoOrigen = String(event.active.id);
+    const fotoDestino = event.over ? String(event.over.id) : '';
+    setDragging(null);
+    setDragOver(null);
+    setActiveFoto(null);
+    if (!fotoDestino || fotoOrigen === fotoDestino) return;
     const fotos = trabajos[cat]?.find(t => t.slug === slug)?.fotos ?? [];
-    const idxA  = fotos.indexOf(dragging.foto);
+    const idxA  = fotos.indexOf(fotoOrigen);
     const idxB  = fotos.indexOf(fotoDestino);
     if (idxA === -1 || idxB === -1) return;
-    const nuevo = [...fotos];
-    nuevo.splice(idxA, 1);
-    nuevo.splice(idxB, 0, dragging.foto);
-    setDragging(null); setDragOver(null);
+    const nuevo = arrayMove(fotos, idxA, idxB);
     await postJson('reordenar-fotos', { categoria: cat, trabajo: slug, orden: nuevo });
-  }, [dragging, trabajos]);
+  }, [stopAutoScroll, trabajos]);
 
   // ── Testimonios ────────────────────────────────────────────────────────────
   const guardarTestimonio = async (t: Testimonio) => {
@@ -635,48 +763,39 @@ const guardarConfig = (campos: Partial<Config>) => {
                                 <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-3">
                                   Arrastra para reordenar - solta sobre la posicion deseada
                                 </p>
-                                <div
-                                  onDragLeave={e => {
-                                    const next = e.relatedTarget as Node | null;
-                                    if (!next || !e.currentTarget.contains(next)) setDragOver(null);
-                                  }}
-                                  className={`flex flex-wrap gap-3 rounded-2xl border border-dashed p-3 transition-colors duration-200 ${
-                                  dragging?.cat === cat.slug && dragging?.slug === t.slug
-                                    ? 'border-pink-200 bg-pink-50/70'
-                                    : 'border-transparent bg-transparent'
-                                }`}
+                                <DndContext
+                                  autoScroll={false}
+                                  collisionDetection={closestCenter}
+                                  onDragStart={event => handleDragStart(event, cat.slug, t.slug)}
+                                  onDragMove={handleDragMove}
+                                  onDragEnd={event => handleDragEnd(event, cat.slug, t.slug)}
+                                  onDragCancel={() => { stopAutoScroll(); setDragging(null); setDragOver(null); setActiveFoto(null); }}
                                 >
-                                  {t.fotos.map(foto => (
-                                    <div key={foto} className="relative w-20 h-20 flex-shrink-0">
-                                      {dragOver === foto && dragging?.foto !== foto && (
-                                        <div className="pointer-events-none absolute inset-y-1 left-0 z-10 w-1.5 rounded-full bg-pink-400 shadow-[0_0_0_4px_rgba(233,111,154,0.16)]" />
-                                      )}
-                                      <div
-                                        draggable
-                                        aria-grabbed={dragging?.foto === foto}
-                                        onDragStart={e => handleDragStart(e, cat.slug, t.slug, foto)}
-                                        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOver !== foto) setDragOver(foto); }}
-                                        onDrop={() => handleDrop(cat.slug, t.slug, foto)}
-                                        onDragEnd={() => { setDragging(null); setDragOver(null); }}
-                                        className={`relative group h-full w-full cursor-grab rounded-2xl border bg-white p-1 shadow-sm transition-all duration-200 ease-out active:cursor-grabbing hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-[0_12px_24px_rgba(141,26,68,0.12)] focus-within:ring-2 focus-within:ring-pink-200 ${
-                                          dragOver === foto ? 'border-pink-300 ring-2 ring-pink-200' : 'border-pink-50'
-                                        } ${dragging?.foto === foto ? 'scale-95 opacity-45 shadow-none ring-2 ring-pink-200' : ''}`}
-                                      >
-                                        <img
+                                  <SortableContext items={t.fotos} strategy={rectSortingStrategy}>
+                                    <div className={`grid grid-cols-2 gap-3 rounded-2xl border border-dashed p-3 transition-[background-color,border-color,box-shadow] duration-300 ease-out sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 ${
+                                      dragging?.cat === cat.slug && dragging?.slug === t.slug
+                                        ? 'border-pink-200 bg-pink-50/70 shadow-inner'
+                                        : 'border-transparent bg-transparent'
+                                    }`}>
+                                      {t.fotos.map(foto => (
+                                        <SortableFoto
+                                          key={foto}
+                                          foto={foto}
                                           src={`${R2}/${cat.slug}/${t.slug}/${foto}`}
-                                          alt={foto}
-                                          draggable={false}
-                                          className="w-full h-full object-cover rounded-xl select-none"
+                                          onDelete={() => eliminarFoto(cat.slug, t.slug, foto)}
                                         />
-                                        <div className="pointer-events-none absolute inset-1 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                                        <button
-                                          onClick={() => eliminarFoto(cat.slug, t.slug, foto)}
-                                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md"
-                                        >x</button>
-                                      </div>
+                                      ))}
                                     </div>
-                                  ))}
-                                </div>
+                                  </SortableContext>
+                                  <DragOverlay>
+                                    {activeFoto?.cat === cat.slug && activeFoto?.slug === t.slug ? (
+                                      <FotoDragOverlay
+                                        foto={activeFoto.foto}
+                                        src={`${R2}/${cat.slug}/${t.slug}/${activeFoto.foto}`}
+                                      />
+                                    ) : null}
+                                  </DragOverlay>
+                                </DndContext>
                               </>
                             )}
                           </div>

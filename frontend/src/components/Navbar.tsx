@@ -100,8 +100,11 @@ export default function Navbar() {
   ];
 
   return (
+    <>
+    <div className="hidden h-40 md:block" aria-hidden="true" />
+    <div className="h-16 md:hidden" aria-hidden="true" />
     <header
-      className={`sticky top-0 w-full z-50 bg-[#FFF6F8]/75 backdrop-blur-md border-b border-rose-100 transition-[box-shadow,background-color] duration-300 ease-out ${
+      className={`fixed top-0 left-0 w-full z-50 bg-[#FFF6F8]/75 backdrop-blur-md border-b border-rose-100 transition-[box-shadow,background-color] duration-300 ease-out ${
         scrolled ? 'shadow-[0_14px_34px_rgba(138,79,100,0.14)]' : 'shadow-none'
       }`}
     >
@@ -112,7 +115,7 @@ export default function Navbar() {
         <div
           className={`hidden md:flex overflow-hidden transition-[height,padding] duration-300 ease-out ${
             scrolled
-              ? 'h-16 flex-row items-center justify-between py-1'
+              ? 'h-16 flex-row items-center justify-between py-2'
               : 'h-40 flex-col items-center justify-center py-3'
           }`}
         >
@@ -209,5 +212,6 @@ export default function Navbar() {
         </a>
       </div>
     </header>
+    </>
   );
 }
