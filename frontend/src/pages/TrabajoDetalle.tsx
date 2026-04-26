@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTrabajoDetalle } from '../hooks/useApi';
 
@@ -14,7 +14,32 @@ export default function TrabajoDetalle() {
   const { categoriaSlug = '', trabajoSlug = '' } = useParams();
   const { trabajo, loading, error } = useTrabajoDetalle(categoriaSlug, trabajoSlug);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(8);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const nombre = NOMBRES[categoriaSlug] ?? categoriaSlug;
+
+  useEffect(() => {
+    setVisibleCount(8);
+    setLightbox(null);
+  }, [categoriaSlug, trabajoSlug]);
+
+  useEffect(() => {
+    if (!trabajo || visibleCount >= trabajo.fotos.length) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          setVisibleCount(count => Math.min(count + 6, trabajo.fotos.length));
+        }
+      },
+      { rootMargin: '600px 0px', threshold: 0.01 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [trabajo, visibleCount]);
 
   if (loading) {
     return (
@@ -41,6 +66,7 @@ export default function TrabajoDetalle() {
 
   const imgUrl = (foto: string) => `${R2}/${categoriaSlug}/${trabajoSlug}/${foto}`;
   const desc   = trabajo.descripcion_evento ?? trabajo.descripcion;
+  const fotosVisibles = trabajo.fotos.slice(0, visibleCount);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-10">
@@ -63,7 +89,7 @@ export default function TrabajoDetalle() {
 
       {/* Grilla de fotos */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-        {trabajo.fotos.map((foto, i) => (
+        {fotosVisibles.map((foto, i) => (
           <div
             key={foto}
             className="aspect-square overflow-hidden rounded bg-pink-50 cursor-pointer"
@@ -79,6 +105,10 @@ export default function TrabajoDetalle() {
           </div>
         ))}
       </div>
+
+      {visibleCount < trabajo.fotos.length && (
+        <div ref={sentinelRef} className="h-12" aria-hidden="true" />
+      )}
 
       {/* CTA */}
       <div className="my-20 py-16 px-10 bg-gradient-to-br from-pink-50 to-pink-100 rounded-3xl text-center">

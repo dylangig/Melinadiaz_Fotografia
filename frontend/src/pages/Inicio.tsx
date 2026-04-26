@@ -4,6 +4,8 @@ import { useCategorias } from '../hooks/useApi';
 
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
 const API_BASE = import.meta.env.VITE_API_URL || '';
+const DEFAULT_HERO_URL = `${R2}/assets/hero.webp`;
+const HERO_PRIORITY_ATTRS = { fetchpriority: 'high' };
 
 const getTexto = (value: unknown, fallback = ''): string =>
   typeof value === 'string' ? value : fallback;
@@ -14,9 +16,6 @@ const normalizarUrlImagen = (value: unknown): string => {
   if (/^https?:\/\//i.test(raw)) return raw;
   return raw.startsWith('/') ? `${R2}${raw}` : `${R2}/${raw}`;
 };
-
-const conCacheBuster = (url: string, version: number): string =>
-  `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
 
 interface Config {
   hero_url: string;
@@ -34,7 +33,7 @@ interface Testimonio {
 }
 
 const DEFAULT_CONFIG: Config = {
-  hero_url: '',
+  hero_url: DEFAULT_HERO_URL,
   hero_titulo: 'Transformo momentos en recuerdos eternos',
   hero_subtitulo: 'Books infantiles, 15 años y bodas con una mirada artística y emocional.',
   hero_boton_texto: 'Reservar sesión',
@@ -64,7 +63,7 @@ export default function Inicio() {
   const { categorias, loading } = useCategorias();
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [testimonios, setTestimonios] = useState<Testimonio[]>(TESTIMONIOS_FALLBACK);
-  const [heroVersion, setHeroVersion] = useState<number>(() => Date.now());
+  const [heroImageError, setHeroImageError] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/configuracion`)
@@ -72,7 +71,7 @@ export default function Inicio() {
       .then(data => {
         const cfg = (data && typeof data === 'object') ? data as Partial<Config> : {};
         setConfig({
-          hero_url: normalizarUrlImagen(cfg.hero_url),
+          hero_url: normalizarUrlImagen(cfg.hero_url) || DEFAULT_HERO_URL,
           hero_titulo: getTexto(cfg.hero_titulo, 'Transformo momentos en recuerdos eternos'),
           hero_subtitulo: getTexto(cfg.hero_subtitulo, 'Books infantiles, 15 años y bodas con una mirada artística y emocional.'),
           hero_boton_texto: getTexto(cfg.hero_boton_texto, 'Reservar sesión'),
@@ -98,7 +97,7 @@ export default function Inicio() {
   }, []);
 
   useEffect(() => {
-    if (config.hero_url) setHeroVersion(Date.now());
+    setHeroImageError(false);
   }, [config.hero_url]);
 
   useEffect(() => {
@@ -123,22 +122,28 @@ export default function Inicio() {
     return () => observer.disconnect();
   }, [loading]);
 
-  const heroUrl = config.hero_url ? conCacheBuster(config.hero_url, heroVersion) : '';
-  const conImagen = Boolean(heroUrl);
+  const heroUrl = config.hero_url;
+  const conImagen = Boolean(heroUrl && !heroImageError);
   const categoriasHome = categorias.slice(0, 3);
 
   return (
     <>
       <section
-        className="relative w-full overflow-hidden text-center flex flex-col items-center justify-center"
-        style={{
-          minHeight: 'calc(100vh - 64px)',
-          ...(conImagen
-            ? { backgroundImage: `url(${heroUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-            : {}),
-        }}
+        className="relative flex h-[calc(100vh-64px)] max-h-[720px] min-h-[500px] w-full flex-col items-center justify-end overflow-hidden text-center sm:h-auto sm:max-h-none sm:min-h-[calc(100vh-64px)] sm:justify-center"
       >
-        <div className={`absolute inset-0 ${conImagen ? 'bg-black/50' : 'bg-gradient-to-br from-pink-50 via-white to-pink-100'}`} />
+        {conImagen && (
+          <img
+            src={heroUrl}
+            alt=""
+            loading="eager"
+            decoding="async"
+            {...HERO_PRIORITY_ATTRS}
+            onError={() => setHeroImageError(true)}
+            className="absolute inset-0 h-full w-full object-cover object-[50%_20%] sm:object-center"
+            aria-hidden="true"
+          />
+        )}
+        <div className={`absolute inset-0 ${conImagen ? 'bg-black/60 sm:bg-black/50' : 'bg-gradient-to-br from-pink-50 via-white to-pink-100'}`} />
 
         {!conImagen && (
           <>
@@ -147,17 +152,17 @@ export default function Inicio() {
           </>
         )}
 
-        <div className="relative max-w-4xl mx-auto px-6 py-24 animate-fade-in">
-          <h1 className={`font-playfair text-5xl sm:text-6xl lg:text-7xl font-light leading-tight mb-8 ${conImagen ? 'text-white' : 'text-pink-950'}`}>
+        <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-16 sm:px-6 sm:py-24 animate-fade-in">
+          <h1 className={`font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 ${conImagen ? 'text-white' : 'text-pink-950'}`}>
             {config.hero_titulo}
           </h1>
 
-          <p className={`text-base sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed ${conImagen ? 'text-white/90' : 'text-gray-600'}`}>
+          <p className={`mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl ${conImagen ? 'text-white/90' : 'text-gray-600'}`}>
             {config.hero_subtitulo}
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/contacto" className="btn-premium-primary px-10 py-4 text-sm font-semibold">
+            <Link to="/contacto" className="btn-premium-primary px-8 py-3.5 text-xs font-semibold sm:px-10 sm:py-4 sm:text-sm">
               {config.hero_boton_texto}
             </Link>
           </div>
