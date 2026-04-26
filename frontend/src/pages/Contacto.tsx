@@ -34,7 +34,6 @@ export default function Contacto() {
             alt="Melina Diaz Fotografía"
             loading="eager"
             decoding="async"
-            fetchPriority="high"
             className="h-12 w-auto"
             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />

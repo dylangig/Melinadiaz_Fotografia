@@ -125,7 +125,6 @@ export default function Navbar() {
               alt={nombreMarca}
               loading="eager"
               decoding="async"
-              fetchPriority="high"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
               className={`w-auto object-contain transition-[height,max-width] duration-300 ease-out ${
                 scrolled ? 'h-12 lg:h-14 max-w-[110px]' : 'h-24 lg:h-28 max-w-none'
@@ -170,7 +169,6 @@ export default function Navbar() {
               alt={nombreMarca}
               loading="eager"
               decoding="async"
-              fetchPriority="high"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
               className="h-10 w-auto object-contain"
             />
