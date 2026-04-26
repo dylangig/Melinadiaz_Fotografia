@@ -45,6 +45,7 @@ export default function Servicios() {
                         alt={s.nombre}
                         className="w-full h-full object-cover rounded-xl"
                         loading="lazy"
+                        decoding="async"
                       />
                     ))}
                   </div>

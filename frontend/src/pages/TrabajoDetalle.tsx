@@ -73,6 +73,7 @@ export default function TrabajoDetalle() {
               src={imgUrl(foto)}
               alt={`${nombre} ${trabajo.nombre} en Zona Sur Buenos Aires - Foto ${i + 1}`}
               loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
           </div>
@@ -114,6 +115,8 @@ export default function TrabajoDetalle() {
           <img
             src={imgUrl(trabajo.fotos[lightbox])}
             alt={`Foto ${lightbox + 1}`}
+            loading="eager"
+            decoding="async"
             className="max-h-[90vh] max-w-[90vw] object-contain select-none"
             onClick={e => e.stopPropagation()}
           />

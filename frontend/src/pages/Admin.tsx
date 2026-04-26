@@ -34,6 +34,80 @@ const normalizarUrlImagen = (value: unknown): string => {
 const conCacheBuster = (url: string, version: number): string =>
   `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
 
+const WEBP_QUALITY = 0.7;
+const MAX_IMAGE_WIDTH = 1000;
+const MAX_IMAGE_HEIGHT = 1000;
+
+const nombreWebP = (name: string): string =>
+  `${name.replace(/\.[^.]+$/, '')}.webp`;
+
+async function convertImageToWebP(
+  file: File,
+  quality = WEBP_QUALITY,
+  maxWidth = MAX_IMAGE_WIDTH,
+  maxHeight = MAX_IMAGE_HEIGHT
+): Promise<File> {
+  const isWebP = file.type === 'image/webp' || /\.webp$/i.test(file.name);
+  const isConvertible = file.type === 'image/jpeg' || file.type === 'image/png' || isWebP;
+  if (!isConvertible) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxWidth / bitmap.width, maxHeight / bitmap.height);
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+
+    if (isWebP && scale === 1) {
+      bitmap.close();
+      return file;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      bitmap.close();
+      return file;
+    }
+
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>(resolve => {
+      canvas.toBlob(resolve, 'image/webp', quality);
+    });
+
+    if (!blob) return file;
+
+    return new File([blob], nombreWebP(file.name), {
+      type: 'image/webp',
+      lastModified: file.lastModified,
+    });
+  } catch {
+    return file;
+  }
+}
+
+async function convertirFotosDeFormulario(form: HTMLFormElement): Promise<FormData> {
+  const original = new FormData(form);
+  const fd = new FormData();
+
+  original.forEach((value, key) => {
+    if (key !== 'fotos') fd.append(key, value);
+  });
+
+  const fotos = original
+    .getAll('fotos')
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  const fotosConvertidas = await Promise.all(fotos.map(file => convertImageToWebP(file)));
+
+  fotosConvertidas.forEach(file => fd.append('fotos', file));
+
+  return fd;
+}
+
 async function apiFetch(path: string, options: RequestInit = {}) {
   const token = getAdminToken();
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> ?? {}) };
@@ -50,12 +124,14 @@ interface Config {
 }
 interface Testimonio { id?: number; texto: string; autora: string; tipo: string; orden: number; }
 interface CatExtended extends Categoria { portada: string; }
+interface NuevoTrabajoForm { descripcion: string; descripcion_evento: string; }
 
 const CONFIG_VACIA: Config = {
   nombre_marca: '', logo_url: '', favicon_url: '', tagline: '',
   hero_url: '', hero_titulo: '', hero_subtitulo: '', hero_boton_texto: '',
   whatsapp: '', email: '', zona: '', footer_texto: '', seo_descripcion: '',
 };
+const NUEVO_TRABAJO_FORM_VACIO: NuevoTrabajoForm = { descripcion: '', descripcion_evento: '' };
 
 // ── Componente Tab ─────────────────────────────────────────────────────────────
 function Tab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
@@ -116,7 +192,7 @@ function SortableFoto({ foto, src, onDelete }: {
           isOver ? 'border-pink-300 shadow-[0_12px_24px_rgba(141,26,68,0.12)]' : 'border-pink-50'
         } ${isDragging ? 'opacity-35 shadow-none ring-2 ring-pink-200' : ''}`}
       >
-        <img src={src} alt={foto} draggable={false} className="h-full w-full select-none rounded-xl object-cover" />
+        <img src={src} alt={foto} loading="lazy" decoding="async" draggable={false} className="h-full w-full select-none rounded-xl object-cover" />
         <div className="pointer-events-none absolute inset-1 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         <button
           type="button"
@@ -134,7 +210,7 @@ function SortableFoto({ foto, src, onDelete }: {
 function FotoDragOverlay({ src, foto }: { src: string; foto: string }) {
   return (
     <div className="h-24 w-24 rounded-2xl border border-pink-100 bg-white p-1 shadow-[0_22px_44px_rgba(141,26,68,0.24)] ring-2 ring-pink-200">
-      <img src={src} alt={foto} draggable={false} className="h-full w-full rounded-xl object-cover" />
+      <img src={src} alt={foto} loading="eager" decoding="async" draggable={false} className="h-full w-full rounded-xl object-cover" />
     </div>
   );
 }
@@ -160,6 +236,7 @@ export default function Admin() {
   const [modalTestim,   setModalTestim]   = useState<Testimonio | null>(null);
   const [modalNuevaCat, setModalNuevaCat] = useState(false);
   const [modalNuevaSes, setModalNuevaSes] = useState(false);
+  const [nuevoTrabajoForm, setNuevoTrabajoForm] = useState<NuevoTrabajoForm>(NUEVO_TRABAJO_FORM_VACIO);
 
   // Drag & drop fotos
   const [dragging,    setDragging]    = useState<{ cat: string; slug: string; foto: string } | null>(null);
@@ -256,7 +333,7 @@ export default function Admin() {
   
   const subirImagen = async (endpoint: string, file: File, extra?: Record<string, string>) => {
     const fd = new FormData();
-    fd.append('file', file);
+    fd.append('file', await convertImageToWebP(file));
     if (extra) Object.entries(extra).forEach(([k, v]) => fd.append(k, v));
     setLoading(true);
     try {
@@ -407,6 +484,16 @@ const guardarConfig = (campos: Partial<Config>) => {
     ? conCacheBuster(normalizarUrlImagen(config.hero_url), heroPreviewVersion)
     : '';
 
+  const abrirNuevaSesion = () => {
+    setNuevoTrabajoForm(NUEVO_TRABAJO_FORM_VACIO);
+    setModalNuevaSes(true);
+  };
+
+  const cerrarNuevaSesion = () => {
+    setModalNuevaSes(false);
+    setNuevoTrabajoForm(NUEVO_TRABAJO_FORM_VACIO);
+  };
+
   // ══════════════════════════════════════════════════════════════════════════
   // LOGIN
   // ══════════════════════════════════════════════════════════════════════════
@@ -488,7 +575,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                   <div className="flex items-center gap-5">
                     <div className="w-20 h-20 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
                       {config.logo_url
-                        ? <img src={config.logo_url} className="w-full h-full object-contain p-2" alt="logo" />
+                        ? <img src={config.logo_url} className="w-full h-full object-contain p-2" alt="logo" loading="lazy" decoding="async" />
                         : <span className="text-[10px] text-gray-300">Sin logo</span>}
                     </div>
                     <div>
@@ -538,7 +625,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                   <div className="flex items-start gap-5">
                     <div className="w-40 h-24 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
                       {config.hero_url
-                        ? <img src={heroPreviewUrl} className="w-full h-full object-cover" alt="hero" />
+                        ? <img src={heroPreviewUrl} className="w-full h-full object-cover" alt="hero" loading="lazy" decoding="async" />
                         : <span className="text-[10px] text-gray-300 text-center px-2">Sin imagen<br/>(gradiente)</span>}
                     </div>
                     <div className="flex-1 space-y-2">
@@ -673,7 +760,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                       <div className="flex items-center gap-4">
                         {/* Portada con hover para cambiar */}
                         <div className="relative group w-16 h-16 flex-shrink-0">
-                          <img src={`${R2}/${cat.portada}`} alt={cat.nombre}
+                          <img src={`${R2}/${cat.portada}`} alt={cat.nombre} loading="lazy" decoding="async"
                             className="w-full h-full object-cover rounded-xl border border-gray-100" />
                           <label className="absolute inset-0 bg-black/50 text-white text-[9px] font-bold uppercase flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                             Cambiar
@@ -717,7 +804,7 @@ const guardarConfig = (campos: Partial<Config>) => {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-playfair text-xl text-gray-900">Sesiones fotográficas</h2>
-                  <button onClick={() => setModalNuevaSes(true)}
+                  <button onClick={abrirNuevaSesion}
                     className="bg-pink-700 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-pink-900 transition-colors">
                     + Nueva sesión
                   </button>
@@ -815,9 +902,10 @@ const guardarConfig = (campos: Partial<Config>) => {
       {modalFotos && (
         <Modal titulo="Agregar fotos" onClose={() => setModalFotos(null)}>
           <p className="text-gray-400 text-xs mb-5 uppercase tracking-widest">{modalFotos.cat} / {modalFotos.slug}</p>
-          <form ref={refAddFotos} onSubmit={e => {
+          <form ref={refAddFotos} onSubmit={async e => {
             e.preventDefault();
-            postForm('agregar-fotos', new FormData(e.currentTarget));
+            const fd = await convertirFotosDeFormulario(e.currentTarget);
+            await postForm('agregar-fotos', fd);
             refAddFotos.current?.reset();
             setModalFotos(null);
           }}>
@@ -909,12 +997,13 @@ const guardarConfig = (campos: Partial<Config>) => {
 
       {/* ── MODAL: NUEVA SESIÓN ───────────────────────────────────────────── */}
       {modalNuevaSes && (
-        <Modal titulo="Nueva sesión fotográfica" onClose={() => setModalNuevaSes(false)}>
-          <form ref={refNuevaSes} onSubmit={e => {
+        <Modal titulo="Nueva sesión fotográfica" onClose={cerrarNuevaSesion}>
+          <form ref={refNuevaSes} onSubmit={async e => {
             e.preventDefault();
-            postForm('nuevo-trabajo', new FormData(e.currentTarget));
+            const fd = await convertirFotosDeFormulario(e.currentTarget);
+            await postForm('nuevo-trabajo', fd);
             refNuevaSes.current?.reset();
-            setModalNuevaSes(false);
+            cerrarNuevaSesion();
           }} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -929,14 +1018,18 @@ const guardarConfig = (campos: Partial<Config>) => {
                 </select>
               </div>
             </div>
-            <Field label="Descripción SEO" value="" onChange={() => {}} placeholder="Para buscadores" />
-            <Field label="Descripción visible" value="" onChange={() => {}} placeholder="Aparece en la galería" />
+            <input type="hidden" name="descripcion" value={nuevoTrabajoForm.descripcion} />
+            <input type="hidden" name="descripcion_evento" value={nuevoTrabajoForm.descripcion_evento} />
+            <Field label="Descripción SEO" value={nuevoTrabajoForm.descripcion || ""}
+              onChange={v => setNuevoTrabajoForm(prev => ({ ...prev, descripcion: v }))} placeholder="Para buscadores" />
+            <Field label="Descripción visible" value={nuevoTrabajoForm.descripcion_evento || ""}
+              onChange={v => setNuevoTrabajoForm(prev => ({ ...prev, descripcion_evento: v }))} placeholder="Aparece en la galería" />
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Fotos</label>
               <input name="fotos" type="file" accept="image/*" multiple
                 className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
             </div>
-            <BotonesModal onCancel={() => setModalNuevaSes(false)} labelOk="Crear sesión" />
+            <BotonesModal onCancel={cerrarNuevaSesion} labelOk="Crear sesión" />
           </form>
         </Modal>
       )}

@@ -32,6 +32,9 @@ export default function Contacto() {
           <img
             src={`${R2}/logo.webp`}
             alt="Melina Diaz Fotografía"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
             className="h-12 w-auto"
             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
