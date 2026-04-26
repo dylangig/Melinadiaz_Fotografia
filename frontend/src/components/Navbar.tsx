@@ -101,25 +101,27 @@ export default function Navbar() {
 
   return (
     <>
-    <div className="hidden h-40 md:block" aria-hidden="true" />
+    <div className="hidden h-36 md:block" aria-hidden="true" />
     <div className="h-16 md:hidden" aria-hidden="true" />
     <header
-      className={`fixed top-0 left-0 w-full z-50 bg-[#FFF6F8]/75 backdrop-blur-md border-b border-rose-100 transition-[box-shadow,background-color] duration-300 ease-out ${
+      className={`fixed top-0 left-0 w-full z-50 border-b border-[#F3B8CA] backdrop-blur-md transition-[height,padding,box-shadow,background-color] duration-300 ease-out ${
+        scrolled ? 'bg-[#FFF3F6]/[0.88]' : 'bg-[#FFF3F6]'
+      } ${
         scrolled ? 'shadow-[0_14px_34px_rgba(138,79,100,0.14)]' : 'shadow-none'
       }`}
     >
       <div className={`mx-auto transition-[max-width,padding] duration-300 ease-out ${
-        scrolled ? 'max-w-none px-6 sm:px-8 lg:px-10' : 'max-w-7xl px-4 sm:px-6'
+        scrolled ? 'max-w-none px-5 sm:px-7 lg:px-9' : 'max-w-7xl px-4 sm:px-6'
       }`}>
         {/* Desktop */}
         <div
           className={`hidden md:flex overflow-hidden transition-[height,padding] duration-300 ease-out ${
             scrolled
               ? 'h-16 flex-row items-center justify-between py-2'
-              : 'h-40 flex-col items-center justify-center py-3'
+              : 'h-36 flex-col items-center justify-center py-2'
           }`}
         >
-          <Link to="/" className={`flex items-center transition-all duration-300 ${scrolled ? '' : 'mb-2'}`}>
+          <Link to="/" className={`flex items-center transition-all duration-300 ease-out ${scrolled ? '' : 'mb-1'}`}>
             <img
               src={logoUrl}
               alt={nombreMarca}
@@ -127,20 +129,24 @@ export default function Navbar() {
               decoding="async"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
               className={`w-auto object-contain transition-[height,max-width] duration-300 ease-out ${
-                scrolled ? 'h-12 lg:h-14 max-w-[110px]' : 'h-24 lg:h-28 max-w-none'
+                scrolled ? 'h-12 lg:h-14 max-w-[110px]' : 'h-22 lg:h-24 max-w-none'
               }`}
             />
           </Link>
-          <div className={`flex items-center transition-all duration-300 ${scrolled ? 'justify-end gap-6' : 'justify-center'}`}>
-            <nav className={`flex items-center ${scrolled ? 'gap-5 lg:gap-7' : 'gap-8'}`}>
+          <div className={`flex items-center transition-all duration-300 ease-out ${scrolled ? 'justify-end gap-6' : 'justify-center'}`}>
+            <nav className={`flex items-center transition-[gap] duration-300 ease-out ${scrolled ? 'gap-6 lg:gap-8' : 'gap-8'}`}>
               {links.map(({ to, label }) => (
                 <NavLink
                   key={to}
                   to={to}
                   end={to === '/'}
                   className={({ isActive }) =>
-                    `${scrolled ? 'text-[10px] lg:text-[11px] tracking-[0.15em]' : 'text-[11px] tracking-[0.18em]'} font-bold uppercase transition-colors ${
-                      isActive ? 'text-[#8A4F64]' : 'text-[#9B5F73] hover:text-[#C76B8A]'
+                    `relative pb-1 leading-tight font-medium uppercase tracking-wide transition-colors duration-300 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-pink-500 after:transition-all after:duration-300 after:ease-out ${
+                      scrolled ? 'text-sm lg:text-base' : 'text-base'
+                    } ${
+                      isActive
+                        ? 'text-pink-500 after:w-full'
+                        : 'text-[#2A2A2A] after:w-0 hover:text-pink-500 hover:after:w-full'
                     }`
                   }
                 >
@@ -152,11 +158,11 @@ export default function Navbar() {
               href={`https://wa.me/${whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
-              className={`bg-[#E96F9A] text-white rounded-full font-bold uppercase tracking-widest shadow-[0_12px_24px_rgba(201,80,124,0.22)] hover:bg-[#D95F89] transition-all duration-300 ${
+              className={`bg-[#E96F9A] text-white rounded-full font-bold uppercase tracking-widest shadow-md hover:bg-[#D95F89] hover:shadow-lg transition-all duration-300 ease-out ${
                 scrolled ? 'px-5 py-2.5 text-[10px]' : 'hidden'
               }`}
             >
-              Reservar
+              Reservar sesión
             </a>
           </div>
         </div>
@@ -175,7 +181,7 @@ export default function Navbar() {
           </Link>
 
           <button
-            className="p-2 text-[#8A4F64] hover:text-[#C76B8A] transition-colors"
+            className="p-2 text-[#8A3D5A] hover:text-[#D81B60] transition-colors"
             onClick={() => setOpen(v => !v)}
             aria-label="Menu"
           >
@@ -189,7 +195,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      <div className={`md:hidden overflow-hidden transition-all duration-300 bg-[#FFF6F8] border-t border-[#ead2d9] ${
+      <div className={`md:hidden overflow-hidden transition-all duration-300 bg-[#FFF3F6] border-t border-[#F3B8CA] ${
         open ? 'max-h-96' : 'max-h-0'
       }`}>
         {links.map(({ to, label }) => (
@@ -199,7 +205,7 @@ export default function Navbar() {
             end={to === '/'}
             className={({ isActive }) =>
               `block px-8 py-4 text-xs font-bold uppercase tracking-widest border-b border-gray-50 transition-colors ${
-                isActive ? 'text-[#8A4F64] bg-[#F8EDEE]' : 'text-[#9B5F73] hover:bg-[#F8EDEE] hover:text-[#C76B8A]'
+                isActive ? 'text-[#8A3D5A] bg-[#F8EDEE]' : 'text-[#8A3D5A]/85 hover:bg-[#F8EDEE] hover:text-[#D81B60]'
               }`
             }
           >
@@ -210,7 +216,7 @@ export default function Navbar() {
           href={`https://wa.me/${whatsapp}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="block px-8 py-4 text-xs font-bold uppercase tracking-widest text-[#C76B8A] hover:bg-[#F8EDEE]"
+          className="block px-8 py-4 text-xs font-bold uppercase tracking-widest text-[#8A3D5A] hover:bg-[#F8EDEE] hover:text-[#D81B60]"
         >
           Reservar sesión
         </a>

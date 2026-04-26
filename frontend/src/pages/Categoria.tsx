@@ -67,7 +67,7 @@ export default function Categoria() {
       )}
 
       {/* CTA */}
-      <div className="my-20 py-16 px-10 bg-gradient-to-br from-pink-50 to-pink-100 rounded-3xl text-center">
+      <div className="my-20 py-16 px-10 bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-100 shadow-[0_18px_42px_rgba(141,26,68,0.08)] rounded-3xl text-center">
         <h3 className="font-playfair text-pink-700 text-3xl font-light mb-3">
           ¿Querés una sesión como estas?
         </h3>
@@ -76,9 +76,9 @@ export default function Categoria() {
         </p>
         <Link
           to="/contacto"
-          className="inline-block px-10 py-4 bg-pink-700 text-white rounded-full font-bold text-sm tracking-wide uppercase hover:bg-pink-900 transition-all hover:-translate-y-0.5 shadow-lg shadow-pink-700/30"
+          className="btn-premium-primary inline-block px-10 py-4 text-sm font-semibold"
         >
-          Reservar mi sesión →
+          Reservar sesión
         </Link>
       </div>
     </div>

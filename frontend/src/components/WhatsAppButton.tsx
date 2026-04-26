@@ -10,10 +10,10 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contactar por WhatsApp"
-      className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all duration-300 animate-whatsapp-pulse"
+      className="fixed bottom-5 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-green-500 shadow-lg shadow-green-700/20 transition-all duration-300 animate-whatsapp-pulse hover:bg-green-600 hover:scale-105 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
     >
       <svg 
-        className="w-8 h-8" 
+        className="h-6 w-6 sm:h-8 sm:w-8" 
         viewBox="0 0 24 24" 
         fill="white"
       >

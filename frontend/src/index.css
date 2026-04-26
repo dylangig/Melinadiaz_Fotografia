@@ -12,9 +12,9 @@
   }
 
   body {
-    font-family: 'Montserrat', sans-serif;
-    background: #fff;
-    color: #333;
+    font-family: 'Inter', sans-serif;
+    background: #FAFAFA;
+    color: #1F1F1F;
     margin: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -23,6 +23,15 @@
   /* Playfair para todos los títulos por defecto */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
+    color: #1F1F1F;
+  }
+
+  p {
+    color: inherit;
+  }
+
+  button, input, textarea, select, a {
+    font-family: 'Inter', sans-serif;
   }
 }
 
@@ -58,9 +67,9 @@
     font-family: 'Playfair Display', serif;
   }
 
-  /* Forzar Montserrat en cualquier elemento */
+  /* Compatibilidad: las clases existentes usan Inter */
   .font-montserrat {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   /* Entrada suave desde abajo */
@@ -107,11 +116,13 @@
 
 @layer components {
   .btn-premium {
-    @apply rounded-full tracking-widest uppercase transition-all duration-300 hover:scale-105 shadow-md;
+    @apply rounded-full tracking-widest uppercase transition-all duration-300 ease-out hover:scale-105 shadow-md;
+    font-family: 'Inter', sans-serif;
   }
 
   .btn-premium-primary {
     @apply btn-premium bg-pink-700 text-white hover:bg-pink-900 shadow-pink-900/30;
+    box-shadow: 0 14px 28px rgba(136, 14, 79, 0.22);
   }
 
   .btn-premium-outline {

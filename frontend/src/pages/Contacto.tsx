@@ -83,7 +83,7 @@ export default function Contacto() {
     <div className="min-h-screen flex flex-col -mx-4 sm:-mx-6">
 
       {/* Topbar propio (reemplaza la navbar global en esta página) */}
-      <div className="flex items-center justify-between px-6 sm:px-10 py-3.5 bg-white border-b border-pink-100 sticky top-0 z-50">
+      <div className="flex items-center justify-between px-6 sm:px-10 py-3.5 bg-[#FFF6F8]/95 border-b border-pink-100 sticky top-0 z-50">
         <Link to="/">
           <img
             src={`${R2}/logo.webp`}
@@ -158,7 +158,7 @@ export default function Contacto() {
         </div>
 
         {/* Columna derecha - Formulario */}
-        <div className="bg-white px-8 sm:px-14 py-14 flex flex-col justify-center">
+        <div className="bg-[#FAFAFA] px-8 sm:px-14 py-14 flex flex-col justify-center">
           <h2 className="font-playfair text-pink-700 text-2xl font-light mb-1">Reservá tu sesión</h2>
           <p className="text-gray-400 text-xs tracking-[2px] uppercase mb-6">Respuesta en menos de 24 hs</p>
 
@@ -241,9 +241,9 @@ export default function Contacto() {
 
           <button
             onClick={enviarWhatsApp}
-            className="w-full py-4 bg-gradient-to-r from-pink-700 to-pink-900 text-white rounded-full font-bold text-base tracking-wide uppercase hover:-translate-y-0.5 hover:shadow-xl hover:shadow-pink-700/30 transition-all mt-2"
+            className="btn-premium-primary mt-2 w-full px-10 py-4 text-sm font-semibold"
           >
-            Quiero reservar mi sesión
+            Reservar sesión
           </button>
 
           {success && (
@@ -258,7 +258,7 @@ export default function Contacto() {
             rel="noopener noreferrer"
             className="mt-4 block text-center text-xs font-bold uppercase tracking-widest text-pink-700 hover:text-pink-900"
           >
-            Consultar directo por WhatsApp
+            Consultar por WhatsApp
           </a>
 
           {email && (

@@ -143,7 +143,7 @@ export default function Inicio() {
             aria-hidden="true"
           />
         )}
-        <div className={`absolute inset-0 ${conImagen ? 'bg-black/60 sm:bg-black/50' : 'bg-gradient-to-br from-pink-50 via-white to-pink-100'}`} />
+        <div className={`absolute inset-0 ${conImagen ? 'bg-black/55 sm:bg-black/45' : 'bg-gradient-to-br from-pink-50 via-[#FAFAFA] to-pink-100'}`} />
 
         {!conImagen && (
           <>
@@ -163,7 +163,7 @@ export default function Inicio() {
 
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/contacto" className="btn-premium-primary px-8 py-3.5 text-xs font-semibold sm:px-10 sm:py-4 sm:text-sm">
-              {config.hero_boton_texto}
+              Reservar sesión
             </Link>
           </div>
         </div>
@@ -213,19 +213,26 @@ export default function Inicio() {
         )}
       </section>
 
-      <section className="w-full bg-gradient-to-b from-pink-50 to-white py-16 sm:py-20">
+      <section className="w-full bg-gradient-to-b from-pink-50 to-[#FAFAFA] py-16 sm:py-20">
         <div className="max-w-5xl mx-auto px-6 scroll-fade">
-          <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-10 sm:mb-12">
+          <p className="text-center text-pink-700/70 text-xs tracking-[0.28em] uppercase mb-3">
+            Experiencias reales de clientes
+          </p>
+          <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-9 sm:mb-10">
             Lo que dicen mis clientes
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
             {testimonios.map((t, i) => (
-              <div key={i} className="bg-white rounded-[24px] p-7 border border-pink-100 shadow-[0_16px_36px_rgba(141,26,68,0.08)]">
-                <div className="text-pink-500 text-sm mb-4 tracking-widest">*****</div>
-                <p className="text-gray-600 italic text-sm leading-relaxed mb-6 font-light min-h-[112px]">"{t.texto}"</p>
-                <div className="text-xs tracking-widest uppercase">
-                  <span className="text-pink-800 font-semibold">{t.autora}</span>
-                  <span className="text-gray-400 ml-2">- {t.tipo}</span>
+              <div key={i} className="bg-[#fffdfd] rounded-[24px] px-7 py-6 border border-pink-100 shadow-[0_16px_36px_rgba(141,26,68,0.08)]">
+                <div className="mb-3 flex justify-center gap-1 text-[13px] text-[#E2A1B8]" aria-label="5 estrellas">
+                  {Array.from({ length: 5 }).map((_, star) => (
+                    <span key={star} aria-hidden="true">★</span>
+                  ))}
+                </div>
+                <p className="text-gray-600 italic text-sm leading-relaxed mb-5 font-light min-h-[96px]">"{t.texto}"</p>
+                <div className="border-t border-pink-50 pt-4 text-center">
+                  <p className="text-pink-900 text-sm font-semibold tracking-wide">{t.autora}</p>
+                  <p className="mt-1 text-[10px] tracking-[0.24em] uppercase text-pink-500/80">{t.tipo}</p>
                 </div>
               </div>
             ))}
@@ -233,16 +240,18 @@ export default function Inicio() {
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center scroll-fade">
-        <h2 className="font-playfair text-3xl sm:text-4xl text-pink-950 font-light mb-5">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center scroll-fade">
+        <div className="rounded-[28px] border border-[#F4AFC5] bg-[#FFF0F5] px-6 py-10 shadow-[0_20px_48px_rgba(141,26,68,0.10)] sm:px-10 sm:py-12">
+        <h2 className="font-playfair text-3xl sm:text-4xl text-pink-950 font-light mb-4">
           ¿Lista para tu sesión?
         </h2>
-        <p className="text-gray-500 text-base mb-10 max-w-xl mx-auto leading-relaxed">
+        <p className="text-gray-500 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
           Completá el formulario y en menos de 24 hs te contacto para coordinar tu sesión.
         </p>
         <Link to="/contacto" className="btn-premium-primary px-12 py-4 text-sm font-semibold inline-block">
           Reservar sesión
         </Link>
+        </div>
       </section>
     </>
   );

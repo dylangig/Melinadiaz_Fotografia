@@ -5,13 +5,13 @@ export default function Footer() {
   if (location.pathname === '/contacto') return null;
 
   return (
-    <footer className="bg-pink-950 text-white mt-20">
+    <footer className="bg-pink-950 text-[#FFF5F8] mt-20">
       <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
 
         {/* Marca */}
         <div>
           <h3 className="font-playfair text-2xl font-light mb-3">Melina Diaz</h3>
-          <p className="text-pink-200 text-sm leading-relaxed">
+          <p className="text-[#F8BBD0] text-sm leading-relaxed">
             Fotografía profesional en Zona Sur Buenos Aires.<br />
             Capturando momentos únicos con sensibilidad y pasión.
           </p>
@@ -19,8 +19,8 @@ export default function Footer() {
 
         {/* Links */}
         <div>
-          <h4 className="text-xs font-bold tracking-widest uppercase text-pink-300 mb-4">Galerías</h4>
-          <ul className="space-y-2 text-sm text-pink-200">
+          <h4 className="text-xs font-bold tracking-widest uppercase text-[#FFF5F8] mb-4">Galerías</h4>
+          <ul className="space-y-2 text-sm text-[#F8BBD0]">
             {[
               { to: '/galeria/infantil', label: 'Book Infantil' },
               { to: '/galeria/quince',   label: '15 Años' },
@@ -37,8 +37,8 @@ export default function Footer() {
 
         {/* Contacto */}
         <div>
-          <h4 className="text-xs font-bold tracking-widest uppercase text-pink-300 mb-4">Contacto</h4>
-          <ul className="space-y-3 text-sm text-pink-200">
+          <h4 className="text-xs font-bold tracking-widest uppercase text-[#FFF5F8] mb-4">Contacto</h4>
+          <ul className="space-y-3 text-sm text-[#F8BBD0]">
             <li>
               <a
                 href="https://wa.me/5491176348089"
@@ -52,12 +52,12 @@ export default function Footer() {
                 +54 9 11 7634-8089
               </a>
             </li>
-            <li className="text-pink-300 text-xs">📍 Zona Sur, Buenos Aires</li>
+            <li className="text-[#F8BBD0] text-xs">📍 Zona Sur, Buenos Aires</li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-pink-900 text-center py-4 text-pink-400 text-xs">
+      <div className="border-t border-pink-900 text-center py-4 text-[#F8BBD0]/80 text-xs">
         © {new Date().getFullYear()} Melina Diaz Fotografía — Todos los derechos reservados
       </div>
     </footer>

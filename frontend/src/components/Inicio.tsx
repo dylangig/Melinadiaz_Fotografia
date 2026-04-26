@@ -30,9 +30,9 @@ export default function Inicio() {
           <div className="flex flex-wrap gap-4 justify-center">
             <Link
               to="/contacto"
-              className="bg-pink-700 text-white px-8 py-3.5 rounded-full font-bold text-sm tracking-wide uppercase hover:bg-pink-900 transition-all hover:-translate-y-0.5 shadow-lg shadow-pink-700/30"
+              className="btn-premium-primary px-10 py-4 text-sm font-semibold"
             >
-              Reservar sesión →
+              Reservar sesión
             </Link>
             <Link
               to="/galeria/infantil"
@@ -132,9 +132,9 @@ export default function Inicio() {
         </p>
         <Link
           to="/contacto"
-          className="bg-pink-700 text-white px-10 py-4 rounded-full font-bold text-sm tracking-wide uppercase hover:bg-pink-900 transition-all hover:-translate-y-0.5 shadow-lg shadow-pink-700/30 inline-block"
+          className="btn-premium-primary inline-block px-10 py-4 text-sm font-semibold"
         >
-          Reservar mi sesión →
+          Reservar sesión
         </Link>
       </section>
     </>

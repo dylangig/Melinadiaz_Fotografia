@@ -38,6 +38,18 @@ const WEBP_QUALITY = 0.7;
 const MAX_IMAGE_WIDTH = 1000;
 const MAX_IMAGE_HEIGHT = 1000;
 
+interface ImageOptimizationOptions {
+  quality?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+}
+
+const IMAGE_PRESETS = {
+  gallery: { quality: 0.7, maxWidth: 1000, maxHeight: 1000 },
+  hero: { quality: 0.82, maxWidth: 1920, maxHeight: 1080 },
+  logo: { quality: 0.9, maxWidth: 2400, maxHeight: 2400 },
+} satisfies Record<string, ImageOptimizationOptions>;
+
 const nombreWebP = (name: string): string =>
   `${name.replace(/\.[^.]+$/, '')}.webp`;
 
@@ -90,8 +102,8 @@ async function convertImageToWebP(
   }
 }
 
-async function optimizeImageForUpload(file: File): Promise<ImageOptimizationResult> {
-  const optimizedFile = await convertImageToWebP(file);
+async function optimizeImageForUpload(file: File, options: ImageOptimizationOptions = IMAGE_PRESETS.gallery): Promise<ImageOptimizationResult> {
+  const optimizedFile = await convertImageToWebP(file, options.quality, options.maxWidth, options.maxHeight);
   return {
     file: optimizedFile,
     originalSize: file.size,
@@ -100,7 +112,10 @@ async function optimizeImageForUpload(file: File): Promise<ImageOptimizationResu
   };
 }
 
-async function convertirFotosDeFormulario(form: HTMLFormElement): Promise<{ fd: FormData; optimizationMessage: string }> {
+async function convertirFotosDeFormulario(
+  form: HTMLFormElement,
+  options: ImageOptimizationOptions = IMAGE_PRESETS.gallery
+): Promise<{ fd: FormData; optimizationMessage: string }> {
   const original = new FormData(form);
   const fd = new FormData();
 
@@ -111,7 +126,7 @@ async function convertirFotosDeFormulario(form: HTMLFormElement): Promise<{ fd: 
   const fotos = original
     .getAll('fotos')
     .filter((value): value is File => value instanceof File && value.size > 0);
-  const resultados = await Promise.all(fotos.map(file => optimizeImageForUpload(file)));
+  const resultados = await Promise.all(fotos.map(file => optimizeImageForUpload(file, options)));
 
   resultados.forEach(result => fd.append('fotos', result.file));
 
@@ -417,11 +432,17 @@ export default function Admin() {
     finally { setLoading(false); }
   };
   
-  const subirImagen = async (endpoint: string, file: File, extra?: Record<string, string>, previewKey?: string) => {
+  const subirImagen = async (
+    endpoint: string,
+    file: File,
+    extra?: Record<string, string>,
+    previewKey?: string,
+    options: ImageOptimizationOptions = IMAGE_PRESETS.gallery
+  ) => {
     if (previewKey) setSingleImagePreview(previewKey, file);
     setLoading(true);
     try {
-      const result = await optimizeImageForUpload(file);
+      const result = await optimizeImageForUpload(file, options);
       const fd = new FormData();
       fd.append('file', result.file);
       if (extra) Object.entries(extra).forEach(([k, v]) => fd.append(k, v));
@@ -678,7 +699,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                     </div>
                     <div>
                       <input type="file" accept="image/*"
-                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/logo', f, undefined, 'logo'); }}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/logo', f, undefined, 'logo', IMAGE_PRESETS.logo); }}
                         className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
                       <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, SVG o WEBP · Logo del sitio</p>
                     </div>
@@ -728,7 +749,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                     </div>
                     <div className="flex-1 space-y-2">
                       <input type="file" accept="image/*"
-                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/hero', f, undefined, 'hero'); }}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('configuracion/hero', f, undefined, 'hero', IMAGE_PRESETS.hero); }}
                         className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
                       <p className="text-[10px] text-gray-400">Recomendado: 1920×1080px. JPG o WEBP.</p>
                       {config.hero_url && (
@@ -863,7 +884,7 @@ const guardarConfig = (campos: Partial<Config>) => {
                           <label className="absolute inset-0 bg-black/50 text-white text-[9px] font-bold uppercase flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                             Cambiar
                             <input type="file" accept="image/*" className="hidden"
-                              onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('categorias/portada', f, { slug: cat.slug }, `portada:${cat.slug}`); }} />
+                              onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('categorias/portada', f, { slug: cat.slug }, `portada:${cat.slug}`, IMAGE_PRESETS.gallery); }} />
                           </label>
                         </div>
                         <div className="flex-1">
