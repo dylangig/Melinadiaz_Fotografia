@@ -294,6 +294,37 @@ export async function subirHero(request, env) {
   }
 }
 
+export async function subirSobreMiFoto(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+
+  try {
+    const form = await request.formData();
+    const file = form.get('file');
+    if (!file || typeof file === 'string' || !file.name) {
+      return error('No se recibio ningun archivo');
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
+    const key = `assets/sobre-mi.${ext}`;
+    await subirImagenAR2(env.BUCKET, key, await file.arrayBuffer(), file.type);
+
+    const baseUrl = String(env.R2_PUBLIC_URL || '').replace(/\/+$/, '');
+    if (!baseUrl) return error('R2_PUBLIC_URL no configurada', 500);
+    const fotoUrl = `${baseUrl}/${key}`;
+
+    await env.DB.prepare(
+      `INSERT INTO sobre_mi (id, foto_url)
+       VALUES (1, ?)
+       ON CONFLICT(id) DO UPDATE SET foto_url = excluded.foto_url`
+    ).bind(fotoUrl).run();
+
+    return json({ fotoUrl, mensaje: 'Foto de Sobre mi actualizada.' });
+  } catch (e) {
+    console.error('Error en /api/admin/sobre-mi/foto:', e);
+    return error('No se pudo actualizar la foto de Sobre mi', 500);
+  }
+}
+
 export async function subirPortada(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
@@ -368,11 +399,37 @@ export async function eliminarTestimonio(request, env) {
 
 // ── Categorías ────────────────────────────────────────────────────────────────
 
+// POST /api/admin/sobre-mi
+export async function guardarSobreMi(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+
+  const { titulo = '', texto = '', fotoUrl = '', ctaTexto = '', ctaDestino = '' } = await request.json().catch(() => ({}));
+
+  await env.DB.prepare(
+    `INSERT INTO sobre_mi (id, titulo, texto, foto_url, cta_texto, cta_destino)
+     VALUES (1, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       titulo = excluded.titulo,
+       texto = excluded.texto,
+       foto_url = excluded.foto_url,
+       cta_texto = excluded.cta_texto,
+       cta_destino = excluded.cta_destino`
+  ).bind(
+    String(titulo).trim(),
+    String(texto).trim(),
+    String(fotoUrl).trim(),
+    String(ctaTexto).trim(),
+    String(ctaDestino).trim()
+  ).run();
+
+  return json({ mensaje: 'Seccion Sobre mi actualizada.' });
+}
+
 // POST /api/admin/categorias/nueva
 export async function nuevaCategoria(request, env) {
   if (!await requireAdmin(request, env)) return error('No autorizado', 401);
 
-  const { nombre, slug } = await request.json().catch(() => ({}));
+  const { nombre, slug, mostrarEnHome = false } = await request.json().catch(() => ({}));
   if (!nombre || !slug) return error('Faltan nombre y slug');
 
   const slugLimpio = slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -383,9 +440,9 @@ export async function nuevaCategoria(request, env) {
   ).first();
 
   await env.DB.prepare(
-    `INSERT OR IGNORE INTO categorias (nombre, slug, portada, orden)
-     VALUES (?, ?, ?, ?)`
-  ).bind(nombre.trim().toUpperCase(), slugLimpio, `portada-${slugLimpio}.webp`, (maxOrden?.m ?? 0) + 1).run();
+    `INSERT OR IGNORE INTO categorias (nombre, slug, portada, orden, mostrar_en_home)
+     VALUES (?, ?, ?, ?, ?)`
+  ).bind(nombre.trim().toUpperCase(), slugLimpio, `portada-${slugLimpio}.webp`, (maxOrden?.m ?? 0) + 1, mostrarEnHome ? 1 : 0).run();
 
   return json({ mensaje: `Categoría '${slugLimpio}' creada. Recordá subir la portada desde la sección Categorías.` });
 }
@@ -402,6 +459,22 @@ export async function renombrarCategoria(request, env) {
 
   return json({ mensaje: `Categoría renombrada a '${nombre}'.` });
 }
+
+// POST /api/admin/categorias/mostrar-home
+export async function actualizarMostrarEnHome(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+
+  const { slug, mostrarEnHome } = await request.json().catch(() => ({}));
+  if (!slug || mostrarEnHome === undefined) return error('Faltan datos', 400);
+
+  const valor = mostrarEnHome ? 1 : 0;
+  await env.DB.prepare('UPDATE categorias SET mostrar_en_home = ? WHERE slug = ?')
+    .bind(valor, slug).run();
+
+  return json({ mensaje: 'Visibilidad actualizada.' });
+}
+
+export const actualizarMostrarCategoriaHome = actualizarMostrarEnHome;
 
 // POST /api/admin/categorias/eliminar
 export async function eliminarCategoria(request, env) {

@@ -5,7 +5,7 @@
 import { getCorsHeaders, error, preflight } from './helpers.js';
 import {
   getCategorias, getTrabajos, getTrabajoDetalle,
-  getServicios, getTestimonios, getConfiguracion,
+  getServicios, getTestimonios, getConfiguracion, getSobreMi,
 } from './routes/public.js';
 import {
   // Auth
@@ -14,11 +14,11 @@ import {
   getTodosTrabaj, nuevoTrabajo, agregarFotos, editarTrabajo,
   eliminarTrabajo, eliminarFoto, reordenarFotos,
   // Config e imágenes
-  actualizarConfiguracion, subirLogo, subirHero, subirPortada,
+  actualizarConfiguracion, subirLogo, subirHero, subirSobreMiFoto, subirPortada,
   // Testimonios
   getTestimoniosAdmin, nuevoTestimonio, editarTestimonio, eliminarTestimonio,
   // Categorías
-  nuevaCategoria, renombrarCategoria, eliminarCategoria,
+  guardarSobreMi, nuevaCategoria, renombrarCategoria, actualizarMostrarEnHome, eliminarCategoria,
 } from './routes/admin.js';
 
 export default {
@@ -44,6 +44,7 @@ export default {
         if (parts[0] === 'servicios'     && parts.length === 1) return withCors(await getServicios(env), cors);
         if (parts[0] === 'testimonios'   && parts.length === 1) return withCors(await getTestimonios(env), cors);
         if (parts[0] === 'configuracion' && parts.length === 1) return withCors(await getConfiguracion(request, env), cors);
+        if (parts[0] === 'sobre-mi'      && parts.length === 1) return withCors(await getSobreMi(env), cors);
         if (parts[0] === 'trabajos'      && parts.length === 2) return withCors(await getTrabajos(env, parts[1]), cors);
         if (parts[0] === 'trabajos'      && parts.length === 3) return withCors(await getTrabajoDetalle(env, parts[1], parts[2]), cors);
       }
@@ -69,6 +70,8 @@ export default {
         if (method === 'POST' && sub === 'configuracion' && !sub2)            return withCors(await actualizarConfiguracion(request, env), cors);
         if (method === 'POST' && sub === 'configuracion' && sub2 === 'logo')  return withCors(await subirLogo(request, env), cors);
         if (method === 'POST' && sub === 'configuracion' && sub2 === 'hero')  return withCors(await subirHero(request, env), cors);
+        if (method === 'POST' && sub === 'sobre-mi' && sub2 === 'foto')        return withCors(await subirSobreMiFoto(request, env), cors);
+        if ((method === 'POST' || method === 'PUT') && sub === 'sobre-mi' && !sub2) return withCors(await guardarSobreMi(request, env), cors);
         if (method === 'POST' && sub === 'categorias'    && sub2 === 'portada') return withCors(await subirPortada(request, env), cors);
 
         // Testimonios
@@ -80,6 +83,7 @@ export default {
         // Categorías
         if (method === 'POST' && sub === 'categorias' && sub2 === 'nueva')    return withCors(await nuevaCategoria(request, env), cors);
         if (method === 'POST' && sub === 'categorias' && sub2 === 'renombrar')return withCors(await renombrarCategoria(request, env), cors);
+        if (method === 'POST' && sub === 'categorias' && sub2 === 'mostrar-home') return withCors(await actualizarMostrarEnHome(request, env), cors);
         if (method === 'POST' && sub === 'categorias' && sub2 === 'eliminar') return withCors(await eliminarCategoria(request, env), cors);
       }
 

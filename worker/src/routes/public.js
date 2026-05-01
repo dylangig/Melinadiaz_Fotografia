@@ -5,9 +5,15 @@ import { json, error } from '../helpers.js';
 // GET /api/categorias
 export async function getCategorias(env) {
   const { results } = await env.DB.prepare(
-    'SELECT nombre, slug, portada FROM categorias WHERE activo = 1 ORDER BY orden ASC'
+    'SELECT slug, nombre, portada, orden, mostrar_en_home FROM categorias WHERE activo = 1 ORDER BY orden ASC'
   ).all();
-  return json(results);
+  return json(results.map(cat => ({
+    nombre:        cat.nombre,
+    slug:          cat.slug,
+    portada:       cat.portada,
+    orden:         cat.orden,
+    mostrarEnHome: Boolean(cat.mostrar_en_home),
+  })));
 }
 
 // GET /api/trabajos/:categoriaSlug
@@ -103,5 +109,30 @@ export async function getConfiguracion(request, env) {
   } catch (e) {
     console.error('Error en /api/configuracion:', e);
     return error('Error obteniendo configuración', 500);
+  }
+}
+
+// GET /api/sobre-mi
+export async function getSobreMi(env) {
+  try {
+    const row = await env.DB.prepare(
+      'SELECT titulo, texto, foto_url, cta_texto, cta_destino FROM sobre_mi WHERE id = 1'
+    ).first();
+
+    if (!row) return json({});
+
+    return json({
+      titulo:      row.titulo      ?? '',
+      texto:       row.texto       ?? '',
+      foto_url:    row.foto_url    ?? '',
+      cta_texto:   row.cta_texto   ?? '',
+      cta_destino: row.cta_destino ?? '',
+      fotoUrl:     row.foto_url    ?? '',
+      ctaTexto:    row.cta_texto   ?? '',
+      ctaDestino:  row.cta_destino ?? '',
+    });
+  } catch (e) {
+    console.error('Error en /api/sobre-mi:', e);
+    return error('Error obteniendo sobre mi', 500);
   }
 }

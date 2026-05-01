@@ -2,6 +2,8 @@ export interface Categoria {
   nombre: string;
   slug: string;
   portada: string;
+  orden?: number;
+  mostrarEnHome?: boolean;
 }
 
 export interface Trabajo {
@@ -21,4 +23,12 @@ export interface Servicio {
 
 export interface TrabajosData {
   [categoria: string]: Trabajo[];
+}
+
+export interface SobreMi {
+  titulo: string;
+  texto: string;
+  fotoUrl: string;
+  ctaTexto: string;
+  ctaDestino: string;
 }

@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS categorias (
   slug    TEXT    NOT NULL UNIQUE,
   portada TEXT    NOT NULL DEFAULT '',
   orden   INTEGER DEFAULT 0,
+  mostrar_en_home INTEGER DEFAULT 0,
   activo  INTEGER DEFAULT 1
 );
 
@@ -58,6 +59,15 @@ CREATE TABLE IF NOT EXISTS testimonios (
 );
 
 -- ── Configuración global (una sola fila, id siempre = 1) ─────────────────────
+CREATE TABLE IF NOT EXISTS sobre_mi (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  titulo TEXT,
+  texto TEXT,
+  foto_url TEXT,
+  cta_texto TEXT,
+  cta_destino TEXT
+);
+
 CREATE TABLE IF NOT EXISTS configuracion (
   id INTEGER PRIMARY KEY DEFAULT 1,
 
@@ -130,6 +140,7 @@ ALTER TABLE configuracion ADD COLUMN seo_descripcion  TEXT DEFAULT 'Fotografía 
 
 -- Agregar columna activo a categorias y servicios:
 ALTER TABLE categorias ADD COLUMN activo INTEGER DEFAULT 1;
+ALTER TABLE categorias ADD COLUMN mostrar_en_home INTEGER DEFAULT 0;
 ALTER TABLE servicios  ADD COLUMN activo INTEGER DEFAULT 1;
 
 -- Crear tabla testimonios si no existe:

@@ -96,6 +96,7 @@ export default function Navbar() {
     { to: '/galeria/quince', label: '15 Años' },
     { to: '/galeria/bodas', label: 'Bodas' },
     { to: '/servicios', label: 'Servicios' },
+    { to: '/sobre-mi', label: 'Sobre mí' },
     { to: '/contacto', label: 'Contacto' },
   ];
 
@@ -104,10 +105,10 @@ export default function Navbar() {
     <div className="hidden h-36 md:block" aria-hidden="true" />
     <div className="h-16 md:hidden" aria-hidden="true" />
     <header
-      className={`fixed top-0 left-0 w-full z-50 border-b border-[#F3B8CA] backdrop-blur-md transition-[height,padding,box-shadow,background-color] duration-300 ease-out ${
-        scrolled ? 'bg-[#FFF3F6]/[0.88]' : 'bg-[#FFF3F6]'
-      } ${
-        scrolled ? 'shadow-[0_14px_34px_rgba(138,79,100,0.14)]' : 'shadow-none'
+      className={`fixed top-0 left-0 w-full z-50 border-b border-[#F3B8CA] transition-all duration-300 ease-out ${
+        scrolled
+          ? 'bg-[#FFF3F6]/85 backdrop-blur-md shadow-[0_10px_30px_rgba(159,18,57,0.08)]'
+          : 'bg-[#FFF3F6] shadow-none'
       }`}
     >
       <div className={`mx-auto transition-[max-width,padding] duration-300 ease-out ${

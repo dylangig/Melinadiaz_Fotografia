@@ -124,7 +124,7 @@ export default function Inicio() {
 
   const heroUrl = config.hero_url;
   const conImagen = Boolean(heroUrl && !heroImageError);
-  const categoriasHome = categorias.slice(0, 3);
+  const categoriasHome = categorias.filter(cat => cat.mostrarEnHome);
 
   return (
     <>
@@ -153,11 +153,11 @@ export default function Inicio() {
         )}
 
         <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-16 sm:px-6 sm:py-24 animate-fade-in">
-          <h1 className={`font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 ${conImagen ? 'text-white' : 'text-pink-950'}`}>
+          <h1 className="font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 text-pink-700">
             {config.hero_titulo}
           </h1>
 
-          <p className={`mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl ${conImagen ? 'text-white/90' : 'text-gray-600'}`}>
+          <p className={`mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl ${conImagen ? 'text-pink-100/90' : 'text-pink-700/80'}`}>
             {config.hero_subtitulo}
           </p>
 
@@ -224,15 +224,15 @@ export default function Inicio() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
             {testimonios.map((t, i) => (
               <div key={i} className="bg-[#fffdfd] rounded-[24px] px-7 py-6 border border-pink-100 shadow-[0_16px_36px_rgba(141,26,68,0.08)]">
-                <div className="mb-3 flex justify-center gap-1 text-[13px] text-[#E2A1B8]" aria-label="5 estrellas">
+                <div className="mb-3 flex justify-center gap-1 text-[13px] text-pink-400" aria-label="5 estrellas">
                   {Array.from({ length: 5 }).map((_, star) => (
                     <span key={star} aria-hidden="true">★</span>
                   ))}
                 </div>
-                <p className="text-gray-600 italic text-sm leading-relaxed mb-5 font-light min-h-[96px]">"{t.texto}"</p>
+                <p className="text-pink-700/90 italic text-sm leading-relaxed mb-5 font-light min-h-[96px]">"{t.texto}"</p>
                 <div className="border-t border-pink-50 pt-4 text-center">
-                  <p className="text-pink-900 text-sm font-semibold tracking-wide">{t.autora}</p>
-                  <p className="mt-1 text-[10px] tracking-[0.24em] uppercase text-pink-500/80">{t.tipo}</p>
+                  <p className="text-pink-700 text-sm font-semibold tracking-wide">{t.autora}</p>
+                  <p className="mt-1 text-[10px] tracking-[0.24em] uppercase text-pink-400/90">{t.tipo}</p>
                 </div>
               </div>
             ))}

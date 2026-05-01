@@ -4,6 +4,7 @@ import Inicio from './pages/Inicio';
 import Categoria from './pages/Categoria';
 import TrabajoDetalle from './pages/TrabajoDetalle';
 import Servicios from './pages/Servicios';
+import SobreMi from './pages/SobreMi';
 import Contacto from './pages/Contacto';
 import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/galeria/:categoriaSlug"            element={<Categoria />} />
           <Route path="/galeria/:categoriaSlug/:trabajoSlug" element={<TrabajoDetalle />} />
           <Route path="/servicios"                         element={<Servicios />} />
+          <Route path="/sobre-mi"                          element={<SobreMi />} />
           <Route path="/contacto"                          element={<Contacto />} />
           <Route path="/admin"                             element={<Admin />} />
           <Route path="*"                                  element={<NotFound />} />

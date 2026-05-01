@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { adminLogin, adminCheck, getAdminToken, setAdminToken } from '../hooks/useApi';
-import type { Categoria, TrabajosData } from '../types';
+import type { Categoria, SobreMi, TrabajosData } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 const R2       = 'https://imagenes.melinadiazfotografia.com.ar';
@@ -159,6 +159,7 @@ const CONFIG_VACIA: Config = {
   whatsapp: '', email: '', zona: '', footer_texto: '', seo_descripcion: '',
 };
 const NUEVO_TRABAJO_FORM_VACIO: NuevoTrabajoForm = { descripcion: '', descripcion_evento: '' };
+const SOBRE_MI_VACIO: SobreMi = { titulo: '', texto: '', fotoUrl: '', ctaTexto: '', ctaDestino: '' };
 
 const formatFileSize = (bytes: number): string => {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -276,6 +277,7 @@ export default function Admin() {
   const [categorias,  setCategorias]  = useState<CatExtended[]>([]);
   const [trabajos,    setTrabajos]    = useState<TrabajosData>({});
   const [testimonios, setTestimonios] = useState<Testimonio[]>([]);
+  const [sobreMi,     setSobreMi]     = useState<SobreMi>(SOBRE_MI_VACIO);
 
   // Modales
   const [modalFotos,    setModalFotos]    = useState<{ cat: string; slug: string } | null>(null);
@@ -313,11 +315,12 @@ export default function Admin() {
   const cargarTodo = async () => {
     setLoading(true);
     try {
-      const [catRes, trabRes, confRes, testimRes] = await Promise.all([
+      const [catRes, trabRes, confRes, testimRes, sobreMiRes] = await Promise.all([
         apiFetch('/api/categorias'),
         apiFetch('/api/admin/trabajos-todos'),
         apiFetch('/api/configuracion'),
         apiFetch('/api/admin/testimonios'),
+        apiFetch('/api/sobre-mi'),
       ]);
       if (catRes.ok)    setCategorias(await catRes.json());
       if (trabRes.ok)   setTrabajos(await trabRes.json());
@@ -340,6 +343,16 @@ export default function Admin() {
       });
     }
       if (testimRes.ok) setTestimonios(await testimRes.json());
+      if (sobreMiRes.ok) {
+        const data = (await sobreMiRes.json()) ?? {};
+        setSobreMi({
+          titulo: getTexto(data.titulo),
+          texto: getTexto(data.texto),
+          fotoUrl: normalizarUrlImagen(data.fotoUrl),
+          ctaTexto: getTexto(data.ctaTexto),
+          ctaDestino: getTexto(data.ctaDestino),
+        });
+      }
     } catch { showFlash('Error al conectar con el Worker'); }
     finally  { setLoading(false); }
   };
@@ -672,6 +685,7 @@ const guardarConfig = (campos: Partial<Config>) => {
             {[
               { key: 'identidad', label: '🎨 Identidad' },
               { key: 'hero',      label: '🖼 Hero'       },
+              { key: 'sobre-mi',  label: 'Sobre mi'       },
               { key: 'contacto',  label: '📱 Contacto'  },
               { key: 'testimonios',label:'⭐ Testimonios'},
               { key: 'categorias',label: '📂 Categorías'},
@@ -785,6 +799,55 @@ const guardarConfig = (campos: Partial<Config>) => {
             )}
 
             {/* ── TAB: CONTACTO ────────────────────────────────────────────── */}
+            {tab === 'sobre-mi' && (
+              <div className="space-y-6">
+                <h2 className="font-playfair text-xl text-gray-900 mb-4">Sobre mi</h2>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Foto</label>
+                  <div className="flex items-start gap-5">
+                    <div className="w-32 h-40 bg-gray-50 rounded-2xl border-2 border-dashed border-pink-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                      {(imagePreviews.sobreMi?.url || sobreMi.fotoUrl)
+                        ? <img src={imagePreviews.sobreMi?.url || sobreMi.fotoUrl} className="w-full h-full object-cover" alt="Sobre mi" loading="lazy" decoding="async" />
+                        : <span className="text-[10px] text-gray-300 text-center px-2">Sin foto</span>}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input type="file" accept="image/*"
+                        onChange={e => { const f = e.target.files?.[0]; if (f) subirImagen('sobre-mi/foto', f, undefined, 'sobreMi', IMAGE_PRESETS.hero); }}
+                        className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-50 file:text-pink-700 file:font-semibold hover:file:bg-pink-100 cursor-pointer" />
+                      <p className="text-[10px] text-gray-400">JPG, PNG o WEBP. Se optimiza antes de subir.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Field label="Titulo" value={sobreMi.titulo}
+                  onChange={v => setSobreMi(s => ({ ...s, titulo: v }))}
+                  placeholder="Sobre mi" />
+
+                <Field label="Texto" value={sobreMi.texto}
+                  onChange={v => setSobreMi(s => ({ ...s, texto: v }))}
+                  placeholder="Historia, experiencia y estilo fotografico" textarea />
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Texto del CTA" value={sobreMi.ctaTexto}
+                    onChange={v => setSobreMi(s => ({ ...s, ctaTexto: v }))}
+                    placeholder="Reservar sesion" />
+                  <Field label="Destino del CTA" value={sobreMi.ctaDestino}
+                    onChange={v => setSobreMi(s => ({ ...s, ctaDestino: v }))}
+                    placeholder="/contacto" />
+                </div>
+
+                <Field label="Foto URL" value={sobreMi.fotoUrl}
+                  onChange={v => setSobreMi(s => ({ ...s, fotoUrl: v }))}
+                  placeholder="https://.../sobre-mi.webp" />
+
+                <button onClick={() => postJson('sobre-mi', sobreMi)}
+                  className="bg-pink-700 text-white px-8 py-3 rounded-2xl text-sm font-bold hover:bg-pink-900 transition-colors">
+                  Guardar Sobre mi
+                </button>
+              </div>
+            )}
+
             {tab === 'contacto' && (
               <div className="space-y-6">
                 <h2 className="font-playfair text-xl text-gray-900 mb-4">Contacto y Footer</h2>
@@ -890,6 +953,15 @@ const guardarConfig = (campos: Partial<Config>) => {
                         <div className="flex-1">
                           <p className="font-bold text-gray-800">{cat.nombre}</p>
                           <p className="text-xs text-gray-400 font-mono">/galeria/{cat.slug}</p>
+                          <label className="mt-2 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-pink-700">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(cat.mostrarEnHome)}
+                              onChange={() => postJson('categorias/mostrar-home', { slug: cat.slug, mostrarEnHome: !cat.mostrarEnHome })}
+                              className="h-4 w-4 rounded border-pink-200 text-pink-700 focus:ring-pink-200"
+                            />
+                            Mostrar en home
+                          </label>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -1108,6 +1180,7 @@ const guardarConfig = (campos: Partial<Config>) => {
             postJson('categorias/nueva', {
               nombre: fd.get('nombre') as string,
               slug:   fd.get('slug')   as string,
+              mostrarEnHome: fd.get('mostrarEnHome') === 'on',
             });
             refNuevaCat.current?.reset();
             setModalNuevaCat(false);
@@ -1122,6 +1195,14 @@ const guardarConfig = (campos: Partial<Config>) => {
                 className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-100 font-mono" />
               <p className="text-[10px] text-gray-400 mt-1">Va a quedar en la URL: /galeria/<strong>slug</strong></p>
             </div>
+            <label className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-pink-50/60 px-4 py-3 text-xs font-bold uppercase tracking-widest text-pink-700">
+              <input
+                name="mostrarEnHome"
+                type="checkbox"
+                className="h-4 w-4 rounded border-pink-200 text-pink-700 focus:ring-pink-200"
+              />
+              Mostrar en home
+            </label>
             <BotonesModal onCancel={() => setModalNuevaCat(false)} labelOk="Crear categoría" />
           </form>
         </Modal>
