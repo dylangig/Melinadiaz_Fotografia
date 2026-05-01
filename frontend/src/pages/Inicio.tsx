@@ -213,14 +213,12 @@ export default function Inicio() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-7">
                   <p
-                    className="font-playfair text-white text-[1.75rem] font-light tracking-wide"
-                    style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.7)' }}
+                    className="font-playfair text-white text-[1.75rem] font-light tracking-wide text-shadow-lg"
                   >
                     {cat.nombre}
                   </p>
                   <p
-                    className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase"
-                    style={{ textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)' }}
+                    className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase text-shadow-md"
                   >
                     Ver galería
                   </p>

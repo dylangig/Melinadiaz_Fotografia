@@ -129,3 +129,14 @@
     @apply btn-premium border border-white/70 text-white hover:border-white hover:bg-white/10;
   }
 }
+
+/* Utilidades personalizadas de sombra de texto */
+@layer utilities {
+  .text-shadow-md {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .text-shadow-lg {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  }
+}
