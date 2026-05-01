@@ -13,6 +13,7 @@ export interface Trabajo {
   fotos: string[];
   descripcion?: string;
   descripcion_evento?: string;
+  locacion?: string;
 }
 
 export interface Servicio {

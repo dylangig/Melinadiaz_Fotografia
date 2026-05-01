@@ -16,20 +16,25 @@ export default function Servicios() {
       </p>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto items-stretch">
           {[1, 2, 3].map(i => (
             <div key={i} className="h-64 rounded-2xl bg-pink-50 animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto items-stretch">
           {servicios.map((s, idx) => {
             const isLast = idx === servicios.length - 1;
             const isOdd  = servicios.length % 2 !== 0;
+            const isFeatured = idx === 1;
             return (
               <div
                 key={s.nombre}
-                className={`group flex flex-col rounded-[26px] border border-pink-100 bg-[#fffdfd] p-8 shadow-[0_16px_36px_rgba(141,26,68,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(141,26,68,0.14)] sm:p-8
+                className={`group flex h-full flex-col rounded-[26px] border border-pink-100 bg-[#fffdfd] p-8 shadow-[0_16px_36px_rgba(141,26,68,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 sm:p-8 ${
+                  isFeatured
+                    ? 'hover:scale-[1.03] hover:shadow-[0_26px_60px_rgba(141,26,68,0.18)]'
+                    : 'hover:shadow-[0_22px_48px_rgba(141,26,68,0.14)]'
+                }
                   ${isLast && isOdd ? 'sm:col-span-2 sm:max-w-[430px] sm:mx-auto' : ''}`}
               >
                 {/* Fotos del servicio */}

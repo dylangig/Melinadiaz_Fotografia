@@ -51,6 +51,7 @@ export default function SobreMi() {
 
   const fotoUrl = normalizarUrlImagen(contenido.fotoUrl);
   const parrafos = contenido.texto.split(/\n{2,}/).filter(Boolean);
+  const mostrarFoto = Boolean(fotoUrl);
 
   return (
     <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-16">
@@ -59,9 +60,13 @@ export default function SobreMi() {
           <p className="text-pink-700/70 text-xs tracking-[0.28em] uppercase mb-4">
             Detras de la camara
           </p>
-          <h1 className="font-playfair text-4xl sm:text-5xl text-pink-950 font-light leading-tight mb-6">
-            {loading ? 'Cargando...' : contenido.titulo}
-          </h1>
+          {loading ? (
+            <div className="mb-6 h-12 w-48 rounded-full bg-pink-100/70 animate-pulse sm:h-14 sm:w-64" aria-hidden="true" />
+          ) : (
+            <h1 className="font-playfair text-4xl sm:text-5xl text-pink-950 font-light leading-tight mb-6">
+              {contenido.titulo}
+            </h1>
+          )}
           <div className="space-y-4 text-[#6B7280] text-sm sm:text-base leading-relaxed">
             {parrafos.map((parrafo, index) => (
               <p key={index}>{parrafo}</p>
@@ -77,15 +82,17 @@ export default function SobreMi() {
           )}
         </div>
 
-        <div className="rounded-[28px] border border-pink-100 bg-[#FFF0F5] p-4 shadow-[0_20px_48px_rgba(141,26,68,0.10)]">
-          <img
-            src={fotoUrl}
-            alt="Retrato de la fotografa"
-            loading="lazy"
-            decoding="async"
-            className="aspect-[4/5] w-full rounded-[22px] object-cover object-center"
-          />
-        </div>
+        {mostrarFoto && (
+          <div className="rounded-[28px] border border-pink-100 bg-[#FFF0F5] p-4 shadow-[0_20px_48px_rgba(141,26,68,0.10)]">
+            <img
+              src={fotoUrl}
+              alt="Retrato de la fotografa"
+              loading="lazy"
+              decoding="async"
+              className="aspect-[4/5] w-full rounded-[22px] object-cover object-center"
+            />
+          </div>
+        )}
       </div>
     </section>
   );
