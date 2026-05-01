@@ -153,22 +153,12 @@ export default function Inicio() {
         )}
 
         <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-16 sm:px-6 sm:py-24 animate-fade-in">
-          <h1
-            className="font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 text-white"
-            style={{
-              // Sombra suave para el título principal
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.6)',
-            }}
-          >
+          <h1 className="font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 text-white text-shadow">
             {config.hero_titulo}
           </h1>
 
           <p
-            className="mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl text-white"
-            style={{
-              // Sombra discreta para el subtítulo
-              textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)',
-            }}
+            className="mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl text-white text-shadow"
           >
             {config.hero_subtitulo}
           </p>
