@@ -16,18 +16,47 @@
     background: #FAFAFA;
     color: #1F1F1F;
     margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   /* Playfair para todos los títulos por defecto */
-  h1, h2, h3, h4, h5, h6 {
+  h1 {
     font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem) !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
     color: #1F1F1F;
   }
 
-  p {
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 3vw, 2.5rem) !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    color: #1F1F1F;
+  }
+
+  h3 {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1.125rem !important;
+    font-weight: 500 !important;
+    line-height: 1.35 !important;
+    color: #1F1F1F;
+  }
+
+  h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #1F1F1F;
+  }
+
+  p, li {
     color: inherit;
+    line-height: 1.6;
   }
 
   button, input, textarea, select, a {
@@ -142,6 +171,10 @@
 
   .text-shadow-lg {
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  }
+
+  .text-shadow-hero-sub {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.5);
   }
 
   .text-shadow-md {

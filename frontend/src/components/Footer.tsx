@@ -6,12 +6,12 @@ export default function Footer() {
 
   return (
     <footer className="bg-pink-950 text-pink-50 mt-20">
-      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
+      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 min-[769px]:grid-cols-3 gap-10">
 
         {/* Marca */}
         <div>
-          <h3 className="font-playfair text-2xl font-light mb-3 text-white text-shadow-lg">Melina Diaz</h3>
-          <p className="text-pink-100 text-sm leading-relaxed text-shadow-md">
+          <h3 className="font-playfair text-2xl font-light mb-4 text-white">Melina Diaz</h3>
+          <p className="text-pink-100 text-sm leading-relaxed">
             Fotografía profesional en Zona Sur Buenos Aires.<br />
             Capturando momentos únicos con sensibilidad y pasión.
           </p>
@@ -19,14 +19,14 @@ export default function Footer() {
 
         {/* Links */}
         <div>
-          <h4 className="text-xs font-bold tracking-widest uppercase text-pink-50 mb-4 text-shadow-md">Galerías</h4>
-          <ul className="space-y-2 text-sm text-pink-100 text-shadow-md">
+          <h4 className="text-xs font-bold tracking-widest uppercase text-pink-50 mb-4">Galerías</h4>
+          <ul className="space-y-2 text-sm text-pink-100">
             {[
               { to: '/galeria/infantil', label: 'Book Infantil' },
               { to: '/galeria/quince',   label: '15 Años' },
               { to: '/galeria/bodas',    label: 'Bodas' },
               { to: '/servicios',        label: 'Servicios' },
-              { to: '/contacto',         label: 'Reservar sesión' },
+              { to: '/contacto',         label: 'Contacto' },
             ].map(({ to, label }) => (
               <li key={to}>
                 <Link to={to} className="hover:text-white transition-colors">{label}</Link>
@@ -37,8 +37,8 @@ export default function Footer() {
 
         {/* Contacto */}
         <div>
-          <h4 className="text-xs font-bold tracking-widest uppercase text-pink-50 mb-4 text-shadow-md">Contacto</h4>
-          <ul className="space-y-3 text-sm text-pink-100 text-shadow-md">
+          <h4 className="text-xs font-bold tracking-widest uppercase text-pink-50 mb-4">Contacto</h4>
+          <ul className="space-y-4 text-sm text-pink-100">
             <li>
               <a
                 href="https://wa.me/5491176348089"
@@ -52,12 +52,12 @@ export default function Footer() {
                 +54 9 11 7634-8089
               </a>
             </li>
-            <li className="text-pink-100 text-xs text-shadow-md">📍 Zona Sur, Buenos Aires</li>
+            <li className="text-pink-100 text-xs">📍 Zona Sur, Buenos Aires</li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-rose-deep text-center py-4 text-pink-100/80 text-xs text-shadow-md">
+      <div className="border-t border-rose-deep text-center py-4 text-pink-100/80 text-xs">
         © {new Date().getFullYear()} Melina Diaz Fotografía — Todos los derechos reservados
       </div>
     </footer>

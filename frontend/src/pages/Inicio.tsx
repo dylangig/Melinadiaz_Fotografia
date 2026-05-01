@@ -129,7 +129,7 @@ export default function Inicio() {
   return (
     <>
       <section
-        className="relative flex h-[calc(100vh-64px)] max-h-[720px] min-h-[500px] w-full flex-col items-center justify-end overflow-hidden text-center sm:h-auto sm:max-h-none sm:min-h-[calc(100vh-64px)] sm:justify-center"
+        className="relative flex h-[calc(100vh-64px)] max-h-[720px] min-h-[500px] w-full flex-col items-center justify-end overflow-hidden text-center min-[769px]:h-auto min-[769px]:max-h-none min-[769px]:min-h-[calc(100vh-64px)] min-[769px]:justify-center"
       >
         {conImagen && (
           <img
@@ -152,19 +152,19 @@ export default function Inicio() {
           </>
         )}
 
-        <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-16 sm:px-6 sm:py-24 animate-fade-in">
-          <h1 className="font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 text-white text-shadow">
+        <div className="relative mx-auto max-w-4xl px-4 pb-16 pt-12 sm:px-6 min-[769px]:py-24 animate-fade-in">
+          <h1 className="font-playfair text-3xl sm:text-4xl min-[769px]:text-6xl lg:text-7xl font-light leading-tight mb-4 min-[769px]:mb-8 text-white text-shadow">
             {config.hero_titulo}
           </h1>
 
           <p
-            className="mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl text-white text-shadow"
+            className="mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed min-[769px]:mb-12 min-[769px]:max-w-2xl min-[769px]:text-xl text-white text-shadow-hero-sub"
           >
             {config.hero_subtitulo}
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/contacto" className="btn-premium-primary px-8 py-3.5 text-xs font-semibold sm:px-10 sm:py-4 sm:text-sm">
+            <Link to="/contacto" className="btn-premium-primary px-8 py-4 text-xs font-semibold sm:px-10 sm:py-4 sm:text-sm">
               Reservar sesión
             </Link>
           </div>
@@ -172,7 +172,7 @@ export default function Inicio() {
       </section>
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 scroll-fade">
-        <h2 className="font-playfair text-3xl sm:text-4xl text-center text-pink-950 font-light mb-3">
+        <h2 className="font-playfair text-3xl sm:text-4xl text-center text-pink-950 font-light mb-4">
           Galerías
         </h2>
         <p className="text-center text-pink-800/70 text-xs tracking-[0.28em] uppercase mb-10 sm:mb-12">
@@ -180,13 +180,13 @@ export default function Inicio() {
         </p>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 min-[769px]:grid-cols-3 gap-6 lg:gap-6">
             {[1, 2, 3].map(i => (
               <div key={i} className="aspect-[4/5] rounded-[26px] bg-pink-50 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 min-[769px]:grid-cols-3 gap-6 lg:gap-6">
             {categoriasHome.map(cat => (
               <Link
                 key={cat.slug}
@@ -200,15 +200,15 @@ export default function Inicio() {
                   decoding="async"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-7">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/45 transition-opacity duration-500" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                   <p
                     className="font-playfair text-white text-[1.75rem] font-light tracking-wide text-shadow-lg"
                   >
                     {cat.nombre}
                   </p>
                   <p
-                    className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase text-shadow-md"
+                    className="text-white/90 text-xs mt-4 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase text-shadow-md"
                   >
                     Ver galería
                   </p>
@@ -221,21 +221,21 @@ export default function Inicio() {
 
       <section className="w-full bg-gradient-to-b from-pink-50 to-[#FAFAFA] py-16 sm:py-20">
         <div className="max-w-5xl mx-auto px-6 scroll-fade">
-          <p className="text-center text-pink-700/70 text-xs tracking-[0.28em] uppercase mb-3">
+          <p className="text-center text-pink-700/70 text-xs tracking-[0.28em] uppercase mb-4">
             Experiencias reales de clientes
           </p>
-          <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-9 sm:mb-10">
+          <h2 className="font-playfair text-3xl text-center text-pink-950 font-light mb-8 sm:mb-10">
             Lo que dicen mis clientes
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 min-[769px]:grid-cols-3 gap-6 lg:gap-6">
             {testimonios.map((t, i) => (
-              <div key={i} className="bg-[#fffdfd] rounded-[24px] px-7 py-6 border border-pink-100 shadow-[0_16px_36px_rgba(141,26,68,0.08)]">
-                <div className="mb-3 flex justify-center gap-1 text-[13px] text-pink-400" aria-label="5 estrellas">
+              <div key={i} className="bg-[#fffdfd] rounded-[24px] px-8 py-6 border border-pink-100 shadow-[0_16px_36px_rgba(141,26,68,0.08)]">
+                <div className="mb-4 flex justify-center gap-1 text-[13px] text-pink-400" aria-label="5 estrellas">
                   {Array.from({ length: 5 }).map((_, star) => (
                     <span key={star} aria-hidden="true">★</span>
                   ))}
                 </div>
-                <p className="text-pink-700/90 italic text-sm leading-relaxed mb-5 font-light min-h-[96px]">"{t.texto}"</p>
+                <p className="text-pink-700/90 italic text-sm leading-relaxed mb-4 font-light min-h-[96px]">"{t.texto}"</p>
                 <div className="border-t border-pink-50 pt-4 text-center">
                   <p className="text-pink-700 text-sm font-semibold tracking-wide">{t.autora}</p>
                   <p className="mt-1 text-[10px] tracking-[0.24em] uppercase text-pink-400/90">{t.tipo}</p>

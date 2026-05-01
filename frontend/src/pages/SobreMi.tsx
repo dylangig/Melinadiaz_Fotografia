@@ -70,14 +70,14 @@ export default function SobreMi() {
           {contenido.ctaTexto && contenido.ctaDestino && (
             <Link
               to={contenido.ctaDestino}
-              className="btn-premium-primary mt-8 inline-flex px-8 py-3 text-xs font-semibold"
+              className="btn-premium-primary mt-8 inline-flex px-8 py-4 text-xs font-semibold"
             >
               {contenido.ctaTexto}
             </Link>
           )}
         </div>
 
-        <div className="rounded-[28px] border border-pink-100 bg-[#FFF0F5] p-3 shadow-[0_20px_48px_rgba(141,26,68,0.10)]">
+        <div className="rounded-[28px] border border-pink-100 bg-[#FFF0F5] p-4 shadow-[0_20px_48px_rgba(141,26,68,0.10)]">
           <img
             src={fotoUrl}
             alt="Retrato de la fotografa"

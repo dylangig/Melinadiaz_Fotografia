@@ -29,7 +29,7 @@ export default function Servicios() {
             return (
               <div
                 key={s.nombre}
-                className={`group flex flex-col rounded-[26px] border border-pink-100 bg-[#fffdfd] p-7 shadow-[0_16px_36px_rgba(141,26,68,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(141,26,68,0.14)] sm:p-8
+                className={`group flex flex-col rounded-[26px] border border-pink-100 bg-[#fffdfd] p-8 shadow-[0_16px_36px_rgba(141,26,68,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(141,26,68,0.14)] sm:p-8
                   ${isLast && isOdd ? 'sm:col-span-2 sm:max-w-[430px] sm:mx-auto' : ''}`}
               >
                 {/* Fotos del servicio */}
@@ -52,11 +52,11 @@ export default function Servicios() {
                 )}
 
                 <div className="mb-4 h-px w-12 bg-pink-200 transition-all duration-300 ease-out group-hover:w-16 group-hover:bg-pink-400" />
-                <h3 className="font-playfair text-pink-950 text-2xl font-light mb-3">{s.nombre}</h3>
+                <h3 className="font-playfair text-pink-950 text-2xl font-light mb-4">{s.nombre}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed font-light flex-grow">{s.descripcion}</p>
                 <Link
                   to="/contacto"
-                  className="btn-premium-primary mt-7 px-10 py-4 text-center text-sm font-semibold"
+                  className="btn-premium-primary mt-8 px-10 py-4 text-center text-sm font-semibold"
                 >
                   Reservar sesión
                 </Link>

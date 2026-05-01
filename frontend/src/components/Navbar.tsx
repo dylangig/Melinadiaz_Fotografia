@@ -89,6 +89,7 @@ export default function Navbar() {
   }, [location.pathname]);
 
   if (location.pathname === '/contacto') return null;
+  const isHome = location.pathname === '/';
 
   const links = [
     { to: '/', label: 'Inicio' },
@@ -102,8 +103,8 @@ export default function Navbar() {
 
   return (
     <>
-    <div className="hidden h-36 md:block" aria-hidden="true" />
-    <div className="h-16 md:hidden" aria-hidden="true" />
+    <div className="hidden h-36 min-[769px]:block" aria-hidden="true" />
+    <div className="h-16 min-[769px]:hidden" aria-hidden="true" />
     <header
       className={`fixed top-0 left-0 w-full z-50 border-b border-[#F3B8CA] transition-all duration-300 ease-out ${
         scrolled
@@ -112,11 +113,11 @@ export default function Navbar() {
       }`}
     >
       <div className={`mx-auto transition-[max-width,padding] duration-300 ease-out ${
-        scrolled ? 'max-w-none px-5 sm:px-7 lg:px-9' : 'max-w-7xl px-4 sm:px-6'
+        scrolled ? 'max-w-none px-6 sm:px-8 lg:px-10' : 'max-w-7xl px-4 sm:px-6'
       }`}>
         {/* Desktop */}
         <div
-          className={`hidden md:flex overflow-hidden transition-[height,padding] duration-300 ease-out ${
+          className={`hidden min-[769px]:flex overflow-hidden transition-[height,padding] duration-300 ease-out ${
             scrolled
               ? 'h-16 flex-row items-center justify-between py-2'
               : 'h-36 flex-col items-center justify-center py-2'
@@ -160,7 +161,7 @@ export default function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               className={`bg-[#E96F9A] text-white rounded-full font-bold uppercase tracking-widest shadow-md hover:bg-[#D95F89] hover:shadow-lg transition-all duration-300 ease-out ${
-                scrolled ? 'px-5 py-2.5 text-[10px]' : 'hidden'
+                scrolled && !isHome ? 'px-6 py-2 text-[10px]' : 'hidden'
               }`}
             >
               Reservar sesión
@@ -169,7 +170,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile */}
-        <div className="md:hidden h-16 flex items-center justify-between">
+        <div className="h-16 flex items-center justify-between min-[769px]:hidden">
           <Link to="/" className="flex-shrink-0">
             <img
               src={logoUrl}
@@ -196,8 +197,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      <div className={`md:hidden overflow-hidden transition-all duration-300 bg-[#FFF3F6] border-t border-[#F3B8CA] ${
-        open ? 'max-h-96' : 'max-h-0'
+      <div className={`overflow-hidden transition-all duration-300 bg-[#FFF3F6] border-t border-[#F3B8CA] min-[769px]:hidden ${
+        open ? 'max-h-[448px]' : 'max-h-0'
       }`}>
         {links.map(({ to, label }) => (
           <NavLink
@@ -219,7 +220,7 @@ export default function Navbar() {
           rel="noopener noreferrer"
           className="block px-8 py-4 text-xs font-bold uppercase tracking-widest text-[#8A3D5A] hover:bg-[#F8EDEE] hover:text-[#D81B60]"
         >
-          Reservar sesión
+          Consultar por WhatsApp
         </a>
       </div>
     </header>

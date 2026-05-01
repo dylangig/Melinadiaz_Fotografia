@@ -16,14 +16,14 @@ export default function Inicio() {
         <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-pink-100/40 translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
         <div className="relative max-w-4xl mx-auto px-6 pt-40 pb-24">
-          <p className="text-xs tracking-[4px] uppercase text-pink-800 font-semibold mb-5">
+          <p className="text-xs tracking-[4px] uppercase text-pink-800 font-semibold mb-4">
             Fotografía Profesional · Zona Sur Buenos Aires
           </p>
           <h1 className="font-playfair text-5xl sm:text-6xl font-light text-pink-950 leading-tight mb-6">
             Capturando momentos<br />
             <em className="italic font-normal text-pink-700">que duran toda la vida</em>
           </h1>
-          <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed">
             Books infantiles, quinceañeras y bodas en Almirante Brown, Lomas de Zamora,
             Quilmes y toda la Zona Sur.
           </p>
@@ -36,7 +36,7 @@ export default function Inicio() {
             </Link>
             <Link
               to="/galeria/infantil"
-              className="border-2 border-pink-200 text-pink-700 px-8 py-3.5 rounded-full font-bold text-sm tracking-wide uppercase hover:border-pink-700 transition-colors"
+              className="border-2 border-pink-200 text-pink-700 px-8 py-4 rounded-full font-bold text-sm tracking-wide uppercase hover:border-pink-700 transition-colors"
             >
               Ver galerías
             </Link>
@@ -74,7 +74,7 @@ export default function Inicio() {
                   decoding="async"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/45 to-black/45" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <p className="font-playfair text-white text-2xl font-light tracking-widest uppercase text-shadow-lg">
                     {cat.nombre}
@@ -110,7 +110,7 @@ export default function Inicio() {
               },
             ].map((t, i) => (
               <div key={i} className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/80 shadow-sm">
-                <div className="text-pink-500 text-sm mb-3 tracking-widest">★★★★★</div>
+                <div className="text-pink-500 text-sm mb-4 tracking-widest">★★★★★</div>
                 <p className="text-gray-600 italic text-sm leading-relaxed mb-4">"{t.texto}"</p>
                 <div>
                   <span className="text-pink-800 font-bold text-xs tracking-widest uppercase">{t.autora}</span>

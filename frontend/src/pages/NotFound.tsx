@@ -11,20 +11,20 @@ export default function NotFound() {
       <h1 className="font-playfair text-2xl sm:text-3xl text-pink-700 font-light mb-4">
         Esta página no existe
       </h1>
-      <p className="text-gray-500 text-base leading-relaxed max-w-sm mb-10">
+      <p className="text-gray-500 text-base leading-relaxed max-w-sm mb-8">
         Parece que el momento que buscás no está en nuestro álbum. Puede que la URL esté
         mal escrita o que la página haya sido movida.
       </p>
       <div className="flex flex-wrap gap-4 justify-center">
         <Link
           to="/"
-          className="px-9 py-3.5 bg-pink-700 text-white rounded-full font-bold text-sm uppercase tracking-wide hover:bg-pink-900 transition-all hover:-translate-y-0.5"
+          className="px-8 py-4 bg-pink-700 text-white rounded-full font-bold text-sm uppercase tracking-wide hover:bg-pink-900 transition-all hover:-translate-y-0.5"
         >
           Volver al inicio
         </Link>
         <Link
           to="/contacto"
-          className="px-9 py-3.5 border-2 border-pink-100 text-pink-700 rounded-full font-bold text-sm uppercase tracking-wide hover:border-pink-700 transition-colors"
+          className="px-8 py-4 border-2 border-pink-100 text-pink-700 rounded-full font-bold text-sm uppercase tracking-wide hover:border-pink-700 transition-colors"
         >
           Contactanos
         </Link>

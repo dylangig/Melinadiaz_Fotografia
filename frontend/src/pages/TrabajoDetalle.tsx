@@ -44,7 +44,7 @@ export default function TrabajoDetalle() {
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="aspect-square rounded bg-pink-50 animate-pulse" />
           ))}
@@ -77,7 +77,7 @@ export default function TrabajoDetalle() {
           {trabajo.nombre}
         </h1>
         {desc && (
-          <p className="text-gray-400 text-sm italic tracking-wide mb-3">{desc}</p>
+          <p className="text-gray-400 text-sm italic tracking-wide mb-4">{desc}</p>
         )}
         <Link
           to={`/galeria/${categoriaSlug}`}
@@ -88,7 +88,7 @@ export default function TrabajoDetalle() {
       </div>
 
       {/* Grilla de fotos */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
         {fotosVisibles.map((foto, i) => (
           <div
             key={foto}
@@ -112,10 +112,10 @@ export default function TrabajoDetalle() {
 
       {/* CTA */}
       <div className="my-20 py-16 px-10 bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-100 shadow-[0_18px_42px_rgba(141,26,68,0.08)] rounded-3xl text-center">
-        <h3 className="font-playfair text-pink-700 text-3xl font-light mb-3">
+        <h3 className="font-playfair text-pink-700 text-3xl font-light mb-4">
           ¿Te gustó lo que viste?
         </h3>
-        <p className="text-gray-600 text-base mb-7 leading-relaxed">
+        <p className="text-gray-600 text-base mb-8 leading-relaxed">
           Reservá tu sesión de {nombre.toLowerCase()} y capturemos juntas tu momento especial en Zona Sur Buenos Aires.
         </p>
         <Link

@@ -30,13 +30,13 @@ export default function Categoria() {
 
       {/* Grilla */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-2 gap-6">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="aspect-square rounded-lg bg-pink-50 animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-2 gap-6">
           {trabajos.map((t, idx) => {
             const isLast = idx === trabajos.length - 1;
             const isOdd  = trabajos.length % 2 !== 0;
@@ -55,9 +55,9 @@ export default function Categoria() {
                     decoding="async"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
                     <p className="font-playfair text-white text-xl tracking-[2px] uppercase text-shadow-lg">{t.nombre}</p>
-                    <p className="text-pink-300 text-xs mt-1">{t.año}</p>
+                    <p className="text-pink-300 text-xs mt-2">{t.año}</p>
                   </div>
                 </div>
               </Link>
@@ -68,10 +68,10 @@ export default function Categoria() {
 
       {/* CTA */}
       <div className="my-20 py-16 px-10 bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-100 shadow-[0_18px_42px_rgba(141,26,68,0.08)] rounded-3xl text-center">
-        <h3 className="font-playfair text-pink-700 text-3xl font-light mb-3">
+        <h3 className="font-playfair text-pink-700 text-3xl font-light mb-4">
           ¿Querés una sesión como estas?
         </h3>
-        <p className="text-gray-600 text-base mb-7 leading-relaxed">
+        <p className="text-gray-600 text-base mb-8 leading-relaxed">
           Consultá disponibilidad y coordinamos tu sesión de {DESCRIPCIONES[categoriaSlug] ?? nombre.toLowerCase()} en Zona Sur Buenos Aires.
         </p>
         <Link
