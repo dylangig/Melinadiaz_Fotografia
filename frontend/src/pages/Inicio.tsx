@@ -156,13 +156,20 @@ export default function Inicio() {
           <h1
             className="font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 text-white"
             style={{
+              // Sombra suave para el título principal
               textShadow: '1px 1px 2px rgba(0, 0, 0, 0.6)',
             }}
           >
             {config.hero_titulo}
           </h1>
 
-          <p className="mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
+          <p
+            className="mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl text-white"
+            style={{
+              // Sombra discreta para el subtítulo
+              textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)',
+            }}
+          >
             {config.hero_subtitulo}
           </p>
 
@@ -205,10 +212,16 @@ export default function Inicio() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-7">
-                  <p className="font-playfair text-white text-[1.75rem] font-light tracking-wide [text-shadow:0_2px_4px_rgba(0,0,0,0.7)]">
+                  <p
+                    className="font-playfair text-white text-[1.75rem] font-light tracking-wide"
+                    style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.7)' }}
+                  >
                     {cat.nombre}
                   </p>
-                  <p className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
+                  <p
+                    className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase"
+                    style={{ textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)' }}
+                  >
                     Ver galería
                   </p>
                 </div>
