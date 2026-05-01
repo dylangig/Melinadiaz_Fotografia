@@ -29,7 +29,7 @@ export default function Footer() {
               { to: '/contacto',         label: 'Contacto' },
             ].map(({ to, label }) => (
               <li key={to}>
-                <Link to={to} className="hover:text-white transition-colors">{label}</Link>
+                <Link to={to} className="lining-nums hover:text-white transition-colors">{label}</Link>
               </li>
             ))}
           </ul>

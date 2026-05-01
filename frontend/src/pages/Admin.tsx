@@ -628,10 +628,10 @@ const guardarConfig = (campos: Partial<Config>) => {
   // ══════════════════════════════════════════════════════════════════════════
   if (!authed) return (
     <div className="min-h-screen flex items-center justify-center bg-pink-50 px-4">
-      <form onSubmit={handleLogin} className="bg-white w-full max-w-xs overflow-hidden rounded-3xl shadow-xl p-10 border border-pink-100">
+      <form onSubmit={handleLogin} className="bg-white w-[380px] overflow-hidden flex-shrink-0 rounded-3xl shadow-xl p-10 border border-pink-100">
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">📷</div>
-          <h1 className="font-playfair text-2xl font-bold text-gray-900 whitespace-nowrap">Panel Admin</h1>
+          <h1 className="font-playfair !text-3xl !font-bold text-gray-900 whitespace-nowrap">Panel Admin</h1>
           <p className="text-gray-400 text-xs mt-1 tracking-widest uppercase">Melina Diaz Fotografía</p>
         </div>
         <input type="password" placeholder="Contraseña" value={password}

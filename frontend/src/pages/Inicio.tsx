@@ -203,7 +203,7 @@ export default function Inicio() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/45 transition-opacity duration-500" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                   <p
-                    className="font-playfair text-white text-[1.75rem] font-light tracking-wide text-shadow-lg"
+                    className="font-playfair text-white text-[1.75rem] font-light tracking-wide lining-nums text-shadow-lg"
                   >
                     {cat.nombre}
                   </p>

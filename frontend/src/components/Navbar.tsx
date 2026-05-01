@@ -143,7 +143,7 @@ export default function Navbar() {
                   to={to}
                   end={to === '/'}
                   className={({ isActive }) =>
-                    `relative pb-1 leading-tight font-medium uppercase tracking-wide transition-colors duration-300 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-pink-500 after:transition-all after:duration-300 after:ease-out ${
+                    `relative pb-1 leading-tight font-medium uppercase tracking-wide lining-nums transition-colors duration-300 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-pink-500 after:transition-all after:duration-300 after:ease-out ${
                       scrolled ? 'text-sm lg:text-base' : 'text-base'
                     } ${
                       isActive
@@ -206,7 +206,7 @@ export default function Navbar() {
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `block px-8 py-4 text-xs font-bold uppercase tracking-widest border-b border-gray-50 transition-colors ${
+              `block px-8 py-4 text-xs font-bold uppercase tracking-widest lining-nums border-b border-gray-50 transition-colors ${
                 isActive ? 'text-[#8A3D5A] bg-[#F8EDEE]' : 'text-[#8A3D5A]/85 hover:bg-[#F8EDEE] hover:text-[#D81B60]'
               }`
             }

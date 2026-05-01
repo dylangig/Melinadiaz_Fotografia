@@ -24,7 +24,7 @@ export default function Categoria() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-10">
 
       {/* Título */}
-      <h1 className="font-playfair text-pink-700 text-center tracking-[3px] uppercase text-3xl mb-10">
+      <h1 className="font-playfair text-pink-700 text-center tracking-[3px] uppercase lining-nums text-3xl mb-10">
         {nombre}
       </h1>
 
@@ -56,7 +56,7 @@ export default function Categoria() {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                    <p className="font-playfair text-white text-xl tracking-[2px] uppercase text-shadow-lg">{t.nombre}</p>
+                    <p className="font-playfair text-white text-xl tracking-[2px] uppercase lining-nums text-shadow-lg">{t.nombre}</p>
                     <p className="text-pink-300 text-xs mt-2">{t.año}</p>
                   </div>
                 </div>
