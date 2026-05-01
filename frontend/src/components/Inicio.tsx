@@ -76,7 +76,7 @@ export default function Inicio() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <p className="font-playfair text-white text-2xl font-light tracking-widest uppercase">
+                  <p className="font-playfair text-white text-2xl font-light tracking-widest uppercase [text-shadow:0_2px_4px_rgba(0,0,0,0.7)]">
                     {cat.nombre}
                   </p>
                   <p className="text-pink-200 text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity tracking-widest">

@@ -133,12 +133,12 @@ export default function TrabajoDetalle() {
           onClick={() => setLightbox(null)}
         >
           <button
-            className="absolute top-5 right-6 text-white text-5xl font-thin leading-none hover:text-pink-300 transition-colors"
+            className="absolute top-5 right-6 text-white text-5xl font-thin leading-none hover:text-pink-300 transition-colors [text-shadow:0_2px_4px_rgba(0,0,0,0.7)]"
             onClick={() => setLightbox(null)}
           >×</button>
 
           <button
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-6xl font-thin hover:text-pink-300 transition-colors"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-6xl font-thin hover:text-pink-300 transition-colors [text-shadow:0_2px_4px_rgba(0,0,0,0.7)]"
             onClick={e => { e.stopPropagation(); setLightbox(l => (l !== null && l > 0) ? l - 1 : l); }}
           >‹</button>
 
@@ -152,11 +152,11 @@ export default function TrabajoDetalle() {
           />
 
           <button
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-6xl font-thin hover:text-pink-300 transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-6xl font-thin hover:text-pink-300 transition-colors [text-shadow:0_2px_4px_rgba(0,0,0,0.7)]"
             onClick={e => { e.stopPropagation(); setLightbox(l => (l !== null && l < trabajo.fotos.length - 1) ? l + 1 : l); }}
           >›</button>
 
-          <div className="absolute bottom-5 text-white/50 text-sm">
+          <div className="absolute bottom-5 text-white/50 text-sm [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
             {lightbox + 1} / {trabajo.fotos.length}
           </div>
         </div>

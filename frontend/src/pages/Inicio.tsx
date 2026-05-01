@@ -153,11 +153,16 @@ export default function Inicio() {
         )}
 
         <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-16 sm:px-6 sm:py-24 animate-fade-in">
-          <h1 className="font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 text-pink-700">
+          <h1
+            className="font-playfair text-4xl sm:text-6xl lg:text-7xl font-light leading-tight mb-5 sm:mb-8 text-white"
+            style={{
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.6)',
+            }}
+          >
             {config.hero_titulo}
           </h1>
 
-          <p className={`mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl ${conImagen ? 'text-pink-100/90' : 'text-pink-700/80'}`}>
+          <p className="mx-auto mb-8 max-w-[20rem] text-sm leading-relaxed sm:mb-12 sm:max-w-2xl sm:text-xl text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
             {config.hero_subtitulo}
           </p>
 
@@ -200,10 +205,10 @@ export default function Inicio() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-7">
-                  <p className="font-playfair text-white text-[1.75rem] font-light tracking-wide">
+                  <p className="font-playfair text-white text-[1.75rem] font-light tracking-wide [text-shadow:0_2px_4px_rgba(0,0,0,0.7)]">
                     {cat.nombre}
                   </p>
-                  <p className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase">
+                  <p className="text-white/90 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.28em] uppercase [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
                     Ver galería
                   </p>
                 </div>
