@@ -5,11 +5,27 @@ export default function Footer() {
   if (location.pathname === '/contacto') return null;
 
   return (
-    <footer className="bg-pink-950 text-pink-50 mt-20">
-      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 min-[769px]:grid-cols-3 gap-10">
+    <footer className="relative mt-20 overflow-hidden bg-pink-950 text-pink-50">
+      <div className="relative overflow-hidden">
+      <img
+        src="/assets/footer-flower-left.png"
+        alt=""
+        aria-hidden="true"
+        onError={e => { e.currentTarget.style.display = 'none'; }}
+        className="pointer-events-none absolute bottom-0 left-[-10px] z-0 w-[140px] select-none opacity-[0.12] min-[769px]:w-[220px] min-[769px]:opacity-[0.20] lg:w-[260px]"
+      />
+      <img
+        src="/assets/footer-flower-right.png"
+        alt=""
+        aria-hidden="true"
+        onError={e => { e.currentTarget.style.display = 'none'; }}
+        className="pointer-events-none absolute bottom-0 right-[70px] z-0 hidden w-[120px] select-none opacity-[0.08] min-[769px]:right-[90px] min-[769px]:block min-[769px]:w-[150px] lg:right-[110px] lg:w-[180px]"
+      />
+
+      <div className="relative z-10 grid max-w-6xl grid-cols-1 gap-8 px-6 py-14 mx-auto min-[769px]:grid-cols-3 min-[769px]:gap-10">
 
         {/* Marca */}
-        <div>
+        <div className="border-b border-white/15 pb-8 min-[769px]:border-b-0 min-[769px]:border-r min-[769px]:border-white/25 min-[769px]:pb-0 min-[769px]:pr-10">
           <h3 className="font-playfair text-2xl font-light mb-4 text-white">Melina Diaz</h3>
           <p className="text-pink-100 text-sm leading-relaxed">
             Fotografía profesional en Zona Sur Buenos Aires.<br />
@@ -18,7 +34,7 @@ export default function Footer() {
         </div>
 
         {/* Links */}
-        <div>
+        <div className="border-b border-white/15 pb-8 min-[769px]:border-b-0 min-[769px]:border-r min-[769px]:border-white/25 min-[769px]:pb-0 min-[769px]:px-10">
           <h4 className="text-xs font-bold tracking-widest uppercase text-pink-50 mb-4">Galerías</h4>
           <ul className="space-y-2 text-sm text-pink-100">
             {[
@@ -36,7 +52,7 @@ export default function Footer() {
         </div>
 
         {/* Contacto */}
-        <div>
+        <div className="min-[769px]:pl-10">
           <h4 className="text-xs font-bold tracking-widest uppercase text-pink-50 mb-4">Contacto</h4>
           <ul className="space-y-4 text-sm text-pink-100">
             <li>
@@ -52,12 +68,20 @@ export default function Footer() {
                 +54 9 11 7634-8089
               </a>
             </li>
-            <li className="text-pink-100 text-xs">📍 Zona Sur, Buenos Aires</li>
+            <li className="flex items-center gap-2 text-pink-100 text-xs">
+              <svg className="h-4 w-4 flex-shrink-0 text-pink-100/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20 10c0 4.8-8 11-8 11S4 14.8 4 10a8 8 0 1 1 16 0Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              Zona Sur, Buenos Aires
+            </li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-rose-deep text-center py-4 text-pink-100/80 text-xs">
+      </div>
+
+      <div className="relative z-10 border-t border-white/20 text-center py-4 text-pink-100/80 text-xs">
         © {new Date().getFullYear()} Melina Diaz Fotografía — Todos los derechos reservados
       </div>
     </footer>
