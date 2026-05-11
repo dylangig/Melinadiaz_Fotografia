@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { useTrabajos } from '../hooks/useApi';
+import { useSEO } from '../hooks/useSEO';
 
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
 
@@ -19,6 +20,10 @@ export default function Categoria() {
   const { categoriaSlug = '' } = useParams();
   const { trabajos, loading }  = useTrabajos(categoriaSlug);
   const nombre = NOMBRES[categoriaSlug] ?? categoriaSlug;
+  useSEO({
+    title: `${nombre} | Melina Diaz Fotografía`,
+    description: `Galería de ${DESCRIPCIONES[categoriaSlug] ?? nombre.toLowerCase()} en Zona Sur Buenos Aires. Fotógrafa profesional.`,
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-10">

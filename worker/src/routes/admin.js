@@ -335,14 +335,15 @@ export async function subirPortada(request, env) {
   if (!file?.name) return error('No se recibió ningún archivo');
   if (!slug)       return error('Falta el slug de la categoría');
 
-  const cat = await env.DB.prepare('SELECT slug FROM categorias WHERE slug = ?').bind(slug).first();
+  const cat = await env.DB.prepare('SELECT slug, portada FROM categorias WHERE slug = ?').bind(slug).first();
   if (!cat) return error('Categoría no encontrada', 404);
 
   const ext      = file.name.split('.').pop()?.toLowerCase() || 'webp';
-  const nombreR2 = `portada-${slug}.${ext}`;
+  const nombreR2 = `portada-${slug}-${Date.now()}.${ext}`;
   await subirImagenAR2(env.BUCKET, nombreR2, await file.arrayBuffer(), file.type);
 
   await env.DB.prepare('UPDATE categorias SET portada = ? WHERE slug = ?').bind(nombreR2, slug).run();
+  if (cat.portada && cat.portada !== nombreR2) env.BUCKET.delete(cat.portada).catch(() => {});
 
   return json({ url: `${env.R2_PUBLIC_URL}/${nombreR2}`, mensaje: `Portada de ${slug} actualizada.` });
 }

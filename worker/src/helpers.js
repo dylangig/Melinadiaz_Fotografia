@@ -20,10 +20,12 @@ export function getCorsHeaders(request, env) {
 }
 
 // Respuesta JSON con CORS
-export function json(data, status = 200, corsHeaders = {}) {
+export function json(data, status = 200, corsHeaders = {}, maxAge = 0) {
+  const headers = { 'Content-Type': 'application/json', ...corsHeaders };
+  if (maxAge > 0) headers['Cache-Control'] = `public, max-age=${maxAge}, s-maxage=${maxAge}`;
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    headers,
   });
 }
 
@@ -54,6 +56,6 @@ export function slugify(texto) {
 // Por ahora subimos la imagen original y dejamos que R2 la sirva.
 export async function subirImagenAR2(bucket, key, arrayBuffer, contentType) {
   await bucket.put(key, arrayBuffer, {
-    httpMetadata: { contentType: contentType || 'image/webp' },
+    httpMetadata: { contentType: contentType || 'image/webp', cacheControl: 'public, max-age=31536000, immutable' },
   });
 }

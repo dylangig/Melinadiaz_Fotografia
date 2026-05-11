@@ -1,45 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategorias } from '../hooks/useApi';
+import { useConfig } from '../context/ConfigContext';
+import { useSEO } from '../hooks/useSEO';
 
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
 const API_BASE = import.meta.env.VITE_API_URL || '';
-const DEFAULT_HERO_URL = `${R2}/assets/hero.webp`;
 const HERO_PRIORITY_ATTRS = { fetchpriority: 'high' };
-
-const getTexto = (value: unknown, fallback = ''): string =>
-  typeof value === 'string' ? value : fallback;
-
-const normalizarUrlImagen = (value: unknown): string => {
-  const raw = getTexto(value).trim();
-  if (!raw) return '';
-  if (/^https?:\/\//i.test(raw)) return raw;
-  return raw.startsWith('/') ? `${R2}${raw}` : `${R2}/${raw}`;
-};
-
-interface Config {
-  hero_url: string;
-  hero_titulo: string;
-  hero_subtitulo: string;
-  hero_boton_texto: string;
-  favicon_url: string;
-  whatsapp: string;
-}
 
 interface Testimonio {
   texto: string;
   autora: string;
   tipo: string;
 }
-
-const DEFAULT_CONFIG: Config = {
-  hero_url: DEFAULT_HERO_URL,
-  hero_titulo: 'Transformo momentos en recuerdos eternos',
-  hero_subtitulo: 'Books infantiles, 15 años y bodas con una mirada artística y emocional.',
-  hero_boton_texto: 'Reservar sesión',
-  favicon_url: '',
-  whatsapp: '5491176348089',
-};
 
 const TESTIMONIOS_FALLBACK: Testimonio[] = [
   {
@@ -61,26 +34,19 @@ const TESTIMONIOS_FALLBACK: Testimonio[] = [
 
 export default function Inicio() {
   const { categorias, loading } = useCategorias();
-  const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
+  const config = useConfig();
+  useSEO({
+    title: config.nombre_marca
+      ? `${config.nombre_marca} | Fotografía Zona Sur Buenos Aires`
+      : 'Melina Diaz Fotografía | Zona Sur Buenos Aires',
+    description: config.seo_descripcion ||
+      'Fotografía profesional de books infantiles, 15 años y bodas en Zona Sur Buenos Aires.',
+    imageUrl: config.hero_url || undefined,
+  });
   const [testimonios, setTestimonios] = useState<Testimonio[]>(TESTIMONIOS_FALLBACK);
   const [heroImageError, setHeroImageError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/configuracion`)
-      .then(r => { if (r.ok) return r.json(); throw new Error(); })
-      .then(data => {
-        const cfg = (data && typeof data === 'object') ? data as Partial<Config> : {};
-        setConfig({
-          hero_url: normalizarUrlImagen(cfg.hero_url) || DEFAULT_HERO_URL,
-          hero_titulo: getTexto(cfg.hero_titulo, 'Transformo momentos en recuerdos eternos'),
-          hero_subtitulo: getTexto(cfg.hero_subtitulo, 'Books infantiles, 15 años y bodas con una mirada artística y emocional.'),
-          hero_boton_texto: getTexto(cfg.hero_boton_texto, 'Reservar sesión'),
-          favicon_url: normalizarUrlImagen(cfg.favicon_url),
-          whatsapp: getTexto(cfg.whatsapp, '5491176348089'),
-        });
-      })
-      .catch(() => {});
-
     fetch(`${API_BASE}/api/testimonios`)
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
       .then(data => {
@@ -99,12 +65,6 @@ export default function Inicio() {
   useEffect(() => {
     setHeroImageError(false);
   }, [config.hero_url]);
-
-  useEffect(() => {
-    if (!config.favicon_url) return;
-    const link = document.getElementById('favicon') as HTMLLinkElement | null;
-    if (link) link.href = config.favicon_url;
-  }, [config.favicon_url]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

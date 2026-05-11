@@ -11,7 +11,7 @@ from botocore.client import Config
 from PIL import Image
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "clave-secreta-melina-2026")
+app.secret_key = os.getenv("SECRET_KEY", "")
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 # Agregá acá la URL que te dé Cloudflare Pages después del deploy
@@ -23,13 +23,13 @@ CORS(app, origins=[
 ], supports_credentials=True)
 
 # ── Configuración ─────────────────────────────────────────────────────────────
-ADMIN_PASSWORD       = os.environ.get("ADMIN_PASSWORD", "melina2026")
-DOMINIO              = "https://melinadiazfotografia.com.ar"
-R2_ACCOUNT_ID        = os.environ.get("R2_ACCOUNT_ID",        "f05d4a1ce85a4539c5283aca3811f9ea")
-R2_ACCESS_KEY_ID     = os.environ.get("R2_ACCESS_KEY_ID",     "2b51d72379586c915e2753b11a878c87")
-R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "ef29dbacca24a2636f7c5cdf29d3a35bc3e1638bd9fe8121070125daa71f29c7")
-R2_BUCKET_NAME       = os.environ.get("R2_BUCKET_NAME",       "fotosmelinaapp")
-R2_PUBLIC_URL        = "https://imagenes.melinadiazfotografia.com.ar"
+ADMIN_PASSWORD       = os.getenv("ADMIN_PASSWORD", "")
+DOMINIO              = os.getenv("DOMINIO", "")
+R2_ACCOUNT_ID        = os.getenv("R2_ACCOUNT_ID", "")
+R2_ACCESS_KEY_ID     = os.getenv("R2_ACCESS_KEY_ID", "")
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY", "")
+R2_BUCKET_NAME       = os.getenv("R2_BUCKET_NAME", "")
+R2_PUBLIC_URL        = os.getenv("R2_PUBLIC_URL", "")
 
 # ── Datos estáticos ───────────────────────────────────────────────────────────
 categorias = [

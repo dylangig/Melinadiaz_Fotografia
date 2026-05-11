@@ -1,19 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-
-const DEFAULT_LOGO = 'https://imagenes.melinadiazfotografia.com.ar/logo.webp';
-const API_BASE     = import.meta.env.VITE_API_URL || '';
+import { useConfig } from '../context/ConfigContext';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [logoUrl, setLogoUrl] = useState(DEFAULT_LOGO);
-  const [nombreMarca, setNombreMarca] = useState('Melina Diaz Fotografía');
-  const [whatsapp, setWhatsapp] = useState('5491176348089');
   const lastScrollY = useRef(0);
   const compactRef = useRef(false);
   const rafId = useRef<number | null>(null);
   const location = useLocation();
+  const { logo_url, nombre_marca, whatsapp } = useConfig();
 
   useEffect(() => {
     const NORMAL_UNTIL = 80;
@@ -67,15 +63,6 @@ export default function Navbar() {
     });
     updateCompactState();
 
-    fetch(`${API_BASE}/api/configuracion`)
-      .then(r => { if (r.ok) return r.json(); throw new Error(); })
-      .then(data => {
-        if (data?.logo_url) setLogoUrl(data.logo_url);
-        if (data?.nombre_marca) setNombreMarca(data.nombre_marca);
-        if (data?.whatsapp) setWhatsapp(data.whatsapp);
-      })
-      .catch(() => {});
-
     return () => {
       scrollTargets.forEach(target => {
         target.removeEventListener('scroll', handleScroll, scrollOptions);
@@ -125,8 +112,8 @@ export default function Navbar() {
         >
           <Link to="/" className={`flex items-center transition-all duration-300 ease-out ${scrolled ? '' : 'mb-1'}`}>
             <img
-              src={logoUrl}
-              alt={nombreMarca}
+              src={logo_url}
+              alt={nombre_marca}
               loading="eager"
               decoding="async"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -173,8 +160,8 @@ export default function Navbar() {
         <div className="h-16 flex items-center justify-between min-[769px]:hidden">
           <Link to="/" className="flex-shrink-0">
             <img
-              src={logoUrl}
-              alt={nombreMarca}
+              src={logo_url}
+              alt={nombre_marca}
               loading="eager"
               decoding="async"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}

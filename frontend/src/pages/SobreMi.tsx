@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { SobreMi as SobreMiData } from '../types';
+import { useSEO } from '../hooks/useSEO';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
@@ -26,6 +27,15 @@ const normalizarUrlImagen = (value: string): string => {
 
 export default function SobreMi() {
   const [contenido, setContenido] = useState<SobreMiData>(SOBRE_MI_DEFAULT);
+  useSEO({
+    title: contenido.titulo
+      ? `${contenido.titulo} | Melina Diaz Fotografía`
+      : 'Sobre mí | Melina Diaz Fotografía',
+    description: contenido.texto
+      ? contenido.texto.split('\n\n')[0].slice(0, 155)
+      : 'Conocé a Melina, fotógrafa especializada en books infantiles, 15 años y bodas en Zona Sur.',
+    imageUrl: contenido.fotoUrl ? normalizarUrlImagen(contenido.fotoUrl) : undefined,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

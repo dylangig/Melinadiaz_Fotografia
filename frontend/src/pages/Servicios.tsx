@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useServicios } from '../hooks/useApi';
+import { useSEO } from '../hooks/useSEO';
 
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
 
 export default function Servicios() {
+  useSEO({
+    title: 'Servicios | Melina Diaz Fotografía',
+    description: 'Books infantiles, 15 años y bodas. Conocé todos los servicios de fotografía profesional en Zona Sur Buenos Aires.',
+  });
   const { servicios, loading } = useServicios();
 
   return (

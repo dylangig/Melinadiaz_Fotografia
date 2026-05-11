@@ -13,7 +13,7 @@ export async function getCategorias(env) {
     portada:       cat.portada,
     orden:         cat.orden,
     mostrarEnHome: Boolean(cat.mostrar_en_home),
-  })));
+  })), 200, {}, 60);
 }
 
 // GET /api/trabajos/:categoriaSlug
@@ -30,21 +30,27 @@ export async function getTrabajos(env, categoriaSlug) {
      ORDER BY orden ASC, id ASC`
   ).bind(categoriaSlug).all();
 
-  const trabajosConFotos = await Promise.all(
-    trabajos.map(async (t) => {
-      const { results: fotos } = await env.DB.prepare(
-        'SELECT nombre FROM fotos WHERE trabajo_id = ? ORDER BY orden ASC, id ASC'
-      ).bind(t.id).all();
-      return {
-        slug:               t.slug,
-        nombre:             t.nombre,
-        año:                t.año,
-        descripcion:        t.descripcion        ?? null,
-        descripcion_evento: t.descripcion_evento ?? null,
-        fotos:              fotos.map(f => f.nombre),
-      };
-    })
-  );
+  if (trabajos.length === 0) return json([]);
+
+  const ids = trabajos.map(t => t.id);
+  const placeholders = ids.map(() => '?').join(', ');
+  const { results: fotos } = await env.DB.prepare(
+    `SELECT trabajo_id, nombre FROM fotos WHERE trabajo_id IN (${placeholders}) ORDER BY trabajo_id ASC, orden ASC, id ASC`
+  ).bind(...ids).all();
+  const fotosPorTrabajo = {};
+  for (const foto of fotos) {
+    if (!fotosPorTrabajo[foto.trabajo_id]) fotosPorTrabajo[foto.trabajo_id] = [];
+    fotosPorTrabajo[foto.trabajo_id].push(foto.nombre);
+  }
+
+  const trabajosConFotos = trabajos.map(t => ({
+    slug:               t.slug,
+    nombre:             t.nombre,
+    año:                t.año,
+    descripcion:        t.descripcion        ?? null,
+    descripcion_evento: t.descripcion_evento ?? null,
+    fotos:              fotosPorTrabajo[t.id] ?? [],
+  }));
 
   return json(trabajosConFotos);
 }
@@ -83,7 +89,7 @@ export async function getServicios(env) {
     nombre:      s.nombre,
     descripcion: s.descripcion,
     fotos:       JSON.parse(s.fotos_json ?? '[]'),
-  })));
+  })), 200, {}, 120);
 }
 
 // GET /api/testimonios
@@ -92,7 +98,7 @@ export async function getTestimonios(env) {
     const { results } = await env.DB.prepare(
       'SELECT texto, autora, tipo FROM testimonios WHERE activo = 1 ORDER BY orden ASC'
     ).all();
-    return json(results);
+    return json(results, 200, {}, 120);
   } catch {
     return json([]);
   }
@@ -105,7 +111,7 @@ export async function getConfiguracion(request, env) {
       `SELECT * FROM configuracion WHERE id = 1`
     ).first();
 
-    return json(row || {});
+    return json(row || {}, 200, {}, 60);
   } catch (e) {
     console.error('Error en /api/configuracion:', e);
     return error('Error obteniendo configuración', 500);
@@ -130,7 +136,7 @@ export async function getSobreMi(env) {
       fotoUrl:     row.foto_url    ?? '',
       ctaTexto:    row.cta_texto   ?? '',
       ctaDestino:  row.cta_destino ?? '',
-    });
+    }, 200, {}, 120);
   } catch (e) {
     console.error('Error en /api/sobre-mi:', e);
     return error('Error obteniendo sobre mi', 500);

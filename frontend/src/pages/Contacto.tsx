@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useConfig } from '../context/ConfigContext';
 
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
-const API_BASE = import.meta.env.VITE_API_URL || '';
-const DEFAULT_WHATSAPP = '5491176348089';
-const DEFAULT_WHATSAPP_MESSAGE = 'Hola Melina, vi tu web y quería consultar por una sesión de fotos.';
 
 interface FormErrors {
   nombre?: string;
@@ -13,31 +11,20 @@ interface FormErrors {
 }
 
 export default function Contacto() {
+  const { whatsapp, email } = useConfig();
   const [nombre,   setNombre]   = useState('');
   const [telefono, setTelefono] = useState('');
   const [tipo,     setTipo]     = useState('');
   const [fecha,    setFecha]    = useState('');
   const [consulta, setConsulta] = useState('');
-  const [whatsapp, setWhatsapp] = useState(DEFAULT_WHATSAPP);
-  const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    fetch(`${API_BASE}/api/configuracion`)
-      .then(r => { if (r.ok) return r.json(); throw new Error(); })
-      .then(data => {
-        if (data?.whatsapp) setWhatsapp(data.whatsapp);
-        if (data?.email) setEmail(data.email);
-      })
-      .catch(() => {});
-  }, []);
-
-  const whatsappLink = (mensaje = DEFAULT_WHATSAPP_MESSAGE) =>
+  const whatsappLink = (mensaje = 'Hola Melina, vi tu web y quería consultar por una sesión de fotos.') =>
     `https://wa.me/${whatsapp}?text=${encodeURIComponent(mensaje)}`;
 
   const mailtoLink = email
-    ? `mailto:${email}?subject=${encodeURIComponent('Consulta desde la web')}&body=${encodeURIComponent(DEFAULT_WHATSAPP_MESSAGE)}`
+    ? `mailto:${email}?subject=${encodeURIComponent('Consulta desde la web')}&body=${encodeURIComponent('Hola Melina, vi tu web y quería consultar por una sesión de fotos.')}`
     : '';
 
   const validarFormulario = (): FormErrors => {
@@ -63,7 +50,7 @@ export default function Contacto() {
     setSuccess('');
     if (Object.values(nextErrors).some(Boolean)) return;
 
-    let mensaje = DEFAULT_WHATSAPP_MESSAGE;
+    let mensaje = 'Hola Melina, vi tu web y quería consultar por una sesión de fotos.';
     mensaje += `\n\nSoy ${nombre.trim()}.`;
     mensaje += `\nMi telefono es ${telefono.trim()}.`;
     mensaje += `\nEstoy interesada en: ${tipo}.`;
