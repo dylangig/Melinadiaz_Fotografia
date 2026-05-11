@@ -507,3 +507,53 @@ export async function eliminarCategoria(request, env) {
 
   return json({ mensaje: `Categoría '${slug}' y todas sus sesiones eliminadas.` });
 }
+
+export async function reordenarCategorias(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+  const { slugs } = await request.json().catch(() => ({}));
+  if (!Array.isArray(slugs) || slugs.length === 0) return error('Falta el array slugs');
+  await Promise.all(
+    slugs.map((slug, idx) =>
+      env.DB.prepare('UPDATE categorias SET orden = ? WHERE slug = ?')
+        .bind(idx + 1, slug).run()
+    )
+  );
+  return json({ mensaje: 'Categorías reordenadas.' });
+}
+
+export async function getServiciosAdmin(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+  const { results } = await env.DB.prepare(
+    'SELECT id, nombre, descripcion, fotos_json, orden FROM servicios WHERE activo = 1 ORDER BY orden ASC'
+  ).all();
+  return json(results.map(s => ({ ...s, fotos: JSON.parse(s.fotos_json ?? '[]') })));
+}
+
+export async function nuevoServicio(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+  const { nombre, descripcion } = await request.json().catch(() => ({}));
+  if (!nombre) return error('Falta el nombre');
+  const max = await env.DB.prepare('SELECT COALESCE(MAX(orden),0) as m FROM servicios').first();
+  await env.DB.prepare(
+    'INSERT INTO servicios (nombre, descripcion, fotos_json, orden) VALUES (?, ?, ?, ?)'
+  ).bind(nombre.trim(), descripcion?.trim() || '', '[]', (max?.m ?? 0) + 1).run();
+  return json({ mensaje: 'Servicio creado.' });
+}
+
+export async function editarServicio(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+  const { id, nombre, descripcion } = await request.json().catch(() => ({}));
+  if (!id) return error('Falta el id');
+  await env.DB.prepare(
+    'UPDATE servicios SET nombre = ?, descripcion = ? WHERE id = ?'
+  ).bind(nombre?.trim(), descripcion?.trim() || '', id).run();
+  return json({ mensaje: 'Servicio actualizado.' });
+}
+
+export async function eliminarServicio(request, env) {
+  if (!await requireAdmin(request, env)) return error('No autorizado', 401);
+  const { id } = await request.json().catch(() => ({}));
+  if (!id) return error('Falta el id');
+  await env.DB.prepare('UPDATE servicios SET activo = 0 WHERE id = ?').bind(id).run();
+  return json({ mensaje: 'Servicio eliminado.' });
+}

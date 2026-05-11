@@ -17,8 +17,9 @@ import {
   actualizarConfiguracion, subirLogo, subirHero, subirSobreMiFoto, subirPortada,
   // Testimonios
   getTestimoniosAdmin, nuevoTestimonio, editarTestimonio, eliminarTestimonio,
+  getServiciosAdmin, nuevoServicio, editarServicio, eliminarServicio,
   // Categorías
-  guardarSobreMi, nuevaCategoria, renombrarCategoria, actualizarMostrarEnHome, eliminarCategoria,
+  guardarSobreMi, nuevaCategoria, renombrarCategoria, actualizarMostrarEnHome, eliminarCategoria, reordenarCategorias,
 } from './routes/admin.js';
 
 export default {
@@ -80,10 +81,16 @@ export default {
         if (method === 'POST' && sub === 'testimonios'  && sub2 === 'editar')return withCors(await editarTestimonio(request, env), cors);
         if (method === 'POST' && sub === 'testimonios'  && sub2 === 'eliminar') return withCors(await eliminarTestimonio(request, env), cors);
 
+        if (method === 'GET'  && sub === 'servicios' && !sub2) return withCors(await getServiciosAdmin(request, env), cors);
+        if (method === 'POST' && sub === 'servicios' && sub2 === 'nuevo') return withCors(await nuevoServicio(request, env), cors);
+        if (method === 'POST' && sub === 'servicios' && sub2 === 'editar') return withCors(await editarServicio(request, env), cors);
+        if (method === 'POST' && sub === 'servicios' && sub2 === 'eliminar') return withCors(await eliminarServicio(request, env), cors);
+
         // Categorías
         if (method === 'POST' && sub === 'categorias' && sub2 === 'nueva')    return withCors(await nuevaCategoria(request, env), cors);
         if (method === 'POST' && sub === 'categorias' && sub2 === 'renombrar')return withCors(await renombrarCategoria(request, env), cors);
         if (method === 'POST' && sub === 'categorias' && sub2 === 'mostrar-home') return withCors(await actualizarMostrarEnHome(request, env), cors);
+        if (method === 'POST' && sub === 'categorias' && sub2 === 'reordenar') return withCors(await reordenarCategorias(request, env), cors);
         if (method === 'POST' && sub === 'categorias' && sub2 === 'eliminar') return withCors(await eliminarCategoria(request, env), cors);
       }
 

@@ -12,6 +12,7 @@ import {
   arrayMove,
   rectSortingStrategy,
   SortableContext,
+  verticalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -148,6 +149,7 @@ interface Config {
   footer_texto: string; seo_descripcion: string;
 }
 interface Testimonio { id?: number; texto: string; autora: string; tipo: string; orden: number; }
+interface Servicio { id: number; nombre: string; descripcion: string; orden: number; }
 interface CatExtended extends Categoria { portada: string; }
 interface NuevoTrabajoForm { descripcion: string; descripcion_evento: string; }
 interface ImageOptimizationResult { file: File; originalSize: number; finalSize: number; changed: boolean; }
@@ -263,6 +265,26 @@ function FotoDragOverlay({ src, foto }: { src: string; foto: string }) {
   );
 }
 
+function SortableCategoria({ children, id }: { children: React.ReactNode; id: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
+      {...attributes}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 px-1 text-lg select-none touch-none"
+          title="Arrastrar para reordenar"
+        >⠿</span>
+        <div className="flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const [authed,      setAuthed]      = useState(false);
   const [password,    setPassword]    = useState('');
@@ -277,12 +299,14 @@ export default function Admin() {
   const [categorias,  setCategorias]  = useState<CatExtended[]>([]);
   const [trabajos,    setTrabajos]    = useState<TrabajosData>({});
   const [testimonios, setTestimonios] = useState<Testimonio[]>([]);
+  const [servicios, setServicios] = useState<Servicio[]>([]);
   const [sobreMi,     setSobreMi]     = useState<SobreMi>(SOBRE_MI_VACIO);
 
   // Modales
   const [modalFotos,    setModalFotos]    = useState<{ cat: string; slug: string } | null>(null);
   const [modalEditar,   setModalEditar]   = useState<{ cat: string; slug: string; desc: string; descEvento: string } | null>(null);
   const [modalTestim,   setModalTestim]   = useState<Testimonio | null>(null);
+  const [modalServicio, setModalServicio] = useState<Servicio | null>(null);
   const [modalNuevaCat, setModalNuevaCat] = useState(false);
   const [modalNuevaSes, setModalNuevaSes] = useState(false);
   const [nuevoTrabajoForm, setNuevoTrabajoForm] = useState<NuevoTrabajoForm>(NUEVO_TRABAJO_FORM_VACIO);
@@ -315,11 +339,12 @@ export default function Admin() {
   const cargarTodo = async () => {
     setLoading(true);
     try {
-      const [catRes, trabRes, confRes, testimRes, sobreMiRes] = await Promise.all([
+      const [catRes, trabRes, confRes, testimRes, serviciosRes, sobreMiRes] = await Promise.all([
         apiFetch('/api/categorias'),
         apiFetch('/api/admin/trabajos-todos'),
         apiFetch('/api/configuracion'),
         apiFetch('/api/admin/testimonios'),
+        apiFetch('/api/admin/servicios'),
         apiFetch('/api/sobre-mi'),
       ]);
       if (catRes.ok)    setCategorias(await catRes.json());
@@ -343,6 +368,7 @@ export default function Admin() {
       });
     }
       if (testimRes.ok) setTestimonios(await testimRes.json());
+      if (serviciosRes.ok) setServicios(await serviciosRes.json());
       if (sobreMiRes.ok) {
         const data = (await sobreMiRes.json()) ?? {};
         setSobreMi({
@@ -688,6 +714,7 @@ const guardarConfig = (campos: Partial<Config>) => {
               { key: 'sobre-mi',  label: 'Sobre mi'       },
               { key: 'contacto',  label: '📱 Contacto'  },
               { key: 'testimonios',label:'⭐ Testimonios'},
+              { key: 'servicios', label: '🛎 Servicios' },
               { key: 'categorias',label: '📂 Categorías'},
               { key: 'sesiones',  label: '📸 Sesiones'  },
             ].map(t => (
@@ -925,6 +952,49 @@ const guardarConfig = (campos: Partial<Config>) => {
               </div>
             )}
 
+            {tab === 'servicios' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-playfair text-xl text-gray-900">Servicios</h2>
+                  <button
+                    onClick={() => setModalServicio({ id: 0, nombre: '', descripcion: '', orden: 0 })}
+                    className="bg-pink-700 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-pink-900 transition-colors"
+                  >
+                    + Nuevo servicio
+                  </button>
+                </div>
+                {servicios.length === 0 ? (
+                  <p className="text-gray-300 text-sm italic text-center py-8">No hay servicios todavía.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {servicios.map(s => (
+                      <div key={s.id} className="border border-gray-100 rounded-2xl p-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="font-bold text-gray-800 mb-1">{s.nombre}</p>
+                            <p className="text-gray-500 text-sm leading-relaxed">{s.descripcion}</p>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button onClick={() => setModalServicio(s)}
+                              className="text-xs font-bold text-gray-400 border border-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-50">
+                              Editar
+                            </button>
+                            <button onClick={() => {
+                              if (!confirm(`¿Eliminar el servicio "${s.nombre}"?`)) return;
+                              postJson('servicios/eliminar', { id: s.id });
+                            }}
+                              className="text-xs font-bold text-red-400 border border-red-50 px-3 py-1.5 rounded-full hover:bg-red-50">
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ── TAB: CATEGORÍAS ──────────────────────────────────────────── */}
             {tab === 'categorias' && (
               <div>
@@ -936,9 +1006,25 @@ const guardarConfig = (campos: Partial<Config>) => {
                   </button>
                 </div>
 
-                <div className="space-y-4">
+                <DndContext
+                  collisionDetection={closestCenter}
+                  onDragEnd={event => {
+                    const { active, over } = event;
+                    if (!over || active.id === over.id) return;
+                    const slugs = categorias.map(c => c.slug);
+                    const oldIndex = slugs.indexOf(String(active.id));
+                    const newIndex = slugs.indexOf(String(over.id));
+                    if (oldIndex === -1 || newIndex === -1) return;
+                    const nuevoOrden = arrayMove(slugs, oldIndex, newIndex);
+                    setCategorias(prev => arrayMove(prev, oldIndex, newIndex));
+                    postJson('categorias/reordenar', { slugs: nuevoOrden });
+                  }}
+                >
+                  <SortableContext items={categorias.map(c => c.slug)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-4">
                   {categorias.map(cat => (
-                    <div key={cat.slug} className="border border-gray-100 rounded-2xl p-5">
+                    <SortableCategoria key={cat.slug} id={cat.slug}>
+                    <div className="border border-gray-100 rounded-2xl p-5">
                       <div className="flex items-center gap-4">
                         {/* Portada con hover para cambiar */}
                         <div className="relative group w-16 h-16 flex-shrink-0">
@@ -985,8 +1071,11 @@ const guardarConfig = (campos: Partial<Config>) => {
                         </div>
                       </div>
                     </div>
+                    </SortableCategoria>
                   ))}
-                </div>
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
 
@@ -1163,6 +1252,39 @@ const guardarConfig = (campos: Partial<Config>) => {
                 Guardar
               </button>
               <button onClick={() => setModalTestim(null)}
+                className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {modalServicio && (
+        <Modal
+          titulo={modalServicio.id ? 'Editar servicio' : 'Nuevo servicio'}
+          onClose={() => setModalServicio(null)}
+        >
+          <div className="space-y-4">
+            <Field label="Nombre" value={modalServicio.nombre}
+              onChange={v => setModalServicio(m => m ? { ...m, nombre: v } : m)}
+              placeholder="Ej: Book Infantil" />
+            <Field label="Descripción" value={modalServicio.descripcion}
+              onChange={v => setModalServicio(m => m ? { ...m, descripcion: v } : m)}
+              placeholder="Descripción del servicio..." textarea />
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  if (!modalServicio) return;
+                  const endpoint = modalServicio.id ? 'servicios/editar' : 'servicios/nuevo';
+                  postJson(endpoint, modalServicio);
+                  setModalServicio(null);
+                }}
+                className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900"
+              >
+                Guardar
+              </button>
+              <button onClick={() => setModalServicio(null)}
                 className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200">
                 Cancelar
               </button>
