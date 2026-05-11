@@ -35,6 +35,17 @@ export default {
       Object.entries(cors).forEach(([k, v]) => res.headers.set(k, v));
       return res;
     }
+    if (path === '/robots.txt') {
+      return new Response(
+        `User-agent: *\nAllow: /\n\nSitemap: https://melinadiazfotografia.com.ar/sitemap.xml`,
+        {
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'public, max-age=86400',
+          },
+        }
+      );
+    }
     if (!path.startsWith('/api/')) {
       return new Response('Not found', { status: 404, headers: cors });
     }
