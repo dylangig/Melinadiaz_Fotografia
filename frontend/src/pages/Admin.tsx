@@ -707,7 +707,7 @@ const guardarConfig = (campos: Partial<Config>) => {
 
         {/* Tabs de navegación */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-8 overflow-x-auto">
-          <div className="flex border-b border-gray-100 px-4">
+          <div className="flex border-b border-gray-100 px-4 flex-wrap">
             {[
               { key: 'identidad', label: '🎨 Identidad' },
               { key: 'hero',      label: '🖼 Hero'       },
