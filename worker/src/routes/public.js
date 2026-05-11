@@ -142,3 +142,52 @@ export async function getSobreMi(env) {
     return error('Error obteniendo sobre mi', 500);
   }
 }
+
+export async function getSitemap(env) {
+  const BASE = 'https://melinadiazfotografia.com.ar';
+
+  const staticUrls = [
+    { loc: '/',           priority: '1.0', changefreq: 'weekly'  },
+    { loc: '/servicios',  priority: '0.8', changefreq: 'monthly' },
+    { loc: '/sobre-mi',   priority: '0.7', changefreq: 'monthly' },
+    { loc: '/contacto',   priority: '0.9', changefreq: 'monthly' },
+  ];
+
+  const { results: categorias } = await env.DB.prepare(
+    'SELECT slug FROM categorias WHERE activo = 1 ORDER BY orden ASC'
+  ).all();
+
+  const { results: trabajos } = await env.DB.prepare(
+    'SELECT slug, categoria_slug FROM trabajos WHERE activo = 1 ORDER BY id ASC'
+  ).all();
+
+  const catUrls = categorias.map(c => ({
+    loc: `/galeria/${c.slug}`,
+    priority: '0.8',
+    changefreq: 'weekly',
+  }));
+
+  const trabajoUrls = trabajos.map(t => ({
+    loc: `/galeria/${t.categoria_slug}/${t.slug}`,
+    priority: '0.7',
+    changefreq: 'monthly',
+  }));
+
+  const allUrls = [...staticUrls, ...catUrls, ...trabajoUrls];
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map(u => `  <url>
+    <loc>${BASE}${u.loc}</loc>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+
+  return new Response(xml, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+    },
+  });
+}

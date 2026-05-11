@@ -5,8 +5,17 @@ import type { Categoria, Trabajo, Servicio } from '../types';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 // ── Token JWT (guardado en memoria, se pierde al recargar → el admin vuelve a loguearse) ──
-let _adminToken: string | null = null;
-export const setAdminToken = (t: string | null) => { _adminToken = t; };
+const STORAGE_KEY = 'mdp_admin_token';
+let _adminToken: string | null = (() => {
+  try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
+})();
+export const setAdminToken = (t: string | null) => {
+  _adminToken = t;
+  try {
+    if (t) localStorage.setItem(STORAGE_KEY, t);
+    else localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+};
 export const getAdminToken = () => _adminToken;
 
 // ── Helper fetch con token ───────────────────────────────────────────────────

@@ -151,6 +151,8 @@ interface Config {
 interface Testimonio { id?: number; texto: string; autora: string; tipo: string; orden: number; }
 interface Servicio { id: number; nombre: string; descripcion: string; orden: number; }
 interface CatExtended extends Categoria { portada: string; }
+interface ModalConfirmState { mensaje: string; detalle?: string; accion: () => void; }
+interface ModalRenombrarState { slug: string; nombreActual: string; }
 interface NuevoTrabajoForm { descripcion: string; descripcion_evento: string; }
 interface ImageOptimizationResult { file: File; originalSize: number; finalSize: number; changed: boolean; }
 interface ImagePreview { url: string; name: string; }
@@ -309,6 +311,9 @@ export default function Admin() {
   const [modalServicio, setModalServicio] = useState<Servicio | null>(null);
   const [modalNuevaCat, setModalNuevaCat] = useState(false);
   const [modalNuevaSes, setModalNuevaSes] = useState(false);
+  const [modalConfirm, setModalConfirm] = useState<ModalConfirmState | null>(null);
+  const [modalRenombrar, setModalRenombrar] = useState<ModalRenombrarState | null>(null);
+  const [renombrarValor, setRenombrarValor] = useState('');
   const [nuevoTrabajoForm, setNuevoTrabajoForm] = useState<NuevoTrabajoForm>(NUEVO_TRABAJO_FORM_VACIO);
   const [imagePreviews, setImagePreviews] = useState<Record<string, ImagePreview>>({});
   const [addPhotoPreviews, setAddPhotoPreviews] = useState<ImagePreview[]>([]);
@@ -526,17 +531,28 @@ const guardarConfig = (campos: Partial<Config>) => {
 
   // ── Eliminar ───────────────────────────────────────────────────────────────
   const eliminarTrabajo = async (cat: string, slug: string, nombre: string) => {
-    if (!confirm(`¿Eliminar "${nombre}" y TODAS sus fotos?`)) return;
-    const fd = new FormData();
-    fd.append('categoria', cat); fd.append('trabajo', slug);
-    await postForm('eliminar-trabajo', fd);
+    setModalConfirm({
+      mensaje: `¿Eliminar "${nombre}"?`,
+      detalle: 'Se borrarán TODAS sus fotos. Esta acción no se puede deshacer.',
+      accion: async () => {
+        const fd = new FormData();
+        fd.append('categoria', cat); fd.append('trabajo', slug);
+        await postForm('eliminar-trabajo', fd);
+      }
+    });
+    return;
   };
 
   const eliminarFoto = async (cat: string, slug: string, foto: string) => {
-    if (!confirm(`¿Eliminar "${foto}"?`)) return;
-    const fd = new FormData();
-    fd.append('categoria', cat); fd.append('trabajo', slug); fd.append('foto', foto);
-    await postForm('eliminar-foto', fd);
+    setModalConfirm({
+      mensaje: `¿Eliminar esta foto?`,
+      accion: async () => {
+        const fd = new FormData();
+        fd.append('categoria', cat); fd.append('trabajo', slug); fd.append('foto', foto);
+        await postForm('eliminar-foto', fd);
+      }
+    });
+    return;
   };
 
   // ── Drag & drop reordenar fotos ────────────────────────────────────────────
@@ -621,8 +637,11 @@ const guardarConfig = (campos: Partial<Config>) => {
   };
 
   const eliminarTestimonio = async (id: number) => {
-    if (!confirm('¿Eliminar este testimonio?')) return;
-    await postJson('testimonios/eliminar', { id });
+    setModalConfirm({
+      mensaje: '¿Eliminar este testimonio?',
+      accion: async () => { await postJson('testimonios/eliminar', { id }); }
+    });
+    return;
   };
 
   // ── Refs formularios ───────────────────────────────────────────────────────
@@ -980,8 +999,10 @@ const guardarConfig = (campos: Partial<Config>) => {
                               Editar
                             </button>
                             <button onClick={() => {
-                              if (!confirm(`¿Eliminar el servicio "${s.nombre}"?`)) return;
-                              postJson('servicios/eliminar', { id: s.id });
+                              setModalConfirm({
+                                mensaje: `¿Eliminar el servicio "${s.nombre}"?`,
+                                accion: () => postJson('servicios/eliminar', { id: s.id })
+                              });
                             }}
                               className="text-xs font-bold text-red-400 border border-red-50 px-3 py-1.5 rounded-full hover:bg-red-50">
                               Eliminar
@@ -1052,18 +1073,19 @@ const guardarConfig = (campos: Partial<Config>) => {
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
-                              const nuevoNombre = prompt('Nuevo nombre para la categoría:', cat.nombre);
-                              if (nuevoNombre && nuevoNombre !== cat.nombre) {
-                                postJson('categorias/renombrar', { slug: cat.slug, nombre: nuevoNombre.trim() });
-                              }
+                              setRenombrarValor(cat.nombre);
+                              setModalRenombrar({ slug: cat.slug, nombreActual: cat.nombre });
                             }}
                             className="text-xs font-bold text-gray-400 border border-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-50">
                             Renombrar
                           </button>
                           <button
                             onClick={() => {
-                              if (!confirm(`¿Eliminar la categoría "${cat.nombre}" y TODAS sus sesiones? Esta acción no se puede deshacer.`)) return;
-                              postJson('categorias/eliminar', { slug: cat.slug });
+                              setModalConfirm({
+                                mensaje: `¿Eliminar la categoría "${cat.nombre}"?`,
+                                detalle: 'Se borrarán TODAS sus sesiones y fotos. Esta acción no se puede deshacer.',
+                                accion: () => postJson('categorias/eliminar', { slug: cat.slug })
+                              });
                             }}
                             className="text-xs font-bold text-red-400 border border-red-50 px-3 py-1.5 rounded-full hover:bg-red-50">
                             Eliminar
@@ -1378,6 +1400,65 @@ const guardarConfig = (campos: Partial<Config>) => {
             </div>
             <BotonesModal onCancel={cerrarNuevaSesion} labelOk="Crear sesión" disabled={loading} />
           </form>
+        </Modal>
+      )}
+
+      {/* Modal confirmación */}
+      {modalConfirm && (
+        <Modal titulo="Confirmar acción" onClose={() => setModalConfirm(null)}>
+          <div className="space-y-4">
+            <p className="text-gray-700 font-semibold text-sm">{modalConfirm.mensaje}</p>
+            {modalConfirm.detalle && (
+              <p className="text-gray-400 text-xs leading-relaxed">{modalConfirm.detalle}</p>
+            )}
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => { modalConfirm.accion(); setModalConfirm(null); }}
+                className="flex-1 bg-red-500 text-white py-3 rounded-2xl text-sm font-bold hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+              <button
+                onClick={() => setModalConfirm(null)}
+                className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal renombrar categoría */}
+      {modalRenombrar && (
+        <Modal titulo="Renombrar categoría" onClose={() => setModalRenombrar(null)}>
+          <div className="space-y-4">
+            <Field
+              label="Nuevo nombre"
+              value={renombrarValor}
+              onChange={v => setRenombrarValor(v)}
+              placeholder={modalRenombrar.nombreActual}
+            />
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  if (renombrarValor.trim() && renombrarValor.trim() !== modalRenombrar.nombreActual) {
+                    postJson('categorias/renombrar', { slug: modalRenombrar.slug, nombre: renombrarValor.trim() });
+                  }
+                  setModalRenombrar(null);
+                }}
+                className="flex-1 bg-pink-700 text-white py-3 rounded-2xl text-sm font-bold hover:bg-pink-900"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setModalRenombrar(null)}
+                className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-2xl text-sm font-bold hover:bg-gray-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 

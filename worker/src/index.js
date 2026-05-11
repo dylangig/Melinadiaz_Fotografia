@@ -5,7 +5,7 @@
 import { getCorsHeaders, error, preflight } from './helpers.js';
 import {
   getCategorias, getTrabajos, getTrabajoDetalle,
-  getServicios, getTestimonios, getConfiguracion, getSobreMi,
+  getServicios, getTestimonios, getConfiguracion, getSobreMi, getSitemap,
 } from './routes/public.js';
 import {
   // Auth
@@ -30,6 +30,11 @@ export default {
     const method = request.method;
 
     if (method === 'OPTIONS') return preflight(cors);
+    if (path === '/sitemap.xml') {
+      const res = await getSitemap(env);
+      Object.entries(cors).forEach(([k, v]) => res.headers.set(k, v));
+      return res;
+    }
     if (!path.startsWith('/api/')) {
       return new Response('Not found', { status: 404, headers: cors });
     }
