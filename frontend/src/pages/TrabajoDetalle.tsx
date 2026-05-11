@@ -218,7 +218,7 @@ export default function TrabajoDetalle() {
           >
             <img
               src={imgUrl(foto)}
-              alt={`Foto de sesión ${trabajo.nombre} – ${nombre} - ${i + 1}`}
+              alt={`${nombre} ${trabajo.nombre} – Zona Sur Buenos Aires – foto ${i + 1}`}
               loading="lazy"
               decoding="async"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -260,7 +260,7 @@ export default function TrabajoDetalle() {
                 <div className="aspect-[4/3] overflow-hidden bg-pink-50">
                   <img
                     src={`${R2}/${categoriaSlug}/${item.slug}/${item.fotos[0]}`}
-                    alt={`Foto de sesión ${item.nombre} – ${nombre}`}
+                    alt={`${nombre} ${item.nombre} – Zona Sur Buenos Aires`}
                     loading="lazy"
                     decoding="async"
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -301,7 +301,7 @@ export default function TrabajoDetalle() {
 
           <img
             src={imgUrl(trabajo.fotos[lightbox])}
-            alt={`Foto de sesión ${trabajo.nombre} – ${nombre} - ${lightbox + 1}`}
+            alt={`${nombre} ${trabajo.nombre} – Zona Sur Buenos Aires – foto ${lightbox + 1}`}
             loading="eager"
             decoding="async"
             className="max-h-[90vh] max-w-[90vw] object-contain select-none"
