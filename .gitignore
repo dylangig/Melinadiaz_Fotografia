@@ -1,4 +1,14 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+dist/
+frontend/dist/
+
+# Local env files
 .env
 .env.local
-.env.production
-*.env
+.env.*.local
+*.local
+.dev.vars
