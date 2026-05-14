@@ -12,3 +12,7 @@ frontend/dist/
 .env.*.local
 *.local
 .dev.vars
+
+# Wrangler local state
+.wrangler/
+worker/.wrangler/
