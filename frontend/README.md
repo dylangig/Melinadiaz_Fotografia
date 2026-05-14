@@ -1,116 +1,123 @@
-# Melina Diaz Fotografía — Frontend React
+# Melina Diaz Fotografía - Frontend React
 
-Frontend migrado a **React + TypeScript + Vite + TailwindCSS**.
+Frontend de la web/portfolio de Melina Diaz Fotografía. La arquitectura oficial actual usa Cloudflare Pages para el frontend, Cloudflare Worker para la API, Cloudflare D1 para datos y Cloudflare R2 para imágenes.
 
 ## Stack
 
-| Capa       | Tecnología                        |
-|------------|-----------------------------------|
-| Frontend   | React 18 + TypeScript + Vite      |
-| Estilos    | TailwindCSS 3                     |
-| Routing    | React Router v6                   |
-| Backend    | Flask (Python) — sin cambios      |
-| Imágenes   | Cloudflare R2                     |
+| Capa | Tecnología |
+| --- | --- |
+| Frontend | React 18 + TypeScript + Vite |
+| Estilos | TailwindCSS 3 |
+| Routing | React Router v6 |
+| Deploy frontend | Cloudflare Pages |
+| API/backend | Cloudflare Worker (`melina-worker`) |
+| Base de datos | Cloudflare D1 (`melina-db`) |
+| Imágenes | Cloudflare R2 (`fotosmelinaapp`) |
+| Dominio público de imágenes | `https://imagenes.melinadiazfotografia.com.ar` |
 
----
+## Desarrollo Local
 
-## Setup local
+Levantar el Worker y el frontend en dos terminales separadas.
 
-### 1. Frontend
+Terminal 1 - Worker local:
 
 ```bash
-# Clonar e instalar
-npm install
+cd worker
+npx wrangler dev
+```
 
-# Correr en desarrollo (necesita el backend corriendo en :5000)
+Terminal 2 - Frontend local:
+
+```bash
+cd frontend
 npm run dev
-
-# Build para producción
-npm run build
 ```
 
-### 2. Backend — agregar endpoints JSON al `app.py`
+En desarrollo, `VITE_API_URL` puede quedar vacío. Vite proxyfica las llamadas a `/api` hacia `http://localhost:8787` según `frontend/vite.config.ts`.
 
-Primero instalar flask-cors:
+## Scripts
+
+Desde `frontend/`:
 
 ```bash
-pip install flask-cors
+npm run dev
+npm run build
+npm run preview
 ```
 
-Agregar al inicio del `app.py` existente (después de `from flask import ...`):
+## Variables
 
-```python
-from flask_cors import CORS
-CORS(app, origins=["http://localhost:5173", "https://melinadiazfotografia.com.ar"], supports_credentials=True)
-```
+### Frontend
 
-Luego copiar todo el contenido de `API_ENDPOINTS_AGREGAR_A_APP_PY.py` al final del `app.py`.
+- `VITE_API_URL`: URL base de la API. En desarrollo local puede quedar vacía para usar el proxy de Vite. En producción se configura solo si la API no queda accesible bajo el mismo origen o rewrite.
 
----
+### Worker
 
-## Estructura del proyecto
+Variables no secretas configuradas en `worker/wrangler.toml`:
 
-```
+- `R2_PUBLIC_URL`
+- `ALLOWED_ORIGINS`
+
+Secrets configurados con Wrangler:
+
+- `ADMIN_PASSWORD`
+- `JWT_SECRET`
+
+## Estructura del Proyecto
+
+```text
 src/
 ├── components/
-│   ├── Layout.tsx          # Wrapper general (Navbar + Footer + WhatsApp)
-│   ├── Navbar.tsx          # Navbar sticky con menú mobile
-│   ├── Footer.tsx          # Footer con links
-│   └── WhatsAppButton.tsx  # Botón flotante de WhatsApp
+│   ├── Layout.tsx
+│   ├── Navbar.tsx
+│   ├── Footer.tsx
+│   └── WhatsAppButton.tsx
+├── context/
+│   └── ConfigContext.tsx
 ├── hooks/
-│   └── useApi.ts           # Hooks para fetch a la API Flask
+│   ├── useApi.ts
+│   ├── useFavicon.ts
+│   └── useSEO.ts
 ├── pages/
-│   ├── Inicio.tsx          # Landing page (reemplaza inicio.html)
-│   ├── Categoria.tsx       # Grilla de trabajos (reemplaza categoria.html)
-│   ├── TrabajoDetalle.tsx  # Galería + lightbox (reemplaza trabajo_detalle.html)
-│   ├── Servicios.tsx       # Servicios (reemplaza servicios.html)
-│   ├── Contacto.tsx        # Formulario → WhatsApp (reemplaza contacto.html)
-│   ├── Admin.tsx           # Panel admin React (reemplaza admin.html)
-│   └── NotFound.tsx        # 404 (reemplaza 404.html)
+│   ├── Inicio.tsx
+│   ├── Categoria.tsx
+│   ├── TrabajoDetalle.tsx
+│   ├── Servicios.tsx
+│   ├── SobreMi.tsx
+│   ├── Contacto.tsx
+│   ├── Admin.tsx
+│   └── NotFound.tsx
 ├── types/
-│   └── index.ts            # Tipos TypeScript: Categoria, Trabajo, Servicio
-├── App.tsx                 # Rutas con React Router
-├── main.tsx                # Entry point
-└── index.css               # TailwindCSS base + animaciones globales
+│   └── index.ts
+├── App.tsx
+├── main.tsx
+└── index.css
 ```
-
----
 
 ## Rutas
 
-| URL                                      | Página            |
-|------------------------------------------|-------------------|
-| `/`                                      | Inicio            |
-| `/galeria/:categoriaSlug`                | Categoría         |
-| `/galeria/:categoriaSlug/:trabajoSlug`   | Detalle trabajo   |
-| `/servicios`                             | Servicios         |
-| `/contacto`                              | Formulario        |
-| `/admin`                                 | Panel admin       |
+| URL | Página |
+| --- | --- |
+| `/` | Inicio |
+| `/galeria/:categoriaSlug` | Categoría |
+| `/galeria/:categoriaSlug/:trabajoSlug` | Detalle trabajo |
+| `/servicios` | Servicios |
+| `/sobre-mi` | Sobre mí |
+| `/contacto` | Formulario |
+| `/admin` | Panel admin |
 
----
+## Deploy
 
-## Deploy en Vercel (frontend estático)
+El frontend se despliega en Cloudflare Pages. La API principal es el Cloudflare Worker `melina-worker`, con datos en D1 (`melina-db`) e imágenes en R2 (`fotosmelinaapp`).
 
-1. Subir el frontend a un repo de GitHub
-2. Importar en Vercel
-3. En Vercel → Settings → Environment Variables agregar:
-   ```
-   VITE_API_URL=https://tu-backend.railway.app
-   ```
-4. En `vercel.json` agregar rewrite para SPA:
-   ```json
-   {
-     "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-   }
-   ```
+El archivo `frontend/public/_redirects` contiene reglas usadas por Cloudflare Pages para la SPA y para derivar `sitemap.xml` y `robots.txt` al Worker.
 
-El backend Flask se mantiene en Railway como está.
+## Legacy
 
----
+Los siguientes archivos quedan como referencia histórica del backend anterior y no son el flujo principal actual:
 
-## Próximos pasos (opcionales)
+- `app.py`
+- `requirements.txt`
+- `frontend/API_ENDPOINTS_AGREGAR_A_APP_PY.py`
 
-- [ ] Migrar backend a **Supabase** (base de datos) + **Cloudflare Workers** (API)
-- [ ] Agregar drag & drop para reordenar fotos en el admin
-- [ ] SEO: agregar `react-helmet-async` para meta tags dinámicos
-- [ ] Lazy loading mejorado con `react-intersection-observer`
+No usar Flask, Railway o Vercel como referencia principal para desarrollo o deploy salvo que se indique explícitamente.
