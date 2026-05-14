@@ -138,7 +138,7 @@ async function apiFetch(path: string, options: RequestInit = {}) {
   const token = getAdminToken();
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> ?? {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  return fetch(`${API_BASE}${path}`, { ...options, headers });
+  return fetch(`${API_BASE}${path}`, { cache: 'no-store', ...options, headers });
 }
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -472,6 +472,7 @@ export default function Admin() {
       const data = await res.json();
       showFlash(data.mensaje ?? (res.ok ? 'Guardado.' : 'Error.'));
       if (res.ok) await cargarTodo();
+      return res.ok;
     } catch { showFlash('Error de conexión'); }
     finally { setLoading(false); }
   };
@@ -1318,14 +1319,15 @@ const guardarConfig = (campos: Partial<Config>) => {
       {/* ── MODAL: NUEVA CATEGORÍA ────────────────────────────────────────── */}
       {modalNuevaCat && (
         <Modal titulo="Nueva categoría" onClose={() => setModalNuevaCat(false)}>
-          <form ref={refNuevaCat} onSubmit={e => {
+          <form ref={refNuevaCat} onSubmit={async e => {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
-            postJson('categorias/nueva', {
+            const saved = await postJson('categorias/nueva', {
               nombre: fd.get('nombre') as string,
               slug:   fd.get('slug')   as string,
               mostrarEnHome: fd.get('mostrarEnHome') === 'on',
             });
+            if (!saved) return;
             refNuevaCat.current?.reset();
             setModalNuevaCat(false);
           }} className="space-y-4">
@@ -1493,4 +1495,3 @@ function BotonesModal({ onCancel, labelOk, disabled = false }: { onCancel: () =>
     </div>
   );
 }
-

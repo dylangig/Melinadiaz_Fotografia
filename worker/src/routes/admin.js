@@ -1,6 +1,6 @@
 // ── routes/admin.js v3 ───────────────────────────────────────────────────────
 
-import { json, error, slugify, subirImagenAR2 } from '../helpers.js';
+import { booleanFromRequest, json, error, slugify, subirImagenAR2 } from '../helpers.js';
 import { generarToken, verificarToken, tokenDesdeRequest } from '../auth.js';
 
 async function requireAdmin(request, env) {
@@ -129,10 +129,11 @@ export async function editarTrabajo(request, env) {
   const descripcion       = form.get('descripcion')?.trim()        || null;
   const descripcionEvento = form.get('descripcion_evento')?.trim() || null;
 
-  await env.DB.prepare(
+  const result = await env.DB.prepare(
     `UPDATE trabajos SET descripcion = ?, descripcion_evento = ?
      WHERE categoria_slug = ? AND slug = ?`
   ).bind(descripcion, descripcionEvento, categoria, trabajoSlug).run();
+  if ((result?.meta?.changes ?? 0) === 0) return error('Trabajo no encontrado', 404);
 
   return json({ mensaje: `Trabajo '${trabajoSlug}' actualizado.` });
 }
@@ -224,10 +225,14 @@ export async function actualizarConfiguracion(request, env) {
 
   if (sets.length === 0) return error('No se enviaron campos para actualizar');
 
-  // Upsert correcto
+  const columnas = sets.map(set => set.split(' = ')[0]);
+  const placeholders = columnas.map(() => '?').join(', ');
+  const updateSets = columnas.map(campo => `${campo} = excluded.${campo}`).join(', ');
+
   await env.DB.prepare(
-    `INSERT INTO configuracion (id) VALUES (1)
-     ON CONFLICT(id) DO UPDATE SET ${sets.join(', ')}`
+    `INSERT INTO configuracion (id, ${columnas.join(', ')})
+     VALUES (1, ${placeholders})
+     ON CONFLICT(id) DO UPDATE SET ${updateSets}`
   ).bind(...vals).run();
 
   return json({ mensaje: 'Configuración actualizada.' });
@@ -380,9 +385,10 @@ export async function editarTestimonio(request, env) {
   const { id, texto, autora, tipo, orden } = await request.json().catch(() => ({}));
   if (!id) return error('Falta el id del testimonio');
 
-  await env.DB.prepare(
+  const result = await env.DB.prepare(
     'UPDATE testimonios SET texto = ?, autora = ?, tipo = ?, orden = ? WHERE id = ?'
   ).bind(texto?.trim(), autora?.trim(), tipo?.trim(), orden ?? 0, id).run();
+  if ((result?.meta?.changes ?? 0) === 0) return error('Testimonio no encontrado', 404);
 
   return json({ mensaje: 'Testimonio actualizado.' });
 }
@@ -394,7 +400,8 @@ export async function eliminarTestimonio(request, env) {
   const { id } = await request.json().catch(() => ({}));
   if (!id) return error('Falta el id');
 
-  await env.DB.prepare('UPDATE testimonios SET activo = 0 WHERE id = ?').bind(id).run();
+  const result = await env.DB.prepare('UPDATE testimonios SET activo = 0 WHERE id = ?').bind(id).run();
+  if ((result?.meta?.changes ?? 0) === 0) return error('Testimonio no encontrado', 404);
   return json({ mensaje: 'Testimonio eliminado.' });
 }
 
@@ -440,10 +447,11 @@ export async function nuevaCategoria(request, env) {
     'SELECT COALESCE(MAX(orden), 0) as m FROM categorias'
   ).first();
 
-  await env.DB.prepare(
+  const result = await env.DB.prepare(
     `INSERT OR IGNORE INTO categorias (nombre, slug, portada, orden, mostrar_en_home)
      VALUES (?, ?, ?, ?, ?)`
-  ).bind(nombre.trim().toUpperCase(), slugLimpio, `portada-${slugLimpio}.webp`, (maxOrden?.m ?? 0) + 1, mostrarEnHome ? 1 : 0).run();
+  ).bind(nombre.trim().toUpperCase(), slugLimpio, `portada-${slugLimpio}.webp`, (maxOrden?.m ?? 0) + 1, booleanFromRequest(mostrarEnHome) ? 1 : 0).run();
+  if ((result?.meta?.changes ?? 0) === 0) return error('La categoría ya existe', 409);
 
   return json({ mensaje: `Categoría '${slugLimpio}' creada. Recordá subir la portada desde la sección Categorías.` });
 }
@@ -455,8 +463,9 @@ export async function renombrarCategoria(request, env) {
   const { slug, nombre } = await request.json().catch(() => ({}));
   if (!slug || !nombre) return error('Faltan slug y nombre');
 
-  await env.DB.prepare('UPDATE categorias SET nombre = ? WHERE slug = ?')
+  const result = await env.DB.prepare('UPDATE categorias SET nombre = ? WHERE slug = ?')
     .bind(nombre.trim().toUpperCase(), slug).run();
+  if ((result?.meta?.changes ?? 0) === 0) return error('Categoría no encontrada', 404);
 
   return json({ mensaje: `Categoría renombrada a '${nombre}'.` });
 }
@@ -468,9 +477,10 @@ export async function actualizarMostrarEnHome(request, env) {
   const { slug, mostrarEnHome } = await request.json().catch(() => ({}));
   if (!slug || mostrarEnHome === undefined) return error('Faltan datos', 400);
 
-  const valor = mostrarEnHome ? 1 : 0;
-  await env.DB.prepare('UPDATE categorias SET mostrar_en_home = ? WHERE slug = ?')
+  const valor = booleanFromRequest(mostrarEnHome) ? 1 : 0;
+  const result = await env.DB.prepare('UPDATE categorias SET mostrar_en_home = ? WHERE slug = ?')
     .bind(valor, slug).run();
+  if ((result?.meta?.changes ?? 0) === 0) return error('Categoría no encontrada', 404);
 
   return json({ mensaje: 'Visibilidad actualizada.' });
 }

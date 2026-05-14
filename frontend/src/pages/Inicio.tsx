@@ -47,7 +47,7 @@ export default function Inicio() {
   const [heroImageError, setHeroImageError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/testimonios`)
+    fetch(`${API_BASE}/api/testimonios`, { cache: 'no-store' })
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
       .then(data => {
         const items = Array.isArray(data)

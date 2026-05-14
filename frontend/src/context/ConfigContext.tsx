@@ -58,7 +58,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || ''}/api/configuracion`)
+    fetch(`${import.meta.env.VITE_API_URL || ''}/api/configuracion`, { cache: 'no-store' })
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
       .then(data => {
         const next = pickConfig(data);

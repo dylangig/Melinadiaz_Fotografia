@@ -1,6 +1,6 @@
 // ── routes/public.js ─────────────────────────────────────────────────────────
 
-import { json, error } from '../helpers.js';
+import { booleanFromDb, json, error } from '../helpers.js';
 
 // GET /api/categorias
 export async function getCategorias(env) {
@@ -12,8 +12,8 @@ export async function getCategorias(env) {
     slug:          cat.slug,
     portada:       cat.portada,
     orden:         cat.orden,
-    mostrarEnHome: Boolean(cat.mostrar_en_home),
-  })), 200, {}, 60);
+    mostrarEnHome: booleanFromDb(cat.mostrar_en_home),
+  })));
 }
 
 // GET /api/trabajos/:categoriaSlug
@@ -98,7 +98,7 @@ export async function getTestimonios(env) {
     const { results } = await env.DB.prepare(
       'SELECT texto, autora, tipo FROM testimonios WHERE activo = 1 ORDER BY orden ASC'
     ).all();
-    return json(results, 200, {}, 120);
+    return json(results);
   } catch {
     return json([]);
   }
@@ -111,7 +111,7 @@ export async function getConfiguracion(request, env) {
       `SELECT * FROM configuracion WHERE id = 1`
     ).first();
 
-    return json(row || {}, 200, {}, 60);
+    return json(row || {});
   } catch (e) {
     console.error('Error en /api/configuracion:', e);
     return error('Error obteniendo configuración', 500);
@@ -136,7 +136,7 @@ export async function getSobreMi(env) {
       fotoUrl:     row.foto_url    ?? '',
       ctaTexto:    row.cta_texto   ?? '',
       ctaDestino:  row.cta_destino ?? '',
-    }, 200, {}, 120);
+    });
   } catch (e) {
     console.error('Error en /api/sobre-mi:', e);
     return error('Error obteniendo sobre mi', 500);

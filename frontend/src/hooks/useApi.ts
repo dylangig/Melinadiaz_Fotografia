@@ -24,7 +24,7 @@ function apiFetch(path: string, options: RequestInit = {}) {
     ...(options.headers as Record<string, string> ?? {}),
   };
   if (_adminToken) headers['Authorization'] = `Bearer ${_adminToken}`;
-  return fetch(`${API_BASE}${path}`, { ...options, headers });
+  return fetch(`${API_BASE}${path}`, { cache: 'no-store', ...options, headers });
 }
 
 // ── Categorías ──────────────────────────────────────────────────────────────

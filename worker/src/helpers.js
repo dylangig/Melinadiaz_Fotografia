@@ -23,6 +23,7 @@ export function getCorsHeaders(request, env) {
 export function json(data, status = 200, corsHeaders = {}, maxAge = 0) {
   const headers = { 'Content-Type': 'application/json', ...corsHeaders };
   if (maxAge > 0) headers['Cache-Control'] = `public, max-age=${maxAge}, s-maxage=${maxAge}`;
+  else headers['Cache-Control'] = 'no-store';
   return new Response(JSON.stringify(data), {
     status,
     headers,
@@ -48,6 +49,19 @@ export function slugify(texto) {
     .trim()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/[\s_]+/g, '-');
+}
+
+export function booleanFromDb(value) {
+  return value === true || value === 1 || value === '1';
+}
+
+export function booleanFromRequest(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
+  if (typeof value === 'string') {
+    return ['1', 'true', 'on', 'yes', 'si', 'sí'].includes(value.trim().toLowerCase());
+  }
+  return false;
 }
 
 // Comprimir y subir imagen a R2 como WebP
