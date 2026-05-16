@@ -35,9 +35,16 @@ const normalizarUrlImagen = (value: unknown): string => {
 const conCacheBuster = (url: string, version: number): string =>
   `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
 
-const WEBP_QUALITY = 0.7;
-const MAX_IMAGE_WIDTH = 1000;
-const MAX_IMAGE_HEIGHT = 1000;
+// Valores pensados para fotografía profesional: buena nitidez sin archivos excesivos.
+const PORTFOLIO_WEBP_QUALITY = 0.85;
+const PORTFOLIO_MAX_WIDTH = 2200;
+const PORTFOLIO_MAX_HEIGHT = 2200;
+const HERO_WEBP_QUALITY = 0.87;
+const HERO_MAX_WIDTH = 2400;
+const HERO_MAX_HEIGHT = 1600;
+const THUMBNAIL_WEBP_QUALITY = 0.82;
+const THUMBNAIL_MAX_WIDTH = 900;
+const THUMBNAIL_MAX_HEIGHT = 900;
 
 interface ImageOptimizationOptions {
   quality?: number;
@@ -46,8 +53,9 @@ interface ImageOptimizationOptions {
 }
 
 const IMAGE_PRESETS = {
-  gallery: { quality: 0.7, maxWidth: 1000, maxHeight: 1000 },
-  hero: { quality: 0.82, maxWidth: 1920, maxHeight: 1080 },
+  gallery: { quality: PORTFOLIO_WEBP_QUALITY, maxWidth: PORTFOLIO_MAX_WIDTH, maxHeight: PORTFOLIO_MAX_HEIGHT },
+  hero: { quality: HERO_WEBP_QUALITY, maxWidth: HERO_MAX_WIDTH, maxHeight: HERO_MAX_HEIGHT },
+  thumbnail: { quality: THUMBNAIL_WEBP_QUALITY, maxWidth: THUMBNAIL_MAX_WIDTH, maxHeight: THUMBNAIL_MAX_HEIGHT },
   logo: { quality: 0.9, maxWidth: 2400, maxHeight: 2400 },
 } satisfies Record<string, ImageOptimizationOptions>;
 
@@ -56,16 +64,16 @@ const nombreWebP = (name: string): string =>
 
 async function convertImageToWebP(
   file: File,
-  quality = WEBP_QUALITY,
-  maxWidth = MAX_IMAGE_WIDTH,
-  maxHeight = MAX_IMAGE_HEIGHT
+  quality = PORTFOLIO_WEBP_QUALITY,
+  maxWidth = PORTFOLIO_MAX_WIDTH,
+  maxHeight = PORTFOLIO_MAX_HEIGHT
 ): Promise<File> {
   const isWebP = file.type === 'image/webp' || /\.webp$/i.test(file.name);
   const isConvertible = file.type === 'image/jpeg' || file.type === 'image/png' || isWebP;
   if (!isConvertible) return file;
 
   try {
-    const bitmap = await createImageBitmap(file);
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
     const scale = Math.min(1, maxWidth / bitmap.width, maxHeight / bitmap.height);
     const width = Math.round(bitmap.width * scale);
     const height = Math.round(bitmap.height * scale);
@@ -85,6 +93,8 @@ async function convertImageToWebP(
       return file;
     }
 
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
 
