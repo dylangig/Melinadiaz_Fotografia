@@ -1,0 +1,155 @@
+/* Chatbot n8n · temática Melina Diaz Fotografía
+   Este archivo se importa DESPUÉS de '@n8n/chat/style.css' para que gane
+   por orden + especificidad.
+   OJO (verificado en DevTools): Vue fusiona la clase .n8n-chat SOBRE el mismo
+   div.chat-window-wrapper, así que NO sirven selectores con descendencia
+   tipo `.n8n-chat .chat-window-wrapper`. Se usan las clases directas. */
+
+/* Variables sobre .n8n-chat (= el propio wrapper): heredan a todo el widget */
+.n8n-chat {
+  --chatbot-logo-url: url('/assets/chatbot-logo.jpg');
+  --chat--color--primary: #d81b60;
+  --chat--color--primary-shade-50: #ec407a;
+  --chat--color--primary--shade-100: #ad1457;
+  --chat--color--secondary: #880e4f;
+  --chat--color-dark: #4a0e25;
+  --chat--header--background: linear-gradient(135deg, #880e4f 0%, #d81b60 100%);
+  --chat--header--color: #fff6f8;
+  --chat--header--padding: 14px 16px;
+  --chat--header-height: auto;
+  --chat--font-family: 'Inter', sans-serif;
+  --chat--heading--font-size: 1rem;
+  --chat--subtitle--font-size: 0.78rem;
+  --chat--message--bot--background: #fff0f5;
+  --chat--message--bot--border: #f8bbd0;
+  --chat--message--bot--color: #4a0e25;
+  --chat--message--user--background: #d81b60;
+  --chat--message--user--color: #ffffff;
+  --chat--message--border-radius: 14px;
+  --chat--message--font-size: 0.85rem;
+  --chat--message--padding: 10px 12px;
+  --chat--input--border-radius: 14px;
+  --chat--input--font-size: 0.85rem;
+  --chat--input--send--button--background: #d81b60;
+  --chat--input--send--button--background-hover: #880e4f;
+  --chat--toggle--background: #d81b60;
+  --chat--toggle--hover--background: #880e4f;
+  --chat--toggle--active--background: #880e4f;
+  --chat--toggle--color: #ffffff;
+  --chat--toggle--size: 64px;
+  --chat--toggle--width: 64px;
+  --chat--toggle--height: 64px;
+  --chat--window--width: 400px;
+  --chat--window--height: 600px;
+  --chat--window--border-radius: 20px;
+  --chat--window--border: 1px solid #f8bbd0;
+  --chat--border-radius: 20px;
+}
+
+/* Posición abajo-derecha (lugar clásico del chat; WhatsApp está desactivado) */
+.chat-window-wrapper {
+  right: 1rem !important;
+  left: auto !important;
+  bottom: 1.25rem !important;
+}
+
+.chat-window-wrapper .chat-window {
+  font-family: 'Inter', sans-serif !important;
+  box-shadow: 0 22px 48px rgba(141, 26, 68, 0.18) !important;
+  overflow: hidden;
+  transform-origin: 100% 100% !important;
+}
+
+.chat-window-wrapper .chat-window-toggle {
+  width: 64px !important;
+  height: 64px !important;
+  box-shadow: 0 14px 28px rgba(136, 14, 79, 0.28) !important;
+  /* Mismo efecto glow que tenía el botón de WhatsApp, adaptado al rosa.
+     Solo anima el brillo (sin escala) para no pelearse con el hover. */
+  animation-name: chatbotPulse !important;
+  animation-duration: 2.5s !important;
+  animation-timing-function: ease-in-out !important;
+  animation-iteration-count: infinite !important;
+}
+
+@keyframes chatbotPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(216, 27, 96, 0.55), 0 14px 28px rgba(136, 14, 79, 0.28);
+  }
+  60% {
+    box-shadow: 0 0 0 18px rgba(216, 27, 96, 0), 0 14px 28px rgba(136, 14, 79, 0.28);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(216, 27, 96, 0), 0 14px 28px rgba(136, 14, 79, 0.28);
+  }
+}
+
+/* ── Reset scopleado: neutraliza los h1/h2/p globales de index.css ── */
+.chat-layout .chat-header .chat-heading h1 {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0.01em !important;
+  color: #fff6f8 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Logo redondo delante del título — foto fija en /assets/chatbot-logo.jpg.
+   La URL la setea ChatbotN8n.tsx. */
+.chat-layout .chat-header .chat-heading h1::before {
+  content: '' !important;
+  flex: none !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9999px !important;
+  background-color: #fff !important;
+  background-image: var(--chatbot-logo-url) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+.chat-layout .chat-header p {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12.5px !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+  color: rgba(255, 246, 248, 0.9) !important;
+  margin: 6px 0 0 !important;
+}
+
+/* Header con degradado rosa + radio superior */
+.chat-layout .chat-header {
+  background: linear-gradient(135deg, #880e4f 0%, #d81b60 100%) !important;
+  border-radius: 20px 20px 0 0 !important;
+}
+
+/* Cuerpo y mensajes legibles */
+.chat-body {
+  background: #fafafa !important;
+}
+
+.chat-message {
+  font-size: 13.5px !important;
+  line-height: 1.55 !important;
+}
+
+.chat-input {
+  font-size: 13.5px !important;
+}
+
+@media (max-width: 640px) {
+  .chat-window-wrapper {
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+  }
+  .chat-window-wrapper .chat-window {
+    width: 100% !important;
+    height: min(68vh, 540px) !important;
+  }
+}

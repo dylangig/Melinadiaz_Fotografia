@@ -1,7 +1,10 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import WhatsAppButton from './WhatsAppButton';
+// WhatsAppButton desactivado a pedido: el chatbot de n8n es ahora el único
+// canal flotante y deriva a WhatsApp con mensaje pre-armado.
+// import WhatsAppButton from './WhatsAppButton';
+import ChatbotN8n from './ChatbotN8n';
 
 export default function Layout() {
   return (
@@ -11,7 +14,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <WhatsAppButton />
+      <ChatbotN8n />
     </div>
   );
 }
