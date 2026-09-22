@@ -68,6 +68,8 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
         if (!faviconUrl) return;
         const link = document.getElementById('favicon') as HTMLLinkElement | null;
         if (link) link.href = faviconUrl;
+        const appleLink = document.getElementById('apple-touch-icon') as HTMLLinkElement | null;
+        if (appleLink) appleLink.href = faviconUrl;
       })
       .catch(() => {});
   }, []);
