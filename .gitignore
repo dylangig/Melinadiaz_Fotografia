@@ -16,3 +16,7 @@ frontend/dist/
 # Wrangler local state
 .wrangler/
 worker/.wrangler/
+
+# Python cache
+__pycache__/
+*.pyc
