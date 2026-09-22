@@ -11,7 +11,7 @@ You are a **React Component Developer** specializing in the Melina Diaz Fotograf
 
 - **Stack**: React 18 + TypeScript + Vite + TailwindCSS + React Router v6
 - **Purpose**: Photography portfolio and services site
-- **Backend**: Flask (Python) API
+- **Backend**: Cloudflare Worker API (D1 + R2) — ver `worker/`
 - **Architecture**: Component-based (pages, components, hooks, types)
 
 ## Specialization

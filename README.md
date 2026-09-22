@@ -9,25 +9,23 @@ Sitio web profesional para **Melina Diaz Fotografía**: portfolio y reserva de s
 | Capa | Tecnología |
 |---|---|
 | Frontend | React + TypeScript + Vite + Tailwind CSS |
-| Backend local | Flask (Python) + Cloudflare R2 para imágenes |
-| Backend producción | Cloudflare Worker + D1 + R2 |
-| Deploy frontend | Cloudflare Pages |
+| API | Cloudflare Worker + D1 + R2 (dev local con `wrangler dev`) |
+| Deploy frontend | Cloudflare Pages (auto-deploy desde `main`) |
 | Chatbot | Widget [@n8n/chat](https://www.npmjs.com/package/@n8n/chat) conectado a un workflow de n8n |
 
 ## Estructura
 
 ```
 Melinadiaz_Fotografia/
-├── app.py                  # Backend Flask (desarrollo local)
-├── requirements.txt        # Dependencias Python
 ├── frontend/               # React + Vite + Tailwind
 │   ├── src/
-│   │   ├── components/     # Navbar, Footer, Layout, ChatbotN8n, WhatsAppButton...
+│   │   ├── components/     # Navbar, Footer, Layout, ChatbotN8n
 │   │   ├── pages/          # Inicio, Categoria, TrabajoDetalle, Servicios, SobreMi, Contacto, Admin
 │   │   ├── hooks/          # useApi, useSEO, useFavicon
 │   │   └── context/        # ConfigContext (marca, logo, WhatsApp...)
-│   └── public/assets/      # Assets estáticos (logo del chatbot, flores del footer...)
-├── worker/                 # Cloudflare Worker (API de producción + D1)
+│   └── public/             # Assets estáticos (fallbacks, flores del footer...)
+├── worker/                 # Cloudflare Worker (API + D1 + R2)
+│   └── migrations/         # Migraciones de D1
 └── DEVELOPMENT.md          # Guía de desarrollo local
 ```
 ## Licencia

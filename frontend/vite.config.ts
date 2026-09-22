@@ -6,7 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        // Worker local (npx wrangler dev dentro de /worker)
+        target: 'http://localhost:8787',
         changeOrigin: true,
       }
     }

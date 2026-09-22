@@ -154,12 +154,3 @@ export async function adminCheck(): Promise<boolean> {
   const res = await apiFetch('/api/admin/check');
   return res.ok;
 }
-
-// ── Admin: fetch helper con FormData ─────────────────────────────────────────
-export async function adminPost(endpoint: string, formData: FormData) {
-  const res = await apiFetch(`/api/admin/${endpoint}`, {
-    method: 'POST',
-    body: formData,
-  });
-  return res.json();
-}

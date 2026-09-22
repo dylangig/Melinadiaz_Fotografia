@@ -112,12 +112,6 @@ El frontend se despliega en Cloudflare Pages. La API principal es el Cloudflare 
 
 El archivo `frontend/public/_redirects` contiene reglas usadas por Cloudflare Pages para la SPA y para derivar `sitemap.xml` y `robots.txt` al Worker.
 
-## Legacy
+## Licencia
 
-Los siguientes archivos quedan como referencia histórica del backend anterior y no son el flujo principal actual:
-
-- `app.py`
-- `requirements.txt`
-- `frontend/API_ENDPOINTS_AGREGAR_A_APP_PY.py`
-
-No usar Flask, Railway o Vercel como referencia principal para desarrollo o deploy salvo que se indique explícitamente.
+© Melina Diaz Fotografía — Todos los derechos reservados.
