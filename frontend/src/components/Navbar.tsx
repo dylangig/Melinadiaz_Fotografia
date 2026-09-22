@@ -121,6 +121,25 @@ export default function Navbar() {
 
   const galeriasActiva = location.pathname.startsWith('/galeria');
 
+  const renderNavLink = ({ to, label }: { to: string; label: string }) => (
+    <NavLink
+      key={to}
+      to={to}
+      end={to === '/'}
+      className={({ isActive }) =>
+        `relative pb-1 leading-tight font-medium uppercase tracking-wide lining-nums transition-colors duration-300 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-pink-500 after:transition-all after:duration-300 after:ease-out ${
+          scrolled ? 'text-sm lg:text-base' : 'text-base'
+        } ${
+          isActive
+            ? 'text-pink-500 after:w-full'
+            : 'text-[#2A2A2A] after:w-0 hover:text-pink-500 hover:after:w-full'
+        }`
+      }
+    >
+      {label}
+    </NavLink>
+  );
+
   return (
     <>
     <div className="hidden h-36 min-[769px]:block" aria-hidden="true" />
@@ -137,7 +156,9 @@ export default function Navbar() {
       }`}>
         {/* Desktop */}
         <div
-          className={`hidden min-[769px]:flex overflow-hidden transition-[height,padding] duration-300 ease-out ${
+          className={`hidden min-[769px]:flex transition-[height,padding] duration-300 ease-out ${
+            galeriasOpen ? 'overflow-visible' : 'overflow-hidden'
+          } ${
             scrolled
               ? 'h-16 flex-row items-center justify-between py-2'
               : 'h-36 flex-col items-center justify-center py-2'
@@ -157,24 +178,8 @@ export default function Navbar() {
           </Link>
           <div className={`flex items-center transition-all duration-300 ease-out ${scrolled ? 'justify-end gap-6' : 'justify-center'}`}>
             <nav className={`flex items-center transition-[gap] duration-300 ease-out ${scrolled ? 'gap-6 lg:gap-8' : 'gap-8'}`}>
-              {staticLinks.map(({ to, label }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={to === '/'}
-                  className={({ isActive }) =>
-                    `relative pb-1 leading-tight font-medium uppercase tracking-wide lining-nums transition-colors duration-300 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-pink-500 after:transition-all after:duration-300 after:ease-out ${
-                      scrolled ? 'text-sm lg:text-base' : 'text-base'
-                    } ${
-                      isActive
-                        ? 'text-pink-500 after:w-full'
-                        : 'text-[#2A2A2A] after:w-0 hover:text-pink-500 hover:after:w-full'
-                    }`
-                  }
-                >
-                  {label}
-                </NavLink>
-              ))}
+              {/* Orden: Inicio · Galerías · Servicios · Sobre mí · Contacto */}
+              {staticLinks.slice(0, 1).map(renderNavLink)}
 
               {/* Desplegable de Galerías (categorías dinámicas desde la API) */}
               {categorias.length > 0 && (
@@ -228,6 +233,8 @@ export default function Navbar() {
                   )}
                 </div>
               )}
+
+              {staticLinks.slice(1).map(renderNavLink)}
             </nav>
             <a
               href={`https://wa.me/${whatsapp}`}
