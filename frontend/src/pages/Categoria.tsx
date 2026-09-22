@@ -1,28 +1,19 @@
 import { Link, useParams } from 'react-router-dom';
-import { useTrabajos } from '../hooks/useApi';
+import { useTrabajos, useCategorias } from '../hooks/useApi';
 import { useSEO } from '../hooks/useSEO';
 
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
 
-const NOMBRES: Record<string, string> = {
-  infantil: 'Book Infantil',
-  quince:   '15 Años',
-  bodas:    'Bodas',
-};
-
-const DESCRIPCIONES: Record<string, string> = {
-  infantil: 'books infantiles',
-  quince:   '15 años',
-  bodas:    'bodas',
-};
-
 export default function Categoria() {
   const { categoriaSlug = '' } = useParams();
   const { trabajos, loading }  = useTrabajos(categoriaSlug);
-  const nombre = NOMBRES[categoriaSlug] ?? categoriaSlug;
+  const { categorias } = useCategorias();
+  // Nombre real desde la API (mientras carga se muestra el slug)
+  const nombre = categorias.find(c => c.slug === categoriaSlug)?.nombre ?? categoriaSlug;
+  const nombreLower = nombre.toLowerCase();
   useSEO({
     title: `${nombre} | Melina Diaz Fotografía`,
-    description: `Galería de ${DESCRIPCIONES[categoriaSlug] ?? nombre.toLowerCase()} en Zona Sur Buenos Aires. Fotógrafa profesional.`,
+    description: `Galería de ${nombreLower} en Zona Sur Buenos Aires. Fotógrafa profesional.`,
   });
 
   return (
@@ -77,7 +68,7 @@ export default function Categoria() {
           ¿Querés una sesión como estas?
         </h3>
         <p className="text-gray-600 text-base mb-8 leading-relaxed">
-          Consultá disponibilidad y coordinamos tu sesión de {DESCRIPCIONES[categoriaSlug] ?? nombre.toLowerCase()} en Zona Sur Buenos Aires.
+          Consultá disponibilidad y coordinamos tu sesión de {nombreLower} en Zona Sur Buenos Aires.
         </p>
         <Link
           to="/contacto"

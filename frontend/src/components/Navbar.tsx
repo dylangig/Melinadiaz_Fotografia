@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useConfig } from '../context/ConfigContext';
+import { useCategorias } from '../hooks/useApi';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -8,8 +9,11 @@ export default function Navbar() {
   const lastScrollY = useRef(0);
   const compactRef = useRef(false);
   const rafId = useRef<number | null>(null);
+  const galeriasRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const { logo_url, nombre_marca, whatsapp } = useConfig();
+  const { categorias } = useCategorias();
+  const [galeriasOpen, setGaleriasOpen] = useState(false);
 
   useEffect(() => {
     const NORMAL_UNTIL = 80;
@@ -73,21 +77,49 @@ export default function Navbar() {
 
   useEffect(() => {
     setOpen(false);
+    setGaleriasOpen(false);
   }, [location.pathname]);
+
+  // Cerrar el desplegable de Galerías al hacer click afuera o con Escape
+  useEffect(() => {
+    if (!galeriasOpen) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      if (galeriasRef.current && !galeriasRef.current.contains(e.target as Node)) {
+        setGaleriasOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setGaleriasOpen(false);
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [galeriasOpen]);
 
   // Isolated landing: en contacto no se muestra la navbar global
   if (location.pathname === '/contacto') return null;
   const isHome = location.pathname === '/';
 
-  const links = [
+  const staticLinks = [
     { to: '/', label: 'Inicio' },
-    { to: '/galeria/infantil', label: 'Book Infantil' },
-    { to: '/galeria/quince', label: '15 Años' },
-    { to: '/galeria/bodas', label: 'Bodas' },
     { to: '/servicios', label: 'Servicios' },
     { to: '/sobre-mi', label: 'Sobre mí' },
     { to: '/contacto', label: 'Contacto' },
   ];
+
+  // Menú mobile: estáticas + todas las categorías desde la API
+  const links = [
+    { to: '/', label: 'Inicio' },
+    ...categorias.map(cat => ({ to: `/galeria/${cat.slug}`, label: cat.nombre })),
+    { to: '/servicios', label: 'Servicios' },
+    { to: '/sobre-mi', label: 'Sobre mí' },
+    { to: '/contacto', label: 'Contacto' },
+  ];
+
+  const galeriasActiva = location.pathname.startsWith('/galeria');
 
   return (
     <>
@@ -125,7 +157,7 @@ export default function Navbar() {
           </Link>
           <div className={`flex items-center transition-all duration-300 ease-out ${scrolled ? 'justify-end gap-6' : 'justify-center'}`}>
             <nav className={`flex items-center transition-[gap] duration-300 ease-out ${scrolled ? 'gap-6 lg:gap-8' : 'gap-8'}`}>
-              {links.map(({ to, label }) => (
+              {staticLinks.map(({ to, label }) => (
                 <NavLink
                   key={to}
                   to={to}
@@ -143,6 +175,59 @@ export default function Navbar() {
                   {label}
                 </NavLink>
               ))}
+
+              {/* Desplegable de Galerías (categorías dinámicas desde la API) */}
+              {categorias.length > 0 && (
+                <div className="relative" ref={galeriasRef}>
+                  <button
+                    type="button"
+                    onClick={() => setGaleriasOpen(v => !v)}
+                    aria-haspopup="menu"
+                    aria-expanded={galeriasOpen}
+                    className={`relative pb-1 leading-tight font-medium uppercase tracking-wide lining-nums transition-colors duration-300 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-pink-500 after:transition-all after:duration-300 after:ease-out cursor-pointer ${
+                      scrolled ? 'text-sm lg:text-base' : 'text-base'
+                    } ${
+                      galeriasActiva
+                        ? 'text-pink-500 after:w-full'
+                        : 'text-[#2A2A2A] after:w-0 hover:text-pink-500 hover:after:w-full'
+                    }`}
+                  >
+                    Galerías
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 10 6"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      className={`inline-block ml-1 h-2.5 w-2.5 transition-transform duration-200 ${galeriasOpen ? 'rotate-180' : ''}`}
+                    >
+                      <path d="M1 1l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {galeriasOpen && (
+                    <div
+                      role="menu"
+                      className="absolute left-0 top-full z-50 mt-2 min-w-[240px] overflow-hidden rounded-xl border border-[#F3B8CA] bg-[#FFF3F6] shadow-[0_12px_32px_rgba(159,18,57,0.15)]"
+                    >
+                      {categorias.map(cat => (
+                        <Link
+                          key={cat.slug}
+                          to={`/galeria/${cat.slug}`}
+                          role="menuitem"
+                          className={`block px-5 py-3 text-xs font-bold uppercase tracking-widest lining-nums transition-colors ${
+                            location.pathname === `/galeria/${cat.slug}`
+                              ? 'bg-[#F8EDEE] text-[#D81B60]'
+                              : 'text-[#8A3D5A]/85 hover:bg-[#F8EDEE] hover:text-[#D81B60]'
+                          }`}
+                        >
+                          {cat.nombre}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </nav>
             <a
               href={`https://wa.me/${whatsapp}`}
@@ -186,7 +271,7 @@ export default function Navbar() {
       </div>
 
       <div className={`overflow-hidden transition-all duration-300 bg-[#FFF3F6] border-t border-[#F3B8CA] min-[769px]:hidden ${
-        open ? 'max-h-[448px]' : 'max-h-0'
+        open ? 'max-h-[760px]' : 'max-h-0'
       }`}>
         {links.map(({ to, label }) => (
           <NavLink

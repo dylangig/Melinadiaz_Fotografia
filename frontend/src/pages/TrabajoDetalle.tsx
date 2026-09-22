@@ -1,27 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import type { TouchEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useTrabajoDetalle, useTrabajos } from '../hooks/useApi';
+import { useTrabajoDetalle, useTrabajos, useCategorias } from '../hooks/useApi';
 
 const R2 = 'https://imagenes.melinadiazfotografia.com.ar';
-
-const NOMBRES: Record<string, string> = {
-  infantil: 'Book Infantil',
-  quince:   '15 Años',
-  bodas:    'Bodas',
-};
 
 export default function TrabajoDetalle() {
   const { categoriaSlug = '', trabajoSlug = '' } = useParams();
   const { trabajo, loading, error } = useTrabajoDetalle(categoriaSlug, trabajoSlug);
   const { trabajos } = useTrabajos(categoriaSlug);
+  const { categorias } = useCategorias();
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const didSwipeRef = useRef(false);
-  const nombre = NOMBRES[categoriaSlug] ?? categoriaSlug;
+  // Nombre real de la categoría desde la API (fallback: el slug)
+  const nombre = categorias.find(c => c.slug === categoriaSlug)?.nombre ?? categoriaSlug;
   const totalFotos = trabajo?.fotos.length ?? 0;
 
   useEffect(() => {
