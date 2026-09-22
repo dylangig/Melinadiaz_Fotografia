@@ -13,9 +13,12 @@ export default function TrabajoDetalle() {
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const closeBtnRef = useRef<HTMLButtonElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const didSwipeRef = useRef(false);
+  const lightboxAbierto = lightbox !== null;
   // Nombre real de la categoría desde la API (fallback: el slug)
   const nombre = categorias.find(c => c.slug === categoriaSlug)?.nombre ?? categoriaSlug;
   const totalFotos = trabajo?.fotos.length ?? 0;
@@ -65,6 +68,22 @@ export default function TrabajoDetalle() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightbox, totalFotos]);
+
+  // Lightbox accesible: al abrir mueve el foco al botón de cerrar y bloquea el
+  // scroll de la página; al cerrar devuelve el foco a la miniatura que lo abrió.
+  useEffect(() => {
+    if (!lightboxAbierto) return;
+
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.body.style.overflow = 'hidden';
+    closeBtnRef.current?.focus();
+
+    return () => {
+      document.body.style.overflow = '';
+      const opener = openerRef.current;
+      if (opener && document.contains(opener)) opener.focus();
+    };
+  }, [lightboxAbierto]);
 
   useEffect(() => {
     if (!trabajo) return;
@@ -207,10 +226,12 @@ export default function TrabajoDetalle() {
       {/* Grilla de fotos */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
         {fotosVisibles.map((foto, i) => (
-          <div
+          <button
             key={foto}
-            className="group relative aspect-square overflow-hidden rounded bg-pink-50 cursor-pointer transition-all duration-200 hover:shadow-xl"
+            type="button"
+            className="group relative block aspect-square w-full overflow-hidden rounded border-0 bg-pink-50 p-0 cursor-pointer transition-all duration-200 hover:shadow-xl"
             onClick={() => setLightbox(i)}
+            aria-label={`Ampliar foto ${i + 1} de ${trabajo.fotos.length}`}
           >
             <img
               src={imgUrl(foto)}
@@ -220,7 +241,7 @@ export default function TrabajoDetalle() {
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="pointer-events-none absolute inset-0 bg-black/45 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-          </div>
+          </button>
         ))}
       </div>
 
@@ -276,21 +297,29 @@ export default function TrabajoDetalle() {
       {/* Lightbox */}
       {lightbox !== null && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Foto ${lightbox + 1} de ${trabajo.fotos.length} en pantalla completa`}
           className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
           onClick={handleLightboxClick}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <button
+            ref={closeBtnRef}
+            type="button"
+            aria-label="Cerrar vista ampliada"
             className="absolute top-5 left-6 text-white text-5xl font-thin leading-none hover:text-pink-300 transition-colors text-shadow-lg"
             onClick={cerrarLightbox}
           >×</button>
 
-          <div className="absolute top-5 right-6 rounded-full bg-black/35 px-4 py-2 text-sm text-white/80 text-shadow-md">
+          <div aria-live="polite" className="absolute top-5 right-6 rounded-full bg-black/35 px-4 py-2 text-sm text-white/80 text-shadow-md">
             {lightbox + 1} / {trabajo.fotos.length}
           </div>
 
           <button
+            type="button"
+            aria-label="Foto anterior"
             className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-6xl font-thin hover:text-pink-300 transition-colors text-shadow-lg"
             onClick={e => { e.stopPropagation(); irFotoAnterior(); }}
           >‹</button>
@@ -308,6 +337,8 @@ export default function TrabajoDetalle() {
           />
 
           <button
+            type="button"
+            aria-label="Foto siguiente"
             className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-6xl font-thin hover:text-pink-300 transition-colors text-shadow-lg"
             onClick={e => { e.stopPropagation(); irFotoSiguiente(); }}
           >›</button>

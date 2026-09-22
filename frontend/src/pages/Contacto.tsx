@@ -162,40 +162,49 @@ export default function Contacto() {
           {/* Nombre + Teléfono */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">Nombre</label>
+              <label htmlFor="contacto-nombre" className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">Nombre</label>
               <input
                 type="text"
+                id="contacto-nombre"
                 placeholder="Tu nombre"
                 maxLength={50}
                 value={nombre}
                 onChange={e => { setNombre(e.target.value); clearError('nombre'); }}
+                aria-invalid={Boolean(errors.nombre)}
+                aria-describedby={errors.nombre ? 'contacto-error-nombre' : undefined}
                 className={`w-full px-4 py-4 border-[1.5px] rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-700/10 transition-all ${
                   errors.nombre ? 'border-red-300 bg-red-50/40' : 'border-pink-100 focus:border-pink-700'
                 }`}
               />
-              {errors.nombre && <p className="mt-2 text-[11px] font-semibold text-red-500">{errors.nombre}</p>}
+              {errors.nombre && <p id="contacto-error-nombre" role="alert" className="mt-2 text-[11px] font-semibold text-red-500">{errors.nombre}</p>}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">Teléfono</label>
+              <label htmlFor="contacto-telefono" className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">Teléfono</label>
               <input
                 type="tel"
+                id="contacto-telefono"
                 placeholder="+54 9 11..."
                 maxLength={20}
                 value={telefono}
                 onChange={e => { setTelefono(e.target.value); clearError('telefono'); }}
+                aria-invalid={Boolean(errors.telefono)}
+                aria-describedby={errors.telefono ? 'contacto-error-telefono' : undefined}
                 className={`w-full px-4 py-4 border-[1.5px] rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-700/10 transition-all ${
                   errors.telefono ? 'border-red-300 bg-red-50/40' : 'border-pink-100 focus:border-pink-700'
                 }`}
               />
-              {errors.telefono && <p className="mt-2 text-[11px] font-semibold text-red-500">{errors.telefono}</p>}
+              {errors.telefono && <p id="contacto-error-telefono" role="alert" className="mt-2 text-[11px] font-semibold text-red-500">{errors.telefono}</p>}
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">¿Qué tipo de sesión querés?</label>
+            <label htmlFor="contacto-tipo" className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">¿Qué tipo de sesión querés?</label>
             <select
+              id="contacto-tipo"
               value={tipo}
               onChange={e => { setTipo(e.target.value); clearError('tipo'); }}
+              aria-invalid={Boolean(errors.tipo)}
+              aria-describedby={errors.tipo ? 'contacto-error-tipo' : undefined}
               className={`w-full px-4 py-4 border-[1.5px] rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-700/10 transition-all ${
                 errors.tipo ? 'border-red-300 bg-red-50/40' : 'border-pink-100 focus:border-pink-700'
               }`}
@@ -206,13 +215,14 @@ export default function Contacto() {
               <option value="Boda">Boda</option>
               <option value="Otro">Otro</option>
             </select>
-            {errors.tipo && <p className="mt-2 text-[11px] font-semibold text-red-500">{errors.tipo}</p>}
+            {errors.tipo && <p id="contacto-error-tipo" role="alert" className="mt-2 text-[11px] font-semibold text-red-500">{errors.tipo}</p>}
           </div>
 
           <div className="mb-4">
-            <label className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">¿Cuándo sería el evento?</label>
+            <label htmlFor="contacto-fecha" className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">¿Cuándo sería el evento?</label>
             <input
               type="date"
+              id="contacto-fecha"
               value={fecha}
               onChange={e => setFecha(e.target.value)}
               className="w-full px-4 py-4 border-[1.5px] border-pink-100 rounded-xl text-sm text-gray-700 focus:outline-none focus:border-pink-700 focus:ring-2 focus:ring-pink-700/10 transition-all"
@@ -220,8 +230,9 @@ export default function Contacto() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">Contame sobre tu evento</label>
+            <label htmlFor="contacto-consulta" className="block text-[11px] font-bold text-gray-400 tracking-[1.5px] uppercase mb-2">Contame sobre tu evento</label>
             <textarea
+              id="contacto-consulta"
               placeholder="Cuántas personas, lugar que tenías en mente, algún detalle especial..."
               maxLength={500}
               value={consulta}
@@ -239,7 +250,7 @@ export default function Contacto() {
           </button>
 
           {success && (
-            <div className="mt-4 rounded-2xl border border-green-100 bg-green-50 px-4 py-4 text-sm font-semibold leading-relaxed text-green-700">
+            <div role="status" className="mt-4 rounded-2xl border border-green-100 bg-green-50 px-4 py-4 text-sm font-semibold leading-relaxed text-green-700">
               {success}
             </div>
           )}

@@ -89,7 +89,11 @@ export default function Navbar() {
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setGaleriasOpen(false);
+      if (e.key === 'Escape') {
+        setGaleriasOpen(false);
+        // Devolver el foco al botón para que no se pierda al cerrarse el menú
+        galeriasRef.current?.querySelector('button')?.focus();
+      }
     };
     document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('keydown', handleKeyDown);
