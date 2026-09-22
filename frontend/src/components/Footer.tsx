@@ -1,9 +1,6 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
-  const location = useLocation();
-  if (location.pathname === '/contacto') return null;
-
   return (
     <footer className="relative mt-20 overflow-hidden bg-pink-950 text-pink-50">
       <div className="relative overflow-hidden">

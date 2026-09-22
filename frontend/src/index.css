@@ -25,25 +25,25 @@
   /* Playfair para todos los títulos por defecto */
   h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(2.5rem, 5vw, 4.5rem) !important;
-    font-weight: 700 !important;
-    line-height: 1.1 !important;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.1;
     color: #1F1F1F;
   }
 
   h2 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(1.75rem, 3vw, 2.5rem) !important;
-    font-weight: 600 !important;
-    line-height: 1.2 !important;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.2;
     color: #1F1F1F;
   }
 
   h3 {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 1.125rem !important;
-    font-weight: 500 !important;
-    line-height: 1.35 !important;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.35;
     color: #1F1F1F;
   }
 

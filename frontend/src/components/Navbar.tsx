@@ -75,7 +75,6 @@ export default function Navbar() {
     setOpen(false);
   }, [location.pathname]);
 
-  if (location.pathname === '/contacto') return null;
   const isHome = location.pathname === '/';
 
   const links = [

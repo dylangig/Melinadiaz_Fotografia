@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin
 
-Sitemap: https://melinadiazfotografia.com.ar/sitemap.xml
+Sitemap: https://melina-worker.dylangigenadiaz.workers.dev/sitemap.xml
