@@ -1,12 +1,21 @@
-import { Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
-// WhatsAppButton desactivado a pedido: el chatbot de n8n es ahora el único
-// canal flotante y deriva a WhatsApp con mensaje pre-armado.
-// import WhatsAppButton from './WhatsAppButton';
 import ChatbotN8n from './ChatbotN8n';
+import { useConfig } from '../context/ConfigContext';
 
 export default function Layout() {
+  const { recargar } = useConfig();
+  const location = useLocation();
+
+  // Refrescar la config al navegar: cambios hechos en el admin (WhatsApp,
+  // hero, nombre) se ven sin recargar la página. Al montar comparte el
+  // mismo request que ya dispara ConfigProvider.
+  useEffect(() => {
+    recargar();
+  }, [location.pathname, recargar]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
       <Navbar />

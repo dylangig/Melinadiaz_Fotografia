@@ -1,5 +1,6 @@
 // hooks/useApi.ts — versión para Cloudflare Worker (JWT en vez de cookie de sesión)
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { Categoria, Trabajo, Servicio } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -28,17 +29,42 @@ function apiFetch(path: string, options: RequestInit = {}) {
 }
 
 // ── Categorías ──────────────────────────────────────────────────────────────
+// Navbar y Footer piden categorías al mismo tiempo → se comparte una única
+// promise (un solo request). Cada cambio de ruta dispara un refetch, así lo
+// creado en el admin aparece en el menú sin recargar la página.
+let categoriasPromise: Promise<Categoria[]> | null = null;
+
+function fetchCategorias(): Promise<Categoria[]> {
+  if (!categoriasPromise) {
+    categoriasPromise = apiFetch('/api/categorias')
+      .then(r => r.json())
+      .finally(() => { categoriasPromise = null; });
+  }
+  return categoriasPromise;
+}
+
 export function useCategorias() {
+  const location = useLocation();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch('/api/categorias')
-      .then(r => r.json())
-      .then(data => { setCategorias(data); setLoading(false); })
-      .catch(() => { setError('No se pudieron cargar las categorías'); setLoading(false); });
-  }, []);
+    let cancelado = false;
+    fetchCategorias()
+      .then(data => {
+        if (cancelado) return;
+        setCategorias(data);
+        setError(null);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelado) return;
+        setError('No se pudieron cargar las categorías');
+        setLoading(false);
+      });
+    return () => { cancelado = true; };
+  }, [location.pathname]);
 
   return { categorias, loading, error };
 }

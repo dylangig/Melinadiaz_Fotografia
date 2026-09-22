@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 export interface Config {
   logo_url: string;
@@ -28,7 +28,16 @@ const DEFAULT_CONFIG: Config = {
   seo_descripcion: 'Fotografía profesional de books infantiles, 15 años y bodas en Zona Sur Buenos Aires.',
 };
 
-export const ConfigContext = createContext<Config>(DEFAULT_CONFIG);
+export interface ConfigContextValue extends Config {
+  // Refresca la config desde la API (cambios hechos en el admin se ven
+  // sin recargar la página). Las llamadas simultáneas comparten un request.
+  recargar: () => Promise<void>;
+}
+
+export const ConfigContext = createContext<ConfigContextValue>({
+  ...DEFAULT_CONFIG,
+  recargar: () => Promise.resolve(),
+});
 
 const normalizarUrlImagen = (value: string): string => {
   const raw = value.trim();
@@ -54,11 +63,14 @@ const pickConfig = (data: unknown): Config => {
   return next;
 };
 
+let configPromise: Promise<void> | null = null;
+
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || ''}/api/configuracion`, { cache: 'no-store' })
+  const recargar = useCallback(() => {
+    if (configPromise) return configPromise;
+    configPromise = fetch(`${import.meta.env.VITE_API_URL || ''}/api/configuracion`, { cache: 'no-store' })
       .then(r => { if (r.ok) return r.json(); throw new Error(); })
       .then(data => {
         const next = pickConfig(data);
@@ -71,11 +83,24 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
         const appleLink = document.getElementById('apple-touch-icon') as HTMLLinkElement | null;
         if (appleLink) appleLink.href = faviconUrl;
       })
-      .catch(() => {});
+      .catch(() => { /* sin red seguimos con la config actual */ })
+      .finally(() => { configPromise = null; });
+    return configPromise;
   }, []);
 
+  useEffect(() => { recargar(); }, [recargar]);
+
+  // Al volver a la pestaña: refrescar cambios hechos desde el admin en otra pestaña
+  useEffect(() => {
+    const alVolver = () => { if (!document.hidden) recargar(); };
+    document.addEventListener('visibilitychange', alVolver);
+    return () => document.removeEventListener('visibilitychange', alVolver);
+  }, [recargar]);
+
+  const value = useMemo(() => ({ ...config, recargar }), [config, recargar]);
+
   return (
-    <ConfigContext.Provider value={config}>
+    <ConfigContext.Provider value={value}>
       {children}
     </ConfigContext.Provider>
   );
