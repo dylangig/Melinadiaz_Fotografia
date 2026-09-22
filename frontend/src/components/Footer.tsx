@@ -28,14 +28,14 @@ export default function Footer() {
     <footer className="relative mt-20 overflow-hidden bg-pink-950 text-pink-50">
       <div className="relative overflow-hidden">
       <img
-        src="/assets/footer-flower-left.png"
+        src="/assets/footer-flower-left.webp"
         alt=""
         aria-hidden="true"
         onError={e => { e.currentTarget.style.display = 'none'; }}
         className="pointer-events-none absolute bottom-0 left-[-10px] z-0 w-[140px] select-none opacity-[0.12] min-[769px]:w-[220px] min-[769px]:opacity-[0.20] lg:w-[260px]"
       />
       <img
-        src="/assets/footer-flower-right.png"
+        src="/assets/footer-flower-right.webp"
         alt=""
         aria-hidden="true"
         onError={e => { e.currentTarget.style.display = 'none'; }}

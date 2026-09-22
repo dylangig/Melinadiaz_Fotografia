@@ -39,8 +39,8 @@ const conCacheBuster = (url: string, version: number): string =>
 const PORTFOLIO_WEBP_QUALITY = 0.85;
 const PORTFOLIO_MAX_WIDTH = 2200;
 const PORTFOLIO_MAX_HEIGHT = 2200;
-const HERO_WEBP_QUALITY = 0.87;
-const HERO_MAX_WIDTH = 2400;
+const HERO_WEBP_QUALITY = 0.85;
+const HERO_MAX_WIDTH = 1920;
 const HERO_MAX_HEIGHT = 1600;
 const THUMBNAIL_WEBP_QUALITY = 0.82;
 const THUMBNAIL_MAX_WIDTH = 900;
@@ -56,7 +56,8 @@ const IMAGE_PRESETS = {
   gallery: { quality: PORTFOLIO_WEBP_QUALITY, maxWidth: PORTFOLIO_MAX_WIDTH, maxHeight: PORTFOLIO_MAX_HEIGHT },
   hero: { quality: HERO_WEBP_QUALITY, maxWidth: HERO_MAX_WIDTH, maxHeight: HERO_MAX_HEIGHT },
   thumbnail: { quality: THUMBNAIL_WEBP_QUALITY, maxWidth: THUMBNAIL_MAX_WIDTH, maxHeight: THUMBNAIL_MAX_HEIGHT },
-  logo: { quality: 0.9, maxWidth: 2400, maxHeight: 2400 },
+  // El logo se usa en la navbar (h-12) y como favicon: 1024px es holgado hasta para retina
+  logo: { quality: 0.85, maxWidth: 1024, maxHeight: 1024 },
 } satisfies Record<string, ImageOptimizationOptions>;
 
 const nombreWebP = (name: string): string =>

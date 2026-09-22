@@ -37,7 +37,9 @@ export default function ChatbotN8n() {
     if (chatInicializado && document.querySelector('.n8n-chat')) return;
 
     let cancelado = false;
-    (async () => {
+
+    const iniciarChat = async () => {
+      if (cancelado) return;
       try {
         // Import dinámico para no inflar el bundle inicial
         const { createChat } = await import('@n8n/chat');
@@ -74,10 +76,22 @@ export default function ChatbotN8n() {
       } catch (error) {
         console.error('Error cargando chatbot n8n:', error);
       }
-    })();
+    };
+
+    // El chunk de @n8n/chat pesa ~1,5 MB: se carga en idle para que no compita
+    // con el render inicial de la página.
+    let idleId: number | undefined;
+    let timerId: number | undefined;
+    if (typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(iniciarChat, { timeout: 4000 });
+    } else {
+      timerId = window.setTimeout(iniciarChat, 2000);
+    }
 
     return () => {
       cancelado = true;
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timerId !== undefined) window.clearTimeout(timerId);
     };
   }, [oculto]);
 

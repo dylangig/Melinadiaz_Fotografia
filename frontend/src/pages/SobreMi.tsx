@@ -13,7 +13,7 @@ const SOBRE_MI_DEFAULT: SobreMiData = {
     'Mi trabajo combina direccion suave, luz natural y una estetica cuidada para que cada sesion se sienta comoda, autentica y personal.',
     'Acompano books infantiles, quince anos, bodas y retratos familiares con la misma intencion: crear imagenes que puedan volver a emocionar con el paso del tiempo.',
   ].join('\n\n'),
-  fotoUrl: '/Gemini_Generated_Image_le3nj5le3nj5le3n.png',
+  fotoUrl: '/sobre-mi-fallback.webp',
   ctaTexto: '',
   ctaDestino: '',
 };
