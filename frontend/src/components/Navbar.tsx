@@ -75,6 +75,8 @@ export default function Navbar() {
     setOpen(false);
   }, [location.pathname]);
 
+  // Isolated landing: en contacto no se muestra la navbar global
+  if (location.pathname === '/contacto') return null;
   const isHome = location.pathname === '/';
 
   const links = [
