@@ -454,9 +454,9 @@ export default function Admin() {
   // ── Login ──────────────────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = await adminLogin(password);
+    const { ok, mensaje } = await adminLogin(password);
     if (ok) { setAuthed(true); cargarTodo(); }
-    else setLoginError('Contraseña incorrecta');
+    else setLoginError(mensaje ?? 'Contraseña incorrecta');
   };
 
   // ── Helpers ────────────────────────────────────────────────────────────────

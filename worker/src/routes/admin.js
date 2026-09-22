@@ -11,9 +11,65 @@ async function requireAdmin(request, env) {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
+// Rate limiting del login: máximo MAX_INTENTOS intentos fallidos por IP
+// dentro de VENTANA_MS. Si se supera, responde 429 con Retry-After.
+// Los intentos se guardan en D1 (Workers son stateless, no sirve memoria).
+const MAX_INTENTOS = 5;
+const VENTANA_MS    = 60_000;        // 1 minuto
+const LIMPIEZA_MS   = 3600_000;      // borrar registros de más de 1 hora
+
+async function rateLimitLogin(request, env) {
+  const ip = request.headers.get('cf-connecting-ip') || 'desconocida';
+  const ahora = Date.now();
+  try {
+    // Limpieza de registros viejos (acotada: solo corre en cada login)
+    await env.DB.prepare('DELETE FROM login_attempts WHERE ts < ?')
+      .bind(ahora - LIMPIEZA_MS).run();
+
+    const { results } = await env.DB.prepare(
+      'SELECT ts FROM login_attempts WHERE ip = ? AND ts >= ? ORDER BY ts ASC'
+    ).bind(ip, ahora - VENTANA_MS).all();
+
+    if (results.length >= MAX_INTENTOS) {
+      const primerIntento = results[0]?.ts ?? ahora;
+      const retryAfter = Math.max(Math.ceil((primerIntento + VENTANA_MS - ahora) / 1000), 1);
+      return { ip, bloqueado: true, retryAfter };
+    }
+    return { ip, bloqueado: false };
+  } catch (e) {
+    // Fail-open: si D1 falla (p.ej. migración no aplicada) no bloqueamos el
+    // login legítimo; igualmente se loguea el error.
+    console.error('Rate limit login indisponible:', e);
+    return { ip, bloqueado: false };
+  }
+}
+
 export async function adminLogin(request, env) {
+  const rl = await rateLimitLogin(request, env);
+  if (rl.bloqueado) {
+    return json(
+      { error: `Demasiados intentos. Probá de nuevo en ${rl.retryAfter} segundos.` },
+      429,
+      { 'Retry-After': String(rl.retryAfter) }
+    );
+  }
+
   const body = await request.json().catch(() => ({}));
-  if (body.password !== env.ADMIN_PASSWORD) return error('Contraseña incorrecta', 401);
+  const passwordOk = typeof body.password === 'string' && body.password === env.ADMIN_PASSWORD;
+
+  if (!passwordOk) {
+    // Registrar el intento fallido para el rate limiting
+    await env.DB.prepare('INSERT INTO login_attempts (ip, ts) VALUES (?, ?)')
+      .bind(rl.ip, Date.now()).run()
+      .catch(e => console.error('No se pudo registrar intento de login:', e));
+    return error('Contraseña incorrecta', 401);
+  }
+
+  // Login correcto: limpiar los intentos fallidos de esta IP
+  await env.DB.prepare('DELETE FROM login_attempts WHERE ip = ?')
+    .bind(rl.ip).run()
+    .catch(e => console.error('No se pudieron limpiar intentos de login:', e));
+
   const token = await generarToken(env.JWT_SECRET);
   return json({ ok: true, token });
 }

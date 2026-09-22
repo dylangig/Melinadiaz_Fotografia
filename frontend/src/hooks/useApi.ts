@@ -98,16 +98,28 @@ export function useServicios() {
 }
 
 // ── Admin: login ─────────────────────────────────────────────────────────────
-export async function adminLogin(password: string): Promise<boolean> {
+export interface LoginResultado {
+  ok: boolean;
+  mensaje?: string;
+}
+
+export async function adminLogin(password: string): Promise<LoginResultado> {
   const res = await apiFetch('/api/admin/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
   });
-  if (!res.ok) return false;
+  if (!res.ok) {
+    let mensaje = 'Contraseña incorrecta';
+    try {
+      const data = await res.json();
+      if (data?.error) mensaje = data.error;
+    } catch { /* sin cuerpo JSON */ }
+    return { ok: false, mensaje };
+  }
   const data = await res.json();
-  if (data.token) { setAdminToken(data.token); return true; }
-  return false;
+  if (data.token) { setAdminToken(data.token); return { ok: true }; }
+  return { ok: false, mensaje: 'Respuesta inesperada del servidor' };
 }
 
 // ── Admin: check sesión ───────────────────────────────────────────────────────
